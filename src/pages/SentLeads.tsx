@@ -1,11 +1,17 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Separator } from "@/components/ui/separator";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, MessageCircle, Phone, Mail, User, Clock, X } from "lucide-react";
+import { useState } from "react";
 
 const SentLeads = () => {
   const navigate = useNavigate();
+  const [isChatModalOpen, setIsChatModalOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [selectedTemplate, setSelectedTemplate] = useState("");
 
   const sentLeads = [
     {
@@ -18,7 +24,16 @@ const SentLeads = () => {
       status: "Connected",
       days: "2 days ago",
       rejection: "18% reject",
-      paid: "280"
+      paid: "280",
+      chatAccepted: true,
+      buyerDetails: {
+        name: "Rajesh Kumar",
+        phone: "+91 98765 43210",
+        email: "rajesh.kumar@email.com",
+        stage: "Ready to Buy",
+        requirement: "Looking for a luxury villa in prime location with modern amenities",
+        notes: "Prefers properties with garden space and parking for 2 cars"
+      }
     },
     {
       id: 2,
@@ -30,7 +45,16 @@ const SentLeads = () => {
       status: "Sent",
       days: "1 day ago",
       rejection: "20% reject",
-      paid: "220"
+      paid: "220",
+      chatAccepted: false,
+      buyerDetails: {
+        name: "Priya Sharma",
+        phone: "+91 87654 32109",
+        email: "priya.sharma@email.com",
+        stage: "Exploring Options",
+        requirement: "Commercial plot for business development",
+        notes: "Looking for plots near IT hubs"
+      }
     },
     {
       id: 3,
@@ -42,9 +66,44 @@ const SentLeads = () => {
       status: "Rejected",
       days: "5 days ago",
       rejection: "42% reject",
-      paid: "120"
+      paid: "120",
+      chatAccepted: true,
+      buyerDetails: {
+        name: "Amit Patel",
+        phone: "+91 76543 21098",
+        email: "amit.patel@email.com",
+        stage: "Budget Finalization",
+        requirement: "3BHK apartment with good connectivity",
+        notes: "Family of 4, needs good schools nearby"
+      }
     }
   ];
+
+  const messageTemplates = [
+    "Hello! I have shared a property that matches your requirements. Would you like to schedule a visit?",
+    "Thank you for your interest. I can arrange a property viewing at your convenience.",
+    "I have more similar properties available. Would you like to see additional options?",
+    "The property documentation is ready for review. When would be a good time to discuss?",
+    "I can provide more details about the amenities and neighborhood. Please let me know.",
+    "Would you like to discuss the financing options available for this property?"
+  ];
+
+  const handleChatOpen = (lead: any) => {
+    if (lead.chatAccepted) {
+      setSelectedLead(lead);
+      setIsChatModalOpen(true);
+    }
+  };
+
+  const handleSendTemplate = (template: string) => {
+    // Handle sending template message
+    console.log("Sending template:", template);
+    setSelectedTemplate("");
+  };
+
+  const handleHistoryView = () => {
+    console.log("View buyer history");
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -172,12 +231,161 @@ const SentLeads = () => {
                     <div className="text-yellow-500 font-semibold">{lead.paid}</div>
                     <div className="text-xs text-text-secondary">Paid</div>
                   </div>
+
+                  {/* Chat Button */}
+                  <Button
+                    onClick={() => handleChatOpen(lead)}
+                    disabled={!lead.chatAccepted}
+                    className={`flex items-center space-x-2 px-4 py-2 text-sm ${
+                      lead.chatAccepted
+                        ? "bg-easyestate-pink hover:bg-easyestate-pink-dark text-white"
+                        : "bg-gray-200 text-gray-400 cursor-not-allowed opacity-50"
+                    }`}
+                  >
+                    <MessageCircle className="w-4 h-4" />
+                    <span>Chat</span>
+                  </Button>
                 </div>
               </div>
             </Card>
           ))}
         </div>
       </div>
+
+      {/* Chat Modal */}
+      <Dialog open={isChatModalOpen} onOpenChange={setIsChatModalOpen}>
+        <DialogContent className="max-w-6xl h-[80vh] p-0 bg-white">
+          {selectedLead && (
+            <div className="flex h-full">
+              {/* Left Section - Buyer Details */}
+              <div className="w-1/3 bg-gray-50 p-6 border-r border-gray-200">
+                <DialogHeader className="mb-6">
+                  <div className="flex items-center justify-between">
+                    <DialogTitle className="text-lg font-semibold text-text-primary">
+                      Buyer Details
+                    </DialogTitle>
+                    <button
+                      onClick={() => setIsChatModalOpen(false)}
+                      className="text-text-secondary hover:text-text-primary"
+                    >
+                      <X className="w-5 h-5" />
+                    </button>
+                  </div>
+                </DialogHeader>
+
+                <div className="space-y-4">
+                  {/* Profile Info */}
+                  <div className="flex items-center space-x-3 p-3 bg-white rounded-lg">
+                    <User className="w-8 h-8 text-easyestate-pink" />
+                    <div>
+                      <h3 className="font-semibold text-text-primary">{selectedLead.buyerDetails.name}</h3>
+                      <p className="text-sm text-text-secondary">Buyer</p>
+                    </div>
+                  </div>
+
+                  {/* Contact Details */}
+                  <div className="space-y-3">
+                    <div className="flex items-center space-x-3 p-2">
+                      <Phone className="w-5 h-5 text-gray-500" />
+                      <span className="text-sm text-text-primary">{selectedLead.buyerDetails.phone}</span>
+                    </div>
+                    <div className="flex items-center space-x-3 p-2">
+                      <Mail className="w-5 h-5 text-gray-500" />
+                      <span className="text-sm text-text-primary">{selectedLead.buyerDetails.email}</span>
+                    </div>
+                  </div>
+
+                  <Separator />
+
+                  {/* Stage */}
+                  <div>
+                    <h4 className="font-medium text-text-primary mb-2">Stage</h4>
+                    <Badge className="bg-green-100 text-green-800 px-3 py-1">
+                      {selectedLead.buyerDetails.stage}
+                    </Badge>
+                  </div>
+
+                  {/* Requirements */}
+                  <div>
+                    <h4 className="font-medium text-text-primary mb-2">Requirements</h4>
+                    <p className="text-sm text-text-secondary bg-white p-3 rounded-lg">
+                      {selectedLead.buyerDetails.requirement}
+                    </p>
+                  </div>
+
+                  {/* Notes */}
+                  <div>
+                    <h4 className="font-medium text-text-primary mb-2">Notes</h4>
+                    <p className="text-sm text-text-secondary bg-white p-3 rounded-lg">
+                      {selectedLead.buyerDetails.notes}
+                    </p>
+                  </div>
+
+                  {/* History Button */}
+                  <Button
+                    onClick={handleHistoryView}
+                    variant="outline"
+                    className="w-full flex items-center space-x-2"
+                  >
+                    <Clock className="w-4 h-4" />
+                    <span>View History</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Right Section - Chat */}
+              <div className="flex-1 flex flex-col">
+                {/* Chat Header */}
+                <div className="p-4 border-b border-gray-200 bg-white">
+                  <h3 className="font-semibold text-text-primary">
+                    Chat with {selectedLead.buyerDetails.name}
+                  </h3>
+                  <p className="text-sm text-text-secondary">
+                    {selectedLead.propertyName} • {selectedLead.location}
+                  </p>
+                </div>
+
+                {/* Chat Messages Area */}
+                <div className="flex-1 p-4 bg-gray-50 overflow-y-auto">
+                  <div className="space-y-4">
+                    {/* Sample Messages */}
+                    <div className="flex justify-end">
+                      <div className="bg-easyestate-pink text-white p-3 rounded-lg max-w-xs">
+                        <p className="text-sm">Hello! I have shared a property that matches your requirements.</p>
+                        <span className="text-xs opacity-75">2:30 PM</span>
+                      </div>
+                    </div>
+                    
+                    <div className="flex justify-start">
+                      <div className="bg-white p-3 rounded-lg max-w-xs border">
+                        <p className="text-sm">Thank you for sharing. Can we schedule a visit?</p>
+                        <span className="text-xs text-gray-500">2:32 PM</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* Template Messages Section */}
+                <div className="p-4 border-t border-gray-200 bg-white">
+                  <h4 className="font-medium text-text-primary mb-3">Quick Templates</h4>
+                  <div className="grid grid-cols-2 gap-2 mb-4">
+                    {messageTemplates.map((template, index) => (
+                      <Button
+                        key={index}
+                        onClick={() => handleSendTemplate(template)}
+                        variant="outline"
+                        className="text-left text-xs p-2 h-auto whitespace-normal hover:bg-easyestate-pink hover:text-white"
+                      >
+                        {template}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
