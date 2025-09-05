@@ -58,30 +58,66 @@ const PropertyManager = () => {
   const [media, setMedia] = useState<any>({});
   const [completionDate, setCompletionDate] = useState<Date>();
 
-  // Check authentication
+  // Mock user for testing - bypass authentication
   useEffect(() => {
-    const getUser = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      setUser(user);
-      if (!user) {
-        toast.error("Please sign in to access Property Manager");
-        navigate('/');
-      }
+    // Create a mock user object for "Meghal"
+    const mockUser = {
+      id: 'mock-user-meghal-123',
+      email: 'meghal@example.com',
+      user_metadata: {
+        name: 'Meghal'
+      },
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
     };
-    getUser();
-  }, [navigate]);
+    setUser(mockUser);
+    toast.success("Welcome back, Meghal!");
+  }, []);
 
-  // Fetch properties
+  // Fetch properties - using mock data for testing
   const { data: properties = [], isLoading, error } = useQuery({
     queryKey: ['properties'],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('properties')
-        .select('*')
-        .order('created_at', { ascending: false });
+      // Simulate loading delay
+      await new Promise(resolve => setTimeout(resolve, 500));
       
-      if (error) throw error;
-      return data;
+      // Return mock properties for testing
+      return [
+        {
+          id: 'mock-1',
+          title: 'Luxury Villa in Thaltej',
+          category: 'residential',
+          type: 'villa',
+          location: { area: 'Thaltej', city: 'Ahmedabad' },
+          price: 4500000,
+          area: 3500,
+          status: 'available' as const,
+          bedrooms: 4,
+          bathrooms: 3,
+          specifications: { furnishing: 'fully-furnished' },
+          images: [],
+          documents: [],
+          created_at: '2024-01-15T00:00:00Z',
+          updated_at: '2024-01-15T00:00:00Z',
+          user_id: 'mock-user-meghal-123'
+        },
+        {
+          id: 'mock-2',
+          title: 'Commercial Office Space',
+          category: 'commercial',
+          type: 'office',
+          location: { area: 'Prahlad Nagar', city: 'Ahmedabad' },
+          price: 8500000,
+          area: 1200,
+          status: 'available' as const,
+          specifications: { furnishing: 'furnished' },
+          images: [],
+          documents: [],
+          created_at: '2024-01-10T00:00:00Z',
+          updated_at: '2024-01-10T00:00:00Z',
+          user_id: 'mock-user-meghal-123'
+        }
+      ];
     },
     enabled: !!user
   });
@@ -89,21 +125,25 @@ const PropertyManager = () => {
   // Create property mutation
   const createPropertyMutation = useMutation({
     mutationFn: async (propertyData: any) => {
-      const { data, error } = await supabase
-        .from('properties')
-        .insert([{
-          ...propertyData,
-          user_id: user?.id
-        }])
-        .select()
-        .single();
+      // Since we're using mock authentication, we'll simulate the database insert
+      // In a real app, this would use Supabase
+      const mockProperty = {
+        ...propertyData,
+        id: `mock-property-${Date.now()}`,
+        user_id: user?.id,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
       
-      if (error) throw error;
-      return data;
+      // Simulate async operation
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      return mockProperty;
     },
-    onSuccess: () => {
+    onSuccess: (newProperty) => {
       toast.success("Property added successfully!");
-      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      // Add the new property to the existing properties array
+      queryClient.setQueryData(['properties'], (oldProperties: any[] = []) => [newProperty, ...oldProperties]);
       setIsAddPropertyOpen(false);
       resetForm();
     },
@@ -112,19 +152,19 @@ const PropertyManager = () => {
     }
   });
 
-  // Delete property mutation
+  // Delete property mutation - mock functionality
   const deletePropertyMutation = useMutation({
     mutationFn: async (propertyId: string) => {
-      const { error } = await supabase
-        .from('properties')
-        .delete()
-        .eq('id', propertyId);
-      
-      if (error) throw error;
+      // Simulate async operation
+      await new Promise(resolve => setTimeout(resolve, 500));
+      return propertyId;
     },
-    onSuccess: () => {
+    onSuccess: (deletedId) => {
       toast.success("Property deleted successfully!");
-      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      // Remove the property from the existing properties array
+      queryClient.setQueryData(['properties'], (oldProperties: any[] = []) => 
+        oldProperties.filter(property => property.id !== deletedId)
+      );
     },
     onError: (error: any) => {
       toast.error("Failed to delete property: " + error.message);

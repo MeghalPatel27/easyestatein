@@ -15,7 +15,13 @@ const Index = () => {
           <nav className="hidden md:flex items-center space-x-8">
             <a href="#how-it-works" className="text-text-secondary hover:text-text-primary">How it works</a>
             <a href="#features" className="text-text-secondary hover:text-text-primary">Features</a>
-            <Button variant="outline" size="sm">Sign In</Button>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => navigate('/property-manager')}
+            >
+              Sign In
+            </Button>
           </nav>
         </div>
       </header>
