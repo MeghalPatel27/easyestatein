@@ -79,7 +79,63 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      public_properties: {
+        Row: {
+          area: number | null
+          bathrooms: number | null
+          bedrooms: number | null
+          category: Database["public"]["Enums"]["property_category"] | null
+          completion_date: string | null
+          created_at: string | null
+          description: string | null
+          id: string | null
+          images: string[] | null
+          location: Json | null
+          price: number | null
+          specifications: Json | null
+          status: Database["public"]["Enums"]["property_status"] | null
+          title: string | null
+          type: Database["public"]["Enums"]["property_type"] | null
+          updated_at: string | null
+        }
+        Insert: {
+          area?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          category?: Database["public"]["Enums"]["property_category"] | null
+          completion_date?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          images?: string[] | null
+          location?: Json | null
+          price?: number | null
+          specifications?: Json | null
+          status?: Database["public"]["Enums"]["property_status"] | null
+          title?: string | null
+          type?: Database["public"]["Enums"]["property_type"] | null
+          updated_at?: string | null
+        }
+        Update: {
+          area?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          category?: Database["public"]["Enums"]["property_category"] | null
+          completion_date?: string | null
+          created_at?: string | null
+          description?: string | null
+          id?: string | null
+          images?: string[] | null
+          location?: Json | null
+          price?: number | null
+          specifications?: Json | null
+          status?: Database["public"]["Enums"]["property_status"] | null
+          title?: string | null
+          type?: Database["public"]["Enums"]["property_type"] | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never
