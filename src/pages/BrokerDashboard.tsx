@@ -1,11 +1,37 @@
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, X } from "lucide-react";
+import { useState } from "react";
 
 const BrokerDashboard = () => {
   const navigate = useNavigate();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [selectedProperty, setSelectedProperty] = useState("");
+
+  const verifiedProperties = [
+    "Luxury Villa - Thaltej",
+    "Commercial Plot - Science City", 
+    "Office Space - Prahlad Nagar"
+  ];
+
+  const handleSubmitProperty = (property: any) => {
+    setSelectedLead(property);
+    setIsModalOpen(true);
+  };
+
+  const handlePayment = () => {
+    if (selectedProperty) {
+      // Handle payment logic here
+      console.log("Processing payment for", selectedProperty);
+      setIsModalOpen(false);
+      setSelectedProperty("");
+    }
+  };
 
   const properties = [
     {
@@ -216,7 +242,10 @@ const BrokerDashboard = () => {
                     <div className="text-xs text-text-secondary mt-1 hidden sm:block">{property.rejection}</div>
                   </div>
                   
-                  <Button className="bg-easyestate-pink hover:bg-easyestate-pink-dark text-white px-4 lg:px-6 text-sm">
+                  <Button 
+                    className="bg-easyestate-pink hover:bg-easyestate-pink-dark text-white px-4 lg:px-6 text-sm"
+                    onClick={() => handleSubmitProperty(property)}
+                  >
                     Submit Property
                   </Button>
                   
@@ -229,6 +258,63 @@ const BrokerDashboard = () => {
           ))}
         </div>
       </div>
+
+      {/* Submit Property Modal */}
+      <Dialog open={isModalOpen} onOpenChange={setIsModalOpen}>
+        <DialogContent className="max-w-md p-6 bg-white rounded-lg">
+          <DialogHeader className="flex flex-row items-center justify-between pb-4">
+            <DialogTitle className="text-lg font-semibold text-text-primary">
+              Submit Property to Lead
+            </DialogTitle>
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="text-text-secondary hover:text-text-primary"
+            >
+              <X className="w-5 h-5" />
+            </button>
+          </DialogHeader>
+          
+          {selectedLead && (
+            <div className="space-y-6">
+              {/* Lead Details */}
+              <div>
+                <h3 className="font-semibold text-text-primary mb-2">Lead Details:</h3>
+                <p className="text-text-secondary">
+                  {selectedLead.type} in {selectedLead.location} • {selectedLead.budget}
+                </p>
+                <p className="text-yellow-500 font-semibold mt-1">
+                  Cost: {selectedLead.submitProperty} coins
+                </p>
+              </div>
+
+              {/* Property Selection */}
+              <div className="space-y-2">
+                <Select value={selectedProperty} onValueChange={setSelectedProperty}>
+                  <SelectTrigger className="w-full h-12 border-2 border-easyestate-pink rounded-lg">
+                    <SelectValue placeholder="Select your verified property" />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white">
+                    {verifiedProperties.map((property) => (
+                      <SelectItem key={property} value={property} className="hover:bg-gray-50">
+                        {property}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Submit Button */}
+              <Button 
+                onClick={handlePayment}
+                disabled={!selectedProperty}
+                className="w-full h-12 bg-easyestate-pink hover:bg-easyestate-pink-dark text-white font-semibold rounded-lg disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Submit & Pay {selectedLead.submitProperty} Coins
+              </Button>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };
