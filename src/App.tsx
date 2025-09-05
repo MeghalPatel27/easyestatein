@@ -8,6 +8,7 @@ import BrokerDashboard from "./pages/BrokerDashboard";
 import BuyerDashboard from "./pages/BuyerDashboard";
 import LeadManagement from "./pages/LeadManagement";
 import SentLeads from "./pages/SentLeads";
+import BrokerProfile from "./pages/BrokerProfile";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -24,6 +25,7 @@ const App = () => (
           <Route path="/buyer-dashboard" element={<BuyerDashboard />} />
           <Route path="/lead-management" element={<LeadManagement />} />
           <Route path="/sent-leads" element={<SentLeads />} />
+          <Route path="/broker-profile" element={<BrokerProfile />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

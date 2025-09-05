@@ -161,7 +161,16 @@ const BrokerDashboard = () => {
               <span className="text-sm text-text-secondary">2450 coins</span>
               <div className="w-6 h-6 bg-yellow-400 rounded-full"></div>
             </div>
-            <Button variant="outline" size="sm" className="ml-4 sm:ml-0">Profile</Button>
+            <Button 
+              variant="ghost" 
+              size="sm" 
+              className="ml-4 sm:ml-0 p-1"
+              onClick={() => navigate('/broker-profile')}
+            >
+              <div className="w-8 h-8 bg-emerald-500 rounded-full flex items-center justify-center text-white text-sm font-bold">
+                R
+              </div>
+            </Button>
           </div>
         </div>
       </div>
