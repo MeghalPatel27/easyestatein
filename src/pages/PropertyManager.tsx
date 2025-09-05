@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, Plus, Home, Building, Factory, Wheat, CalendarIcon, Upload, Eye, Edit, Trash2, Loader2 } from "lucide-react";
+import { ArrowLeft, Plus, Home, Building, Factory, Wheat, CalendarIcon, Upload, Eye, Edit, Trash2, Loader2, LogOut } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useState, useEffect } from "react";
 import { format } from "date-fns";
@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
+import type { User } from "@supabase/supabase-js";
 
 interface Property {
   id: string;
@@ -45,9 +46,10 @@ const PropertyManager = () => {
   const queryClient = useQueryClient();
   const [isAddPropertyOpen, setIsAddPropertyOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Form state
+  // Form state with validation
   const [category, setCategory] = useState<string>("");
   const [propertyType, setPropertyType] = useState<string>("");
   const [title, setTitle] = useState<string>("");
@@ -58,128 +60,213 @@ const PropertyManager = () => {
   const [media, setMedia] = useState<any>({});
   const [completionDate, setCompletionDate] = useState<Date>();
 
-  // Mock user for testing - bypass authentication
-  useEffect(() => {
-    // Create a mock user object for "Meghal"
-    const mockUser = {
-      id: 'mock-user-meghal-123',
-      email: 'meghal@example.com',
-      user_metadata: {
-        name: 'Meghal'
-      },
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString()
-    };
-    setUser(mockUser);
-    toast.success("Welcome back, Meghal!");
-  }, []);
+  // Form validation errors
+  const [formErrors, setFormErrors] = useState<{[key: string]: string}>({});
 
-  // Fetch properties - using mock data for testing
-  const { data: properties = [], isLoading, error } = useQuery({
-    queryKey: ['properties'],
-    queryFn: async () => {
-      // Simulate loading delay
-      await new Promise(resolve => setTimeout(resolve, 500));
-      
-      // Return mock properties for testing
-      return [
-        {
-          id: 'mock-1',
-          title: 'Luxury Villa in Thaltej',
-          category: 'residential',
-          type: 'villa',
-          location: { area: 'Thaltej', city: 'Ahmedabad' },
-          price: 4500000,
-          area: 3500,
-          status: 'available' as const,
-          bedrooms: 4,
-          bathrooms: 3,
-          specifications: { furnishing: 'fully-furnished' },
-          images: [],
-          documents: [],
-          created_at: '2024-01-15T00:00:00Z',
-          updated_at: '2024-01-15T00:00:00Z',
-          user_id: 'mock-user-meghal-123'
-        },
-        {
-          id: 'mock-2',
-          title: 'Commercial Office Space',
-          category: 'commercial',
-          type: 'office',
-          location: { area: 'Prahlad Nagar', city: 'Ahmedabad' },
-          price: 8500000,
-          area: 1200,
-          status: 'available' as const,
-          specifications: { furnishing: 'furnished' },
-          images: [],
-          documents: [],
-          created_at: '2024-01-10T00:00:00Z',
-          updated_at: '2024-01-10T00:00:00Z',
-          user_id: 'mock-user-meghal-123'
+  // Authentication check
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        if (error) {
+          console.error('Auth error:', error);
+          navigate('/auth');
+          return;
         }
-      ];
+        
+        if (!session?.user) {
+          navigate('/auth');
+          return;
+        }
+        
+        setUser(session.user);
+        toast.success(`Welcome back, ${session.user.email}!`);
+      } catch (error) {
+        console.error('Authentication check failed:', error);
+        navigate('/auth');
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    checkAuth();
+
+    // Listen for auth state changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (!session?.user) {
+        navigate('/auth');
+      } else {
+        setUser(session.user);
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [navigate]);
+
+  // Input validation functions
+  const validateField = (fieldName: string, value: any): string => {
+    switch (fieldName) {
+      case 'title':
+        if (!value?.trim()) return "Title is required";
+        if (value.length > 200) return "Title is too long";
+        return "";
+      case 'price':
+        if (!value || isNaN(value) || value <= 0) return "Valid price is required";
+        if (value > 999999999) return "Price is too high";
+        return "";
+      case 'area':
+        if (!value || isNaN(value) || value <= 0) return "Valid area is required";
+        if (value > 999999) return "Area is too large";
+        return "";
+      case 'bedrooms':
+        if (value && (isNaN(value) || value < 0 || value > 50)) return "Invalid number of bedrooms";
+        return "";
+      case 'bathrooms':
+        if (value && (isNaN(value) || value < 0 || value > 50)) return "Invalid number of bathrooms";
+        return "";
+      case 'description':
+        if (value && value.length > 2000) return "Description is too long";
+        return "";
+      default:
+        return "";
+    }
+  };
+
+  const sanitizeInput = (input: string): string => {
+    return input.replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, '')
+                .replace(/javascript:/gi, '')
+                .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
+                .trim();
+  };
+
+  // Fetch properties from Supabase
+  const { data: properties = [], isLoading: propertiesLoading, error } = useQuery({
+    queryKey: ['properties', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error('Error fetching properties:', error);
+        throw error;
+      }
+      
+      return data || [];
     },
-    enabled: !!user
+    enabled: !!user?.id,
   });
 
   // Create property mutation
   const createPropertyMutation = useMutation({
     mutationFn: async (propertyData: any) => {
-      // Since we're using mock authentication, we'll simulate the database insert
-      // In a real app, this would use Supabase
-      const mockProperty = {
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      // Validate required fields
+      const titleError = validateField('title', propertyData.title);
+      const priceError = validateField('price', propertyData.price);
+      const areaError = validateField('area', propertyData.area);
+
+      if (titleError || priceError || areaError) {
+        throw new Error('Please fix validation errors before submitting');
+      }
+
+      // Sanitize string inputs
+      const sanitizedData = {
         ...propertyData,
-        id: `mock-property-${Date.now()}`,
-        user_id: user?.id,
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
+        title: sanitizeInput(propertyData.title || ''),
+        description: propertyData.description ? sanitizeInput(propertyData.description) : null,
+        user_id: user.id
       };
-      
-      // Simulate async operation
-      await new Promise(resolve => setTimeout(resolve, 1000));
-      
-      return mockProperty;
+
+      const { data, error } = await supabase
+        .from('properties')
+        .insert([sanitizedData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error creating property:', error);
+        throw error;
+      }
+
+      return data;
     },
     onSuccess: (newProperty) => {
       toast.success("Property added successfully!");
-      // Add the new property to the existing properties array
-      queryClient.setQueryData(['properties'], (oldProperties: any[] = []) => [newProperty, ...oldProperties]);
+      queryClient.invalidateQueries({ queryKey: ['properties', user?.id] });
       setIsAddPropertyOpen(false);
       resetForm();
     },
     onError: (error: any) => {
-      toast.error("Failed to add property: " + error.message);
+      console.error('Property creation failed:', error);
+      toast.error("Failed to add property: " + (error.message || 'Unknown error'));
     }
   });
 
-  // Delete property mutation - mock functionality
+  // Delete property mutation
   const deletePropertyMutation = useMutation({
     mutationFn: async (propertyId: string) => {
-      // Simulate async operation
-      await new Promise(resolve => setTimeout(resolve, 500));
+      if (!user?.id) {
+        throw new Error('User not authenticated');
+      }
+
+      const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', propertyId)
+        .eq('user_id', user.id); // Ensure user can only delete their own properties
+
+      if (error) {
+        console.error('Error deleting property:', error);
+        throw error;
+      }
+
       return propertyId;
     },
-    onSuccess: (deletedId) => {
+    onSuccess: () => {
       toast.success("Property deleted successfully!");
-      // Remove the property from the existing properties array
-      queryClient.setQueryData(['properties'], (oldProperties: any[] = []) => 
-        oldProperties.filter(property => property.id !== deletedId)
-      );
+      queryClient.invalidateQueries({ queryKey: ['properties', user?.id] });
     },
     onError: (error: any) => {
-      toast.error("Failed to delete property: " + error.message);
+      console.error('Property deletion failed:', error);
+      toast.error("Failed to delete property: " + (error.message || 'Unknown error'));
     }
   });
 
-  const categoryTypes = {
-    residential: ["apartment", "villa", "townhouse", "penthouse"],
-    commercial: ["office", "retail", "warehouse", "showroom"],
-    industrial: ["factory", "logistics", "manufacturing"],
-    land: ["plot", "farm", "commercial_land"]
+  // Sign out function
+  const handleSignOut = async () => {
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) {
+        console.error('Sign out error:', error);
+        toast.error("Failed to sign out");
+      } else {
+        toast.success("Signed out successfully");
+        navigate('/');
+      }
+    } catch (error) {
+      console.error('Sign out failed:', error);
+      toast.error("Failed to sign out");
+    }
   };
 
+  // Category to types mapping
+  const categoryTypes = {
+    residential: ['apartment', 'villa', 'house', 'penthouse', 'studio'],
+    commercial: ['office', 'retail', 'warehouse', 'showroom', 'restaurant'],
+    industrial: ['factory', 'manufacturing', 'storage', 'processing'],
+    agricultural: ['farmland', 'orchard', 'greenhouse', 'plantation']
+  };
+
+  // Reset form function
   const resetForm = () => {
-    setCurrentStep(1);
     setCategory("");
     setPropertyType("");
     setTitle("");
@@ -189,8 +276,11 @@ const PropertyManager = () => {
     setLocation({});
     setMedia({});
     setCompletionDate(undefined);
+    setCurrentStep(1);
+    setFormErrors({});
   };
 
+  // Step navigation
   const handleNextStep = () => {
     if (currentStep < 6) {
       setCurrentStep(currentStep + 1);
@@ -203,702 +293,398 @@ const PropertyManager = () => {
     }
   };
 
+  // Form submission
   const handleSubmit = () => {
-    if (!user) {
-      toast.error("Please sign in to add properties");
-      return;
-    }
-
     const propertyData = {
-      title: title || `${propertyType} in ${location.area || 'Location'}`,
-      category: category,
+      category,
       type: propertyType,
-      location: location,
+      title: sanitizeInput(title),
+      description: description ? sanitizeInput(description) : null,
+      specifications: specifications || {},
+      location: location || {},
       price: parseFloat(pricing.price) || 0,
-      area: parseFloat(specifications.area || specifications.plotArea || specifications.carpetArea) || 0,
-      status: 'available' as const,
-      specifications: specifications,
-      bedrooms: specifications.bedrooms,
-      bathrooms: specifications.bathrooms,
+      area: parseFloat(pricing.area) || 0,
+      bedrooms: pricing.bedrooms ? parseInt(pricing.bedrooms) : null,
+      bathrooms: pricing.bathrooms ? parseInt(pricing.bathrooms) : null,
       images: media.images || [],
       documents: media.documents || [],
       completion_date: completionDate ? format(completionDate, 'yyyy-MM-dd') : null,
-      description: description
+      status: 'available'
     };
+
+    // Validate all fields
+    const errors: {[key: string]: string} = {};
+    errors.title = validateField('title', propertyData.title);
+    errors.price = validateField('price', propertyData.price);
+    errors.area = validateField('area', propertyData.area);
+    errors.bedrooms = validateField('bedrooms', propertyData.bedrooms);
+    errors.bathrooms = validateField('bathrooms', propertyData.bathrooms);
+    errors.description = validateField('description', propertyData.description);
+
+    const hasErrors = Object.values(errors).some(error => error !== "");
+    setFormErrors(errors);
+
+    if (hasErrors) {
+      toast.error("Please fix validation errors before submitting");
+      return;
+    }
 
     createPropertyMutation.mutate(propertyData);
   };
 
+  // Delete handler
   const handleDelete = (propertyId: string) => {
-    if (window.confirm("Are you sure you want to delete this property?")) {
+    if (confirm("Are you sure you want to delete this property? This action cannot be undone.")) {
       deletePropertyMutation.mutate(propertyId);
     }
   };
 
-  const getCategoryIcon = (cat: string) => {
-    switch (cat.toLowerCase()) {
-      case "residential": return <Home className="w-6 h-6" />;
-      case "commercial": return <Building className="w-6 h-6" />;
-      case "industrial": return <Factory className="w-6 h-6" />;
-      case "land": return <Wheat className="w-6 h-6" />;
-      default: return <Home className="w-6 h-6" />;
+  // Helper functions
+  const getCategoryIcon = (category: string) => {
+    switch (category) {
+      case 'residential': return <Home className="w-4 h-4" />;
+      case 'commercial': return <Building className="w-4 h-4" />;
+      case 'industrial': return <Factory className="w-4 h-4" />;
+      case 'agricultural': return <Wheat className="w-4 h-4" />;
+      default: return <Home className="w-4 h-4" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "available": return "bg-emerald-100 text-emerald-700 border-emerald-200";
-      case "sold": return "bg-blue-100 text-blue-700 border-blue-200";
-      case "rented": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "under_offer": return "bg-orange-100 text-orange-700 border-orange-200";
-      default: return "bg-gray-100 text-gray-700 border-gray-200";
+      case 'available': return 'bg-status-connected text-white';
+      case 'sold': return 'bg-status-high text-white';
+      case 'rented': return 'bg-status-medium text-white';
+      case 'under_offer': return 'bg-status-sent text-white';
+      default: return 'bg-gray-500 text-white';
     }
   };
 
+  // Show loading state while checking authentication
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-bg-light flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-easyestate-pink" />
+          <p className="text-text-secondary">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Don't render anything if no user (will redirect)
+  if (!user) {
+    return null;
+  }
+
+  // Render step content for add property form
   const renderStepContent = () => {
     switch (currentStep) {
-      case 1: // Basic Details
+      case 1:
         return (
           <div className="space-y-6">
             <div>
-              <Label className="text-base font-semibold">Property Title</Label>
-              <Input 
+              <h3 className="text-lg font-semibold text-text-primary mb-4">Property Category & Type</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="category">Category *</Label>
+                  <Select value={category} onValueChange={(value) => {
+                    setCategory(value);
+                    setPropertyType("");
+                  }}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="residential">Residential</SelectItem>
+                      <SelectItem value="commercial">Commercial</SelectItem>
+                      <SelectItem value="industrial">Industrial</SelectItem>
+                      <SelectItem value="agricultural">Agricultural</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="type">Property Type *</Label>
+                  <Select value={propertyType} onValueChange={setPropertyType} disabled={!category}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select type" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {category && categoryTypes[category as keyof typeof categoryTypes]?.map(type => (
+                        <SelectItem key={type} value={type}>{type}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+            <div>
+              <Label htmlFor="title">Property Title *</Label>
+              <Input
+                id="title"
                 value={title}
-                onChange={(e) => setTitle(e.target.value)}
+                onChange={(e) => {
+                  const newTitle = e.target.value;
+                  setTitle(newTitle);
+                  const error = validateField('title', newTitle);
+                  setFormErrors(prev => ({...prev, title: error}));
+                }}
                 placeholder="Enter property title"
-                className="mt-2"
+                maxLength={200}
+                className={formErrors.title ? "border-destructive" : ""}
               />
+              {formErrors.title && <p className="text-sm text-destructive mt-1">{formErrors.title}</p>}
             </div>
-
             <div>
-              <Label className="text-base font-semibold">Description</Label>
-              <Textarea 
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
                 value={description}
-                onChange={(e) => setDescription(e.target.value)}
+                onChange={(e) => {
+                  const newDesc = e.target.value;
+                  setDescription(newDesc);
+                  const error = validateField('description', newDesc);
+                  setFormErrors(prev => ({...prev, description: error}));
+                }}
                 placeholder="Enter property description"
-                className="mt-2"
-                rows={3}
+                rows={4}
+                maxLength={2000}
+                className={formErrors.description ? "border-destructive" : ""}
               />
+              {formErrors.description && <p className="text-sm text-destructive mt-1">{formErrors.description}</p>}
+              <p className="text-sm text-text-secondary mt-1">{description.length}/2000 characters</p>
             </div>
+          </div>
+        );
 
-            <div>
-              <Label className="text-base font-semibold">Category of Property</Label>
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
-                {Object.keys(categoryTypes).map((cat) => (
-                  <Button
-                    key={cat}
-                    variant={category === cat ? "default" : "outline"}
-                    className={cn(
-                      "h-20 flex-col gap-2",
-                      category === cat && "bg-primary text-primary-foreground"
-                    )}
-                    onClick={() => {
-                      setCategory(cat);
-                      setPropertyType(""); // Reset property type when category changes
-                    }}
-                  >
-                    {getCategoryIcon(cat)}
-                    <span className="text-sm capitalize">{cat}</span>
-                  </Button>
-                ))}
-              </div>
-            </div>
-
-            {category && (
+      case 2:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-text-primary mb-4">Property Specifications</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {category === 'residential' && (
+                <>
+                  <div>
+                    <Label htmlFor="bedrooms">Bedrooms</Label>
+                    <Input
+                      id="bedrooms"
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={specifications.bedrooms || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setSpecifications({...specifications, bedrooms: value});
+                        const error = validateField('bedrooms', parseInt(value));
+                        setFormErrors(prev => ({...prev, bedrooms: error}));
+                      }}
+                      placeholder="Number of bedrooms"
+                      className={formErrors.bedrooms ? "border-destructive" : ""}
+                    />
+                    {formErrors.bedrooms && <p className="text-sm text-destructive mt-1">{formErrors.bedrooms}</p>}
+                  </div>
+                  <div>
+                    <Label htmlFor="bathrooms">Bathrooms</Label>
+                    <Input
+                      id="bathrooms"
+                      type="number"
+                      min="0"
+                      max="50"
+                      value={specifications.bathrooms || ""}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setSpecifications({...specifications, bathrooms: value});
+                        const error = validateField('bathrooms', parseInt(value));
+                        setFormErrors(prev => ({...prev, bathrooms: error}));
+                      }}
+                      placeholder="Number of bathrooms"
+                      className={formErrors.bathrooms ? "border-destructive" : ""}
+                    />
+                    {formErrors.bathrooms && <p className="text-sm text-destructive mt-1">{formErrors.bathrooms}</p>}
+                  </div>
+                </>
+              )}
               <div>
-                <Label className="text-base font-semibold">Type of Property</Label>
-                <Select value={propertyType} onValueChange={setPropertyType}>
-                  <SelectTrigger className="mt-3">
-                    <SelectValue placeholder="Select property type" />
+                <Label htmlFor="furnishing">Furnishing Status</Label>
+                <Select value={specifications.furnishing || ""} onValueChange={(value) => 
+                  setSpecifications({...specifications, furnishing: value})
+                }>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select furnishing status" />
                   </SelectTrigger>
                   <SelectContent>
-                    {categoryTypes[category as keyof typeof categoryTypes].map((type) => (
-                      <SelectItem key={type} value={type}>
-                        <span className="capitalize">{type.replace('_', ' ')}</span>
-                      </SelectItem>
-                    ))}
+                    <SelectItem value="unfurnished">Unfurnished</SelectItem>
+                    <SelectItem value="semi-furnished">Semi-Furnished</SelectItem>
+                    <SelectItem value="fully-furnished">Fully Furnished</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-            )}
+            </div>
           </div>
         );
 
-      case 2: // Property Specifications
+      case 3:
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold">Property Specifications</h3>
-            
-            {/* Residential specifications */}
-            {category === "Residential" && propertyType !== "Plot" && (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label>Bedrooms</Label>
-                    <Select 
-                      value={specifications.bedrooms?.toString()} 
-                      onValueChange={(value) => setSpecifications({...specifications, bedrooms: parseInt(value)})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select bedrooms" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({length: 10}, (_, i) => (
-                          <SelectItem key={i+1} value={(i+1).toString()}>
-                            {i+1} {i === 0 ? 'Bedroom' : 'Bedrooms'}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                  <div>
-                    <Label>Bathrooms</Label>
-                    <Select 
-                      value={specifications.bathrooms?.toString()} 
-                      onValueChange={(value) => setSpecifications({...specifications, bathrooms: parseInt(value)})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select bathrooms" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({length: 10}, (_, i) => (
-                          <SelectItem key={i+1} value={(i+1).toString()}>
-                            {i+1} {i === 0 ? 'Bathroom' : 'Bathrooms'}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                {propertyType === "Apartment" && (
-                  <div>
-                    <Label>Floor</Label>
-                    <Select 
-                      value={specifications.floor?.toString()} 
-                      onValueChange={(value) => setSpecifications({...specifications, floor: parseInt(value)})}
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Select floor" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {Array.from({length: 50}, (_, i) => (
-                          <SelectItem key={i+1} value={(i+1).toString()}>
-                            {i+1} Floor
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-                )}
-
-                <div>
-                  <Label>Furnishing Status</Label>
-                  <Tabs 
-                    value={specifications.furnishing} 
-                    onValueChange={(value) => setSpecifications({...specifications, furnishing: value})}
-                    className="mt-3"
-                  >
-                    <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="unfurnished">Unfurnished</TabsTrigger>
-                      <TabsTrigger value="semi-furnished">Semi-furnished</TabsTrigger>
-                      <TabsTrigger value="fully-furnished">Fully furnished</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
-
-                <div>
-                  <Label>Super Built-up Area</Label>
-                  <div className="flex gap-2 mt-2">
-                    <Input 
-                      type="number" 
-                      placeholder="Enter area"
-                      value={specifications.area || ""}
-                      onChange={(e) => setSpecifications({...specifications, area: e.target.value})}
-                    />
-                    <Select 
-                      value={specifications.areaUnit} 
-                      onValueChange={(value) => setSpecifications({...specifications, areaUnit: value})}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sq-ft">Sq Ft</SelectItem>
-                        <SelectItem value="sq-m">Sq M</SelectItem>
-                        <SelectItem value="sq-yard">Sq Yard</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-              </>
-            )}
-
-            {/* Plot specifications */}
-            {category === "Residential" && propertyType === "Plot" && (
+            <h3 className="text-lg font-semibold text-text-primary mb-4">Pricing & Area</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <Label>Plot Area</Label>
-                <div className="flex gap-2 mt-2">
-                  <Input 
-                    type="number" 
-                    placeholder="Enter area"
-                    value={specifications.area || ""}
-                    onChange={(e) => setSpecifications({...specifications, area: e.target.value})}
-                  />
-                  <Select 
-                    value={specifications.areaUnit} 
-                    onValueChange={(value) => setSpecifications({...specifications, areaUnit: value})}
-                  >
-                    <SelectTrigger className="w-32">
-                      <SelectValue placeholder="Unit" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="sq-ft">Sq Ft</SelectItem>
-                      <SelectItem value="sq-m">Sq M</SelectItem>
-                      <SelectItem value="sq-yard">Sq Yard</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            )}
-
-            {/* Commercial specifications */}
-            {category === "Commercial" && (
-              <>
-                <div>
-                  <Label>Carpet Area</Label>
-                  <div className="flex gap-2 mt-2">
-                    <Input 
-                      type="number" 
-                      placeholder="Enter area"
-                      value={specifications.carpetArea || ""}
-                      onChange={(e) => setSpecifications({...specifications, carpetArea: e.target.value})}
-                    />
-                    <Select 
-                      value={specifications.areaUnit} 
-                      onValueChange={(value) => setSpecifications({...specifications, areaUnit: value})}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sq-ft">Sq Ft</SelectItem>
-                        <SelectItem value="sq-m">Sq M</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <Label>Floor</Label>
-                  <Select 
-                    value={specifications.floor?.toString()} 
-                    onValueChange={(value) => setSpecifications({...specifications, floor: parseInt(value)})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select floor" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({length: 50}, (_, i) => (
-                        <SelectItem key={i+1} value={(i+1).toString()}>
-                          {i+1} Floor
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Washrooms</Label>
-                  <Select 
-                    value={specifications.washrooms?.toString()} 
-                    onValueChange={(value) => setSpecifications({...specifications, washrooms: parseInt(value)})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select washrooms" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {Array.from({length: 10}, (_, i) => (
-                        <SelectItem key={i+1} value={(i+1).toString()}>
-                          {i+1} Washroom{i > 0 ? 's' : ''}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div>
-                  <Label>Furnishing Status</Label>
-                  <Tabs 
-                    value={specifications.furnishing} 
-                    onValueChange={(value) => setSpecifications({...specifications, furnishing: value})}
-                    className="mt-3"
-                  >
-                    <TabsList className="grid w-full grid-cols-3">
-                      <TabsTrigger value="bare-shell">Bare Shell</TabsTrigger>
-                      <TabsTrigger value="furnished">Furnished</TabsTrigger>
-                      <TabsTrigger value="semi-furnished">Semi-furnished</TabsTrigger>
-                    </TabsList>
-                  </Tabs>
-                </div>
-              </>
-            )}
-
-            {/* Industrial specifications */}
-            {category === "Industrial" && (propertyType === "Shed" || propertyType === "Warehouse" || propertyType === "Factory") && (
-              <>
-                <div>
-                  <Label>Plot Area</Label>
-                  <div className="flex gap-2 mt-2">
-                    <Input 
-                      type="number" 
-                      placeholder="Enter area"
-                      value={specifications.plotArea || ""}
-                      onChange={(e) => setSpecifications({...specifications, plotArea: e.target.value})}
-                    />
-                    <Select 
-                      value={specifications.areaUnit} 
-                      onValueChange={(value) => setSpecifications({...specifications, areaUnit: value})}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sq-ft">Sq Ft</SelectItem>
-                        <SelectItem value="sq-m">Sq M</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <Label>Built-up Area</Label>
-                  <div className="flex gap-2 mt-2">
-                    <Input 
-                      type="number" 
-                      placeholder="Enter area"
-                      value={specifications.builtupArea || ""}
-                      onChange={(e) => setSpecifications({...specifications, builtupArea: e.target.value})}
-                    />
-                    <Select 
-                      value={specifications.builtupAreaUnit} 
-                      onValueChange={(value) => setSpecifications({...specifications, builtupAreaUnit: value})}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="sq-ft">Sq Ft</SelectItem>
-                        <SelectItem value="sq-m">Sq M</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div>
-                  <Label>Ceiling Height (Optional)</Label>
-                  <div className="flex gap-2 mt-2">
-                    <Input 
-                      type="number" 
-                      placeholder="Enter height"
-                      value={specifications.ceilingHeight || ""}
-                      onChange={(e) => setSpecifications({...specifications, ceilingHeight: e.target.value})}
-                    />
-                    <Select 
-                      value={specifications.heightUnit} 
-                      onValueChange={(value) => setSpecifications({...specifications, heightUnit: value})}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="ft">Ft</SelectItem>
-                        <SelectItem value="m">M</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="flex items-center space-x-2">
-                  <Checkbox 
-                    id="crane-facility"
-                    checked={specifications.craneFacility || false}
-                    onCheckedChange={(checked) => setSpecifications({...specifications, craneFacility: checked})}
-                  />
-                  <Label htmlFor="crane-facility">Crane Facility Available</Label>
-                </div>
-              </>
-            )}
-
-            {/* Agricultural specifications */}
-            {category === "Agricultural" && (
-              <>
-                <div>
-                  <Label>Land Area</Label>
-                  <div className="flex gap-2 mt-2">
-                    <Input 
-                      type="number" 
-                      placeholder="Enter area"
-                      value={specifications.landArea || ""}
-                      onChange={(e) => setSpecifications({...specifications, landArea: e.target.value})}
-                    />
-                    <Select 
-                      value={specifications.areaUnit} 
-                      onValueChange={(value) => setSpecifications({...specifications, areaUnit: value})}
-                    >
-                      <SelectTrigger className="w-32">
-                        <SelectValue placeholder="Unit" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="acre">Acre</SelectItem>
-                        <SelectItem value="bigha">Bigha</SelectItem>
-                        <SelectItem value="sq-ft">Sq Ft</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </div>
-
-                <div className="space-y-3">
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="irrigation-facility"
-                      checked={specifications.irrigationFacility || false}
-                      onCheckedChange={(checked) => setSpecifications({...specifications, irrigationFacility: checked})}
-                    />
-                    <Label htmlFor="irrigation-facility">Irrigation Facility Available</Label>
-                  </div>
-
-                  <div className="flex items-center space-x-2">
-                    <Checkbox 
-                      id="road-access"
-                      checked={specifications.roadAccess || false}
-                      onCheckedChange={(checked) => setSpecifications({...specifications, roadAccess: checked})}
-                    />
-                    <Label htmlFor="road-access">Road Access Available</Label>
-                  </div>
-                </div>
-              </>
-            )}
-          </div>
-        );
-
-      case 3: // Pricing & Availability
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold">Pricing & Availability</h3>
-            
-            <div>
-              <Label>Rate / Price</Label>
-              <div className="flex gap-2 mt-2">
-                <Input 
-                  type="number" 
+                <Label htmlFor="price">Price (₹) *</Label>
+                <Input
+                  id="price"
+                  type="number"
+                  min="0"
+                  max="999999999"
+                  value={pricing.price || ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setPricing({...pricing, price: value});
+                    const error = validateField('price', parseFloat(value));
+                    setFormErrors(prev => ({...prev, price: error}));
+                  }}
                   placeholder="Enter price"
-                  value={pricing.amount || ""}
-                  onChange={(e) => setPricing({...pricing, amount: e.target.value})}
+                  className={formErrors.price ? "border-destructive" : ""}
                 />
-                <Select 
-                  value={pricing.unit} 
-                  onValueChange={(value) => setPricing({...pricing, unit: value})}
-                >
-                  <SelectTrigger className="w-40">
-                    <SelectValue placeholder="Unit" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="lakhs">Lakhs</SelectItem>
-                    <SelectItem value="crores">Crores</SelectItem>
-                    <SelectItem value="per-sq-ft">Per Sq. Ft</SelectItem>
-                  </SelectContent>
-                </Select>
+                {formErrors.price && <p className="text-sm text-destructive mt-1">{formErrors.price}</p>}
               </div>
-            </div>
-
-            <div>
-              <Label>Property Status</Label>
-              <Tabs 
-                value={pricing.status} 
-                onValueChange={(value) => setPricing({...pricing, status: value})}
-                className="mt-3"
-              >
-                <TabsList className="grid w-full grid-cols-2">
-                  <TabsTrigger value="ready">Ready Possession</TabsTrigger>
-                  <TabsTrigger value="under-construction">Under Construction</TabsTrigger>
-                </TabsList>
-              </Tabs>
-            </div>
-
-            {pricing.status === "under-construction" && (
               <div>
-                <Label>Expected Completion Date</Label>
-                <Popover>
-                  <PopoverTrigger asChild>
-                    <Button
-                      variant="outline"
-                      className={cn(
-                        "w-full mt-2 justify-start text-left font-normal",
-                        !completionDate && "text-muted-foreground"
-                      )}
-                    >
-                      <CalendarIcon className="mr-2 h-4 w-4" />
-                      {completionDate ? format(completionDate, "PPP") : <span>Pick a completion date</span>}
-                    </Button>
-                  </PopoverTrigger>
-                  <PopoverContent className="w-auto p-0" align="start">
-                    <Calendar
-                      mode="single"
-                      selected={completionDate}
-                      onSelect={setCompletionDate}
-                      initialFocus
-                      className="pointer-events-auto"
-                    />
-                  </PopoverContent>
-                </Popover>
-              </div>
-            )}
-          </div>
-        );
-
-      case 4: // Location
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold">Location Details</h3>
-            
-            <div>
-              <Label>City</Label>
-              <Select 
-                value={location.city} 
-                onValueChange={(value) => setLocation({...location, city: value})}
-              >
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Select city" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="ahmedabad">Ahmedabad</SelectItem>
-                  <SelectItem value="surat">Surat</SelectItem>
-                  <SelectItem value="vadodara">Vadodara</SelectItem>
-                  <SelectItem value="rajkot">Rajkot</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Locality / Area</Label>
-              <Select 
-                value={location.locality} 
-                onValueChange={(value) => setLocation({...location, locality: value})}
-              >
-                <SelectTrigger className="mt-2">
-                  <SelectValue placeholder="Select locality" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="thaltej">Thaltej</SelectItem>
-                  <SelectItem value="bopal">Bopal</SelectItem>
-                  <SelectItem value="prahlad-nagar">Prahlad Nagar</SelectItem>
-                  <SelectItem value="science-city">Science City</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div>
-              <Label>Landmark (Optional)</Label>
-              <Input 
-                placeholder="Enter nearby landmark"
-                value={location.landmark || ""}
-                onChange={(e) => setLocation({...location, landmark: e.target.value})}
-                className="mt-2"
-              />
-            </div>
-
-            <div>
-              <Label>Pin Code</Label>
-              <Input 
-                type="number" 
-                placeholder="Enter pin code"
-                value={location.pincode || ""}
-                onChange={(e) => setLocation({...location, pincode: e.target.value})}
-                className="mt-2"
-              />
-            </div>
-          </div>
-        );
-
-      case 5: // Media & Documents
-        return (
-          <div className="space-y-6">
-            <h3 className="text-lg font-semibold">Media & Documents</h3>
-            
-            <div>
-              <Label>Property Images (Min 3, Max 15)</Label>
-              <div className="mt-2 border-2 border-dashed border-border rounded-lg p-8 text-center">
-                <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-2">Drag and drop images here, or click to browse</p>
-                <Button variant="outline">Choose Images</Button>
-              </div>
-            </div>
-
-            <div>
-              <Label>Documents (Ownership papers, RERA certificate, etc.)</Label>
-              <div className="mt-2 border-2 border-dashed border-border rounded-lg p-8 text-center">
-                <Upload className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
-                <p className="text-muted-foreground mb-2">Drag and drop documents here, or click to browse</p>
-                <Button variant="outline">Choose Documents</Button>
+                <Label htmlFor="area">Area (sq ft) *</Label>
+                <Input
+                  id="area"
+                  type="number"
+                  min="0"
+                  max="999999"
+                  value={pricing.area || ""}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    setPricing({...pricing, area: value});
+                    const error = validateField('area', parseFloat(value));
+                    setFormErrors(prev => ({...prev, area: error}));
+                  }}
+                  placeholder="Enter area in sq ft"
+                  className={formErrors.area ? "border-destructive" : ""}
+                />
+                {formErrors.area && <p className="text-sm text-destructive mt-1">{formErrors.area}</p>}
               </div>
             </div>
           </div>
         );
 
-      case 6: // Preview & Submit
+      case 4:
         return (
           <div className="space-y-6">
-            <h3 className="text-lg font-semibold">Final Preview</h3>
-            
-            <Card className="p-6">
-              <div className="space-y-4">
-                <div className="flex justify-between items-start">
-                  <div>
-                    <h4 className="text-lg font-semibold">{propertyType} in {location.locality}</h4>
-                    <p className="text-muted-foreground">{category} • {location.city}</p>
-                  </div>
-                  <Badge variant="outline">Pending Approval</Badge>
-                </div>
-                
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  <div>
-                    <span className="text-muted-foreground">Price</span>
-                    <p className="font-semibold">₹{pricing.amount} {pricing.unit}</p>
-                  </div>
-                  <div>
-                    <span className="text-muted-foreground">Area</span>
-                    <p className="font-semibold">{specifications.area || specifications.carpetArea || specifications.plotArea || specifications.landArea} {specifications.areaUnit}</p>
-                  </div>
-                  {specifications.bedrooms && (
-                    <div>
-                      <span className="text-muted-foreground">Bedrooms</span>
-                      <p className="font-semibold">{specifications.bedrooms}</p>
-                    </div>
-                  )}
-                  {specifications.bathrooms && (
-                    <div>
-                      <span className="text-muted-foreground">Bathrooms</span>
-                      <p className="font-semibold">{specifications.bathrooms}</p>
-                    </div>
-                  )}
-                </div>
+            <h3 className="text-lg font-semibold text-text-primary mb-4">Location Details</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="area-location">Area/Locality</Label>
+                <Input
+                  id="area-location"
+                  value={location.area || ""}
+                  onChange={(e) => setLocation({...location, area: sanitizeInput(e.target.value)})}
+                  placeholder="Enter area or locality"
+                  maxLength={100}
+                />
+              </div>
+              <div>
+                <Label htmlFor="city">City</Label>
+                <Input
+                  id="city"
+                  value={location.city || ""}
+                  onChange={(e) => setLocation({...location, city: sanitizeInput(e.target.value)})}
+                  placeholder="Enter city"
+                  maxLength={50}
+                />
+              </div>
+              <div>
+                <Label htmlFor="state">State</Label>
+                <Input
+                  id="state"
+                  value={location.state || ""}
+                  onChange={(e) => setLocation({...location, state: sanitizeInput(e.target.value)})}
+                  placeholder="Enter state"
+                  maxLength={50}
+                />
+              </div>
+              <div>
+                <Label htmlFor="pincode">Pincode</Label>
+                <Input
+                  id="pincode"
+                  value={location.pincode || ""}
+                  onChange={(e) => setLocation({...location, pincode: sanitizeInput(e.target.value)})}
+                  placeholder="Enter pincode"
+                  maxLength={10}
+                />
+              </div>
+            </div>
+          </div>
+        );
 
-                <div className="text-sm">
-                  <span className="text-muted-foreground">Status: </span>
-                  <span className="font-semibold">{pricing.status === "ready" ? "Ready Possession" : "Under Construction"}</span>
-                  {completionDate && (
-                    <span className="text-muted-foreground"> • Expected: {format(completionDate, "MMM yyyy")}</span>
-                  )}
+      case 5:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-text-primary mb-4">Media & Documents</h3>
+            <div className="space-y-4">
+              <div>
+                <Label>Property Images</Label>
+                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                  <Upload className="w-12 h-12 mx-auto text-text-secondary mb-4" />
+                  <p className="text-text-secondary">Image upload functionality would be implemented with Supabase Storage</p>
+                  <p className="text-sm text-text-light mt-2">Drag and drop images or click to select</p>
                 </div>
               </div>
-            </Card>
+              <div>
+                <Label>Documents</Label>
+                <div className="border-2 border-dashed border-border rounded-lg p-6 text-center">
+                  <Upload className="w-12 h-12 mx-auto text-text-secondary mb-4" />
+                  <p className="text-text-secondary">Document upload functionality would be implemented with Supabase Storage</p>
+                  <p className="text-sm text-text-light mt-2">Upload property documents, certificates, etc.</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
 
-            <div className="bg-blue-50 p-4 rounded-lg">
-              <p className="text-sm text-blue-800">
-                <strong>Next Steps:</strong> Your property will be submitted for verification. 
-                You'll receive a notification once it's approved or if any changes are required.
-              </p>
+      case 6:
+        return (
+          <div className="space-y-6">
+            <h3 className="text-lg font-semibold text-text-primary mb-4">Additional Details</h3>
+            <div>
+              <Label htmlFor="completion-date">Completion Date</Label>
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !completionDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {completionDate ? format(completionDate, "PPP") : <span>Pick a date</span>}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0">
+                  <Calendar
+                    mode="single"
+                    selected={completionDate}
+                    onSelect={setCompletionDate}
+                    initialFocus
+                  />
+                </PopoverContent>
+              </Popover>
+            </div>
+            
+            {/* Property Summary */}
+            <div className="bg-bg-section p-4 rounded-lg">
+              <h4 className="font-semibold text-text-primary mb-2">Property Summary</h4>
+              <div className="space-y-2 text-sm text-text-secondary">
+                <p><span className="font-medium">Category:</span> {category || 'Not selected'}</p>
+                <p><span className="font-medium">Type:</span> {propertyType || 'Not selected'}</p>
+                <p><span className="font-medium">Title:</span> {title || 'Not entered'}</p>
+                <p><span className="font-medium">Price:</span> ₹{pricing.price ? parseFloat(pricing.price).toLocaleString() : 'Not entered'}</p>
+                <p><span className="font-medium">Area:</span> {pricing.area || 'Not entered'} sq ft</p>
+                {location.area && <p><span className="font-medium">Location:</span> {location.area}, {location.city}</p>}
+              </div>
             </div>
           </div>
         );
@@ -909,39 +695,57 @@ const PropertyManager = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-bg-light">
       {/* Header */}
-      <div className="border-b bg-card">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <Button
-                variant="ghost"
-                size="icon"
-                onClick={() => navigate("/broker-dashboard")}
-                className="text-muted-foreground hover:text-foreground"
-              >
-                <ArrowLeft className="h-5 w-5" />
-              </Button>
-              <h1 className="text-2xl font-bold text-foreground">Property Manager</h1>
-            </div>
+      <header className="bg-white border-b border-border px-4 py-3">
+        <div className="max-w-7xl mx-auto flex items-center justify-between">
+          <div className="flex items-center space-x-4">
             <Button
-              onClick={() => setIsAddPropertyOpen(true)}
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
+              variant="outline"
+              size="sm"
+              onClick={() => navigate('/')}
+              className="flex items-center space-x-2"
             >
-              <Plus className="w-4 h-4 mr-2" />
-              Add New Property
+              <ArrowLeft className="w-4 h-4" />
+              <span>Back</span>
+            </Button>
+            <div className="text-easyestate-pink font-bold text-xl">easyestate</div>
+          </div>
+          <div className="flex items-center space-x-4">
+            <span className="text-text-secondary">Welcome, {user.email}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSignOut}
+              className="flex items-center space-x-2"
+            >
+              <LogOut className="w-4 h-4" />
+              <span>Sign Out</span>
             </Button>
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* Properties Grid */}
-      <div className="container mx-auto px-4 py-8">
-        {isLoading ? (
-          <div className="flex justify-center items-center py-12">
-            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-            <span className="ml-2 text-muted-foreground">Loading properties...</span>
+      {/* Main Content */}
+      <div className="max-w-7xl mx-auto px-4 py-6">
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <h1 className="text-3xl font-bold text-text-primary">Property Manager</h1>
+            <p className="text-text-secondary mt-1">Manage your property listings</p>
+          </div>
+          <Button 
+            onClick={() => setIsAddPropertyOpen(true)}
+            className="bg-easyestate-pink hover:bg-easyestate-pink-dark"
+          >
+            <Plus className="w-4 h-4 mr-2" />
+            Add New Property
+          </Button>
+        </div>
+
+        {/* Properties Grid */}
+        {propertiesLoading ? (
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-easyestate-pink" />
           </div>
         ) : error ? (
           <div className="text-center py-12">
@@ -949,59 +753,87 @@ const PropertyManager = () => {
           </div>
         ) : properties.length === 0 ? (
           <div className="text-center py-12">
-            <p className="text-muted-foreground">No properties found. Add your first property!</p>
+            <div className="text-6xl mb-4">🏠</div>
+            <h3 className="text-xl font-semibold text-text-primary mb-2">No properties yet</h3>
+            <p className="text-text-secondary mb-4">Create your first property listing to get started</p>
+            <Button 
+              onClick={() => setIsAddPropertyOpen(true)}
+              className="bg-easyestate-pink hover:bg-easyestate-pink-dark"
+            >
+              <Plus className="w-4 h-4 mr-2" />
+              Add Your First Property
+            </Button>
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {properties.map((property) => (
-              <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-                <div className="aspect-video bg-muted flex items-center justify-center">
-                  <Home className="w-12 h-12 text-muted-foreground" />
-                </div>
-                <div className="p-4">
-                  <div className="flex justify-between items-start mb-2">
-                    <h3 className="font-semibold text-foreground truncate">{property.title}</h3>
-                    <Badge variant="outline" className={getStatusColor(property.status)}>
-                      <span className="capitalize">{property.status.replace('_', ' ')}</span>
+              <Card key={property.id} className="hover:shadow-lg transition-shadow">
+                <div className="p-6">
+                  <div className="flex items-start justify-between mb-4">
+                    <div className="flex items-center space-x-2">
+                      {getCategoryIcon(property.category)}
+                      <Badge variant="secondary" className="capitalize">
+                        {property.category}
+                      </Badge>
+                    </div>
+                    <Badge className={getStatusColor(property.status)} variant="secondary">
+                      {property.status.replace('_', ' ')}
                     </Badge>
                   </div>
-                  <p className="text-sm text-muted-foreground mb-2">
-                    <span className="capitalize">{property.category}</span> • <span className="capitalize">{property.type.replace('_', ' ')}</span>
-                  </p>
-                  <p className="text-sm text-muted-foreground mb-3">
-                    {property.location && typeof property.location === 'object' && !Array.isArray(property.location)
-                      ? `${(property.location as any).area || ''} ${(property.location as any).city || ''}`.trim() || 'Location not specified'
-                      : 'Location not specified'
-                    }
-                  </p>
-                  
-                  <div className="flex justify-between items-center mb-4">
-                    <div>
-                      <p className="font-bold text-lg text-foreground">₹{property.price.toLocaleString()}</p>
-                      <p className="text-sm text-muted-foreground">{property.area} sq ft</p>
+
+                  <h3 className="text-lg font-semibold text-text-primary mb-2 line-clamp-2">
+                    {property.title}
+                  </h3>
+
+                  {property.description && (
+                    <p className="text-text-secondary text-sm mb-4 line-clamp-2">
+                      {property.description}
+                    </p>
+                  )}
+
+                  <div className="space-y-2 mb-4">
+                    <div className="flex justify-between text-sm">
+                      <span className="text-text-secondary">Price:</span>
+                      <span className="font-semibold text-text-primary">₹{property.price.toLocaleString()}</span>
+                    </div>
+                    <div className="flex justify-between text-sm">
+                      <span className="text-text-secondary">Area:</span>
+                      <span className="font-semibold text-text-primary">{property.area} sq ft</span>
                     </div>
                     {property.bedrooms && (
-                      <div className="text-right text-sm">
-                        <p>{property.bedrooms} BHK</p>
-                        <p className="text-muted-foreground">{property.bathrooms} Bath</p>
+                      <div className="flex justify-between text-sm">
+                        <span className="text-text-secondary">Bedrooms:</span>
+                        <span className="font-semibold text-text-primary">{property.bedrooms}</span>
+                      </div>
+                    )}
+                    {property.bathrooms && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-text-secondary">Bathrooms:</span>
+                        <span className="font-semibold text-text-primary">{property.bathrooms}</span>
+                      </div>
+                    )}
+                    {property.location && typeof property.location === 'object' && (property.location as any)?.area && (
+                      <div className="flex justify-between text-sm">
+                        <span className="text-text-secondary">Location:</span>
+                        <span className="font-semibold text-text-primary">{(property.location as any).area}</span>
                       </div>
                     )}
                   </div>
 
-                  <div className="flex gap-2">
+                  <div className="flex space-x-2">
                     <Button variant="outline" size="sm" className="flex-1">
-                      <Eye className="w-4 h-4 mr-1" />
+                      <Eye className="w-4 h-4 mr-2" />
                       View
                     </Button>
                     <Button variant="outline" size="sm" className="flex-1">
-                      <Edit className="w-4 h-4 mr-1" />
+                      <Edit className="w-4 h-4 mr-2" />
                       Edit
                     </Button>
                     <Button 
                       variant="outline" 
                       size="sm" 
-                      className="text-destructive hover:text-destructive"
                       onClick={() => handleDelete(property.id)}
+                      className="text-destructive hover:text-destructive"
                       disabled={deletePropertyMutation.isPending}
                     >
                       {deletePropertyMutation.isPending ? (
@@ -1016,81 +848,86 @@ const PropertyManager = () => {
             ))}
           </div>
         )}
-      </div>
 
-      {/* Add Property Modal */}
-      <Dialog open={isAddPropertyOpen} onOpenChange={setIsAddPropertyOpen}>
-        <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Add New Property - Step {currentStep} of 6</DialogTitle>
-          </DialogHeader>
+        {/* Add Property Dialog */}
+        <Dialog open={isAddPropertyOpen} onOpenChange={setIsAddPropertyOpen}>
+          <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+            <DialogHeader>
+              <DialogTitle>Add New Property - Step {currentStep} of 6</DialogTitle>
+            </DialogHeader>
 
-          {/* Progress Bar */}
-          <div className="w-full bg-muted rounded-full h-2 mb-6">
-            <div 
-              className="bg-primary h-2 rounded-full transition-all duration-300"
-              style={{ width: `${(currentStep / 6) * 100}%` }}
-            />
-          </div>
+            <div className="py-4">
+              {/* Progress indicator */}
+              <div className="flex justify-between mb-8">
+                {[1, 2, 3, 4, 5, 6].map((step) => (
+                  <div
+                    key={step}
+                    className={cn(
+                      "flex items-center justify-center w-8 h-8 rounded-full text-sm font-medium",
+                      currentStep >= step
+                        ? "bg-easyestate-pink text-white"
+                        : "bg-gray-200 text-gray-500"
+                    )}
+                  >
+                    {step}
+                  </div>
+                ))}
+              </div>
 
-          {/* Step Content */}
-          <div className="min-h-[400px]">
-            {renderStepContent()}
-          </div>
+              {/* Step content */}
+              {renderStepContent()}
 
-          {/* Navigation Buttons */}
-          <div className="flex justify-between pt-6 border-t">
-            <Button
-              variant="outline"
-              onClick={handlePrevStep}
-              disabled={currentStep === 1}
-            >
-              Previous
-            </Button>
-            
-            <div className="flex gap-2">
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setIsAddPropertyOpen(false);
-                  resetForm();
-                }}
-              >
-                Cancel
-              </Button>
-              
-              {currentStep === 6 ? (
-                <Button 
-                  onClick={handleSubmit} 
-                  className="bg-primary hover:bg-primary/90"
-                  disabled={createPropertyMutation.isPending}
-                >
-                  {createPropertyMutation.isPending ? (
-                    <>
-                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                      Submitting...
-                    </>
-                  ) : (
-                    'Submit Property'
-                  )}
-                </Button>
-              ) : (
+              {/* Navigation buttons */}
+              <div className="flex justify-between mt-8">
                 <Button
-                  onClick={handleNextStep}
-                  disabled={
-                    (currentStep === 1 && (!category || !propertyType)) ||
-                    (currentStep === 3 && (!pricing.price)) ||
-                    (currentStep === 4 && (!location.city || !location.area))
-                  }
-                  className="bg-primary hover:bg-primary/90"
+                  variant="outline"
+                  onClick={handlePrevStep}
+                  disabled={currentStep === 1}
                 >
-                  Next
+                  Previous
                 </Button>
-              )}
+
+                <div className="flex space-x-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => {
+                      setIsAddPropertyOpen(false);
+                      resetForm();
+                    }}
+                  >
+                    Cancel
+                  </Button>
+
+                  {currentStep === 6 ? (
+                    <Button
+                      onClick={handleSubmit}
+                      disabled={!category || !propertyType || !title || createPropertyMutation.isPending}
+                      className="bg-easyestate-pink hover:bg-easyestate-pink-dark"
+                    >
+                      {createPropertyMutation.isPending ? (
+                        <>
+                          <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                          Creating...
+                        </>
+                      ) : (
+                        "Create Property"
+                      )}
+                    </Button>
+                  ) : (
+                    <Button
+                      onClick={handleNextStep}
+                      disabled={currentStep === 1 && (!category || !propertyType || !title)}
+                      className="bg-easyestate-pink hover:bg-easyestate-pink-dark"
+                    >
+                      Next
+                    </Button>
+                  )}
+                </div>
+              </div>
             </div>
-          </div>
-        </DialogContent>
-      </Dialog>
+          </DialogContent>
+        </Dialog>
+      </div>
     </div>
   );
 };

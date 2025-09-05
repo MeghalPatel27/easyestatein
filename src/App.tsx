@@ -10,6 +10,7 @@ import LeadManagement from "./pages/LeadManagement";
 import SentLeads from "./pages/SentLeads";
 import BrokerProfile from "./pages/BrokerProfile";
 import PropertyManager from "./pages/PropertyManager";
+import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -28,6 +29,7 @@ const App = () => (
           <Route path="/sent-leads" element={<SentLeads />} />
           <Route path="/broker-profile" element={<BrokerProfile />} />
           <Route path="/property-manager" element={<PropertyManager />} />
+          <Route path="/auth" element={<Auth />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>

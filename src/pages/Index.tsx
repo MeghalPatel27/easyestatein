@@ -18,7 +18,7 @@ const Index = () => {
             <Button 
               variant="outline" 
               size="sm"
-              onClick={() => navigate('/property-manager')}
+              onClick={() => navigate('/auth')}
             >
               Sign In
             </Button>
