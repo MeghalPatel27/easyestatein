@@ -151,6 +151,7 @@ const BrokerDashboard = () => {
             Lead Manager
           </Button>
           <Button
+            onClick={() => navigate('/property-manager')}
             variant="outline"
             className="w-full sm:w-auto"
           >
