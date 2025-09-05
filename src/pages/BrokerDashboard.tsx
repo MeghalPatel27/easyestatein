@@ -150,6 +150,12 @@ const BrokerDashboard = () => {
           >
             Lead Manager
           </Button>
+          <Button
+            variant="outline"
+            className="w-full sm:w-auto"
+          >
+            Property Manager
+          </Button>
           <div className="flex items-center justify-between w-full sm:w-auto">
             <div className="flex items-center space-x-2">
               <span className="text-sm text-text-secondary">2450 coins</span>
