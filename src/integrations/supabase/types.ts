@@ -14,7 +14,69 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      properties: {
+        Row: {
+          area: number
+          bathrooms: number | null
+          bedrooms: number | null
+          category: Database["public"]["Enums"]["property_category"]
+          completion_date: string | null
+          created_at: string
+          description: string | null
+          documents: string[] | null
+          id: string
+          images: string[] | null
+          location: Json
+          price: number
+          specifications: Json | null
+          status: Database["public"]["Enums"]["property_status"]
+          title: string
+          type: Database["public"]["Enums"]["property_type"]
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          area: number
+          bathrooms?: number | null
+          bedrooms?: number | null
+          category: Database["public"]["Enums"]["property_category"]
+          completion_date?: string | null
+          created_at?: string
+          description?: string | null
+          documents?: string[] | null
+          id?: string
+          images?: string[] | null
+          location?: Json
+          price: number
+          specifications?: Json | null
+          status?: Database["public"]["Enums"]["property_status"]
+          title: string
+          type: Database["public"]["Enums"]["property_type"]
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          area?: number
+          bathrooms?: number | null
+          bedrooms?: number | null
+          category?: Database["public"]["Enums"]["property_category"]
+          completion_date?: string | null
+          created_at?: string
+          description?: string | null
+          documents?: string[] | null
+          id?: string
+          images?: string[] | null
+          location?: Json
+          price?: number
+          specifications?: Json | null
+          status?: Database["public"]["Enums"]["property_status"]
+          title?: string
+          type?: Database["public"]["Enums"]["property_type"]
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
@@ -23,7 +85,23 @@ export type Database = {
       [_ in never]: never
     }
     Enums: {
-      [_ in never]: never
+      property_category: "residential" | "commercial" | "industrial" | "land"
+      property_status: "available" | "sold" | "rented" | "under_offer"
+      property_type:
+        | "apartment"
+        | "villa"
+        | "townhouse"
+        | "penthouse"
+        | "office"
+        | "retail"
+        | "warehouse"
+        | "showroom"
+        | "factory"
+        | "logistics"
+        | "manufacturing"
+        | "plot"
+        | "farm"
+        | "commercial_land"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +228,25 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      property_category: ["residential", "commercial", "industrial", "land"],
+      property_status: ["available", "sold", "rented", "under_offer"],
+      property_type: [
+        "apartment",
+        "villa",
+        "townhouse",
+        "penthouse",
+        "office",
+        "retail",
+        "warehouse",
+        "showroom",
+        "factory",
+        "logistics",
+        "manufacturing",
+        "plot",
+        "farm",
+        "commercial_land",
+      ],
+    },
   },
 } as const

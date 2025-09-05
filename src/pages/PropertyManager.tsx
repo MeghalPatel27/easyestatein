@@ -10,94 +10,140 @@ import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
-import { ArrowLeft, Plus, Home, Building, Factory, Wheat, CalendarIcon, Upload, Eye, Edit, Trash2 } from "lucide-react";
+import { ArrowLeft, Plus, Home, Building, Factory, Wheat, CalendarIcon, Upload, Eye, Edit, Trash2, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { format } from "date-fns";
 import { cn } from "@/lib/utils";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 interface Property {
   id: string;
   title: string;
   category: string;
   type: string;
-  location: string;
-  price: string;
-  area: string;
-  status: 'pending' | 'approved' | 'rejected';
+  location: any;
+  price: number;
+  area: number;
+  status: 'available' | 'sold' | 'rented' | 'under_offer';
   images: string[];
   bedrooms?: number;
   bathrooms?: number;
-  createdAt: string;
+  specifications?: any;
+  documents?: string[];
+  completion_date?: string;
+  description?: string;
+  created_at: string;
+  updated_at: string;
+  user_id: string;
 }
 
 const PropertyManager = () => {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [isAddPropertyOpen, setIsAddPropertyOpen] = useState(false);
   const [currentStep, setCurrentStep] = useState(1);
+  const [user, setUser] = useState<any>(null);
   
   // Form state
   const [category, setCategory] = useState<string>("");
   const [propertyType, setPropertyType] = useState<string>("");
+  const [title, setTitle] = useState<string>("");
+  const [description, setDescription] = useState<string>("");
   const [specifications, setSpecifications] = useState<any>({});
   const [pricing, setPricing] = useState<any>({});
   const [location, setLocation] = useState<any>({});
   const [media, setMedia] = useState<any>({});
   const [completionDate, setCompletionDate] = useState<Date>();
 
-  // Sample properties data
-  const properties: Property[] = [
-    {
-      id: "1",
-      title: "Luxury Villa in Thaltej",
-      category: "Residential",
-      type: "Villa",
-      location: "Thaltej, Ahmedabad",
-      price: "₹4.5 Cr",
-      area: "3500 sq ft",
-      status: "approved",
-      images: ["image1.jpg"],
-      bedrooms: 4,
-      bathrooms: 3,
-      createdAt: "2024-01-15"
+  // Check authentication
+  useEffect(() => {
+    const getUser = async () => {
+      const { data: { user } } = await supabase.auth.getUser();
+      setUser(user);
+      if (!user) {
+        toast.error("Please sign in to access Property Manager");
+        navigate('/');
+      }
+    };
+    getUser();
+  }, [navigate]);
+
+  // Fetch properties
+  const { data: properties = [], isLoading, error } = useQuery({
+    queryKey: ['properties'],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
     },
-    {
-      id: "2", 
-      title: "Commercial Office Space",
-      category: "Commercial",
-      type: "Office",
-      location: "Prahlad Nagar, Ahmedabad",
-      price: "₹85 Lakh",
-      area: "1200 sq ft",
-      status: "pending",
-      images: ["image2.jpg"],
-      createdAt: "2024-01-10"
+    enabled: !!user
+  });
+
+  // Create property mutation
+  const createPropertyMutation = useMutation({
+    mutationFn: async (propertyData: any) => {
+      const { data, error } = await supabase
+        .from('properties')
+        .insert([{
+          ...propertyData,
+          user_id: user?.id
+        }])
+        .select()
+        .single();
+      
+      if (error) throw error;
+      return data;
     },
-    {
-      id: "3",
-      title: "Industrial Warehouse",
-      category: "Industrial", 
-      type: "Warehouse",
-      location: "Vatva, Ahmedabad",
-      price: "₹2.2 Cr",
-      area: "8000 sq ft",
-      status: "rejected",
-      images: ["image3.jpg"],
-      createdAt: "2024-01-05"
+    onSuccess: () => {
+      toast.success("Property added successfully!");
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+      setIsAddPropertyOpen(false);
+      resetForm();
+    },
+    onError: (error: any) => {
+      toast.error("Failed to add property: " + error.message);
     }
-  ];
+  });
+
+  // Delete property mutation
+  const deletePropertyMutation = useMutation({
+    mutationFn: async (propertyId: string) => {
+      const { error } = await supabase
+        .from('properties')
+        .delete()
+        .eq('id', propertyId);
+      
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Property deleted successfully!");
+      queryClient.invalidateQueries({ queryKey: ['properties'] });
+    },
+    onError: (error: any) => {
+      toast.error("Failed to delete property: " + error.message);
+    }
+  });
 
   const categoryTypes = {
-    Residential: ["Plot", "Apartment", "Villa", "Bungalow", "Row House", "Duplex", "Penthouse"],
-    Commercial: ["Office", "Shop", "Showroom", "Co-working Space"],
-    Industrial: ["Shed", "Warehouse", "Factory", "Industrial Land"],
-    Agricultural: ["Farm Land", "Greenhouse", "Agri-Plot"]
+    residential: ["apartment", "villa", "townhouse", "penthouse"],
+    commercial: ["office", "retail", "warehouse", "showroom"],
+    industrial: ["factory", "logistics", "manufacturing"],
+    land: ["plot", "farm", "commercial_land"]
   };
 
   const resetForm = () => {
     setCurrentStep(1);
     setCategory("");
     setPropertyType("");
+    setTitle("");
+    setDescription("");
     setSpecifications({});
     setPricing({});
     setLocation({});
@@ -118,34 +164,53 @@ const PropertyManager = () => {
   };
 
   const handleSubmit = () => {
-    // Here you would submit to Supabase
-    console.log("Submitting property:", {
-      category,
-      propertyType,
-      specifications,
-      pricing,
-      location,
-      media
-    });
-    setIsAddPropertyOpen(false);
-    resetForm();
+    if (!user) {
+      toast.error("Please sign in to add properties");
+      return;
+    }
+
+    const propertyData = {
+      title: title || `${propertyType} in ${location.area || 'Location'}`,
+      category: category,
+      type: propertyType,
+      location: location,
+      price: parseFloat(pricing.price) || 0,
+      area: parseFloat(specifications.area || specifications.plotArea || specifications.carpetArea) || 0,
+      status: 'available' as const,
+      specifications: specifications,
+      bedrooms: specifications.bedrooms,
+      bathrooms: specifications.bathrooms,
+      images: media.images || [],
+      documents: media.documents || [],
+      completion_date: completionDate ? format(completionDate, 'yyyy-MM-dd') : null,
+      description: description
+    };
+
+    createPropertyMutation.mutate(propertyData);
+  };
+
+  const handleDelete = (propertyId: string) => {
+    if (window.confirm("Are you sure you want to delete this property?")) {
+      deletePropertyMutation.mutate(propertyId);
+    }
   };
 
   const getCategoryIcon = (cat: string) => {
-    switch (cat) {
-      case "Residential": return <Home className="w-6 h-6" />;
-      case "Commercial": return <Building className="w-6 h-6" />;
-      case "Industrial": return <Factory className="w-6 h-6" />;
-      case "Agricultural": return <Wheat className="w-6 h-6" />;
+    switch (cat.toLowerCase()) {
+      case "residential": return <Home className="w-6 h-6" />;
+      case "commercial": return <Building className="w-6 h-6" />;
+      case "industrial": return <Factory className="w-6 h-6" />;
+      case "land": return <Wheat className="w-6 h-6" />;
       default: return <Home className="w-6 h-6" />;
     }
   };
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "approved": return "bg-emerald-100 text-emerald-700 border-emerald-200";
-      case "pending": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "rejected": return "bg-red-100 text-red-700 border-red-200";
+      case "available": return "bg-emerald-100 text-emerald-700 border-emerald-200";
+      case "sold": return "bg-blue-100 text-blue-700 border-blue-200";
+      case "rented": return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "under_offer": return "bg-orange-100 text-orange-700 border-orange-200";
       default: return "bg-gray-100 text-gray-700 border-gray-200";
     }
   };
@@ -155,6 +220,27 @@ const PropertyManager = () => {
       case 1: // Basic Details
         return (
           <div className="space-y-6">
+            <div>
+              <Label className="text-base font-semibold">Property Title</Label>
+              <Input 
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="Enter property title"
+                className="mt-2"
+              />
+            </div>
+
+            <div>
+              <Label className="text-base font-semibold">Description</Label>
+              <Textarea 
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                placeholder="Enter property description"
+                className="mt-2"
+                rows={3}
+              />
+            </div>
+
             <div>
               <Label className="text-base font-semibold">Category of Property</Label>
               <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-3">
@@ -172,7 +258,7 @@ const PropertyManager = () => {
                     }}
                   >
                     {getCategoryIcon(cat)}
-                    <span className="text-sm">{cat}</span>
+                    <span className="text-sm capitalize">{cat}</span>
                   </Button>
                 ))}
               </div>
@@ -188,7 +274,7 @@ const PropertyManager = () => {
                   <SelectContent>
                     {categoryTypes[category as keyof typeof categoryTypes].map((type) => (
                       <SelectItem key={type} value={type}>
-                        {type}
+                        <span className="capitalize">{type.replace('_', ' ')}</span>
                       </SelectItem>
                     ))}
                   </SelectContent>
@@ -812,52 +898,84 @@ const PropertyManager = () => {
 
       {/* Properties Grid */}
       <div className="container mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {properties.map((property) => (
-            <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="aspect-video bg-muted flex items-center justify-center">
-                <Home className="w-12 h-12 text-muted-foreground" />
-              </div>
-              <div className="p-4">
-                <div className="flex justify-between items-start mb-2">
-                  <h3 className="font-semibold text-foreground truncate">{property.title}</h3>
-                  <Badge variant="outline" className={getStatusColor(property.status)}>
-                    {property.status}
-                  </Badge>
+        {isLoading ? (
+          <div className="flex justify-center items-center py-12">
+            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+            <span className="ml-2 text-muted-foreground">Loading properties...</span>
+          </div>
+        ) : error ? (
+          <div className="text-center py-12">
+            <p className="text-destructive">Failed to load properties. Please try again.</p>
+          </div>
+        ) : properties.length === 0 ? (
+          <div className="text-center py-12">
+            <p className="text-muted-foreground">No properties found. Add your first property!</p>
+          </div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {properties.map((property) => (
+              <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow">
+                <div className="aspect-video bg-muted flex items-center justify-center">
+                  <Home className="w-12 h-12 text-muted-foreground" />
                 </div>
-                <p className="text-sm text-muted-foreground mb-2">{property.category} • {property.type}</p>
-                <p className="text-sm text-muted-foreground mb-3">{property.location}</p>
-                
-                <div className="flex justify-between items-center mb-4">
-                  <div>
-                    <p className="font-bold text-lg text-foreground">{property.price}</p>
-                    <p className="text-sm text-muted-foreground">{property.area}</p>
+                <div className="p-4">
+                  <div className="flex justify-between items-start mb-2">
+                    <h3 className="font-semibold text-foreground truncate">{property.title}</h3>
+                    <Badge variant="outline" className={getStatusColor(property.status)}>
+                      <span className="capitalize">{property.status.replace('_', ' ')}</span>
+                    </Badge>
                   </div>
-                  {property.bedrooms && (
-                    <div className="text-right text-sm">
-                      <p>{property.bedrooms} BHK</p>
-                      <p className="text-muted-foreground">{property.bathrooms} Bath</p>
+                  <p className="text-sm text-muted-foreground mb-2">
+                    <span className="capitalize">{property.category}</span> • <span className="capitalize">{property.type.replace('_', ' ')}</span>
+                  </p>
+                  <p className="text-sm text-muted-foreground mb-3">
+                    {property.location && typeof property.location === 'object' && !Array.isArray(property.location)
+                      ? `${(property.location as any).area || ''} ${(property.location as any).city || ''}`.trim() || 'Location not specified'
+                      : 'Location not specified'
+                    }
+                  </p>
+                  
+                  <div className="flex justify-between items-center mb-4">
+                    <div>
+                      <p className="font-bold text-lg text-foreground">₹{property.price.toLocaleString()}</p>
+                      <p className="text-sm text-muted-foreground">{property.area} sq ft</p>
                     </div>
-                  )}
-                </div>
+                    {property.bedrooms && (
+                      <div className="text-right text-sm">
+                        <p>{property.bedrooms} BHK</p>
+                        <p className="text-muted-foreground">{property.bathrooms} Bath</p>
+                      </div>
+                    )}
+                  </div>
 
-                <div className="flex gap-2">
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Eye className="w-4 h-4 mr-1" />
-                    View
-                  </Button>
-                  <Button variant="outline" size="sm" className="flex-1">
-                    <Edit className="w-4 h-4 mr-1" />
-                    Edit
-                  </Button>
-                  <Button variant="outline" size="sm" className="text-destructive hover:text-destructive">
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <Eye className="w-4 h-4 mr-1" />
+                      View
+                    </Button>
+                    <Button variant="outline" size="sm" className="flex-1">
+                      <Edit className="w-4 h-4 mr-1" />
+                      Edit
+                    </Button>
+                    <Button 
+                      variant="outline" 
+                      size="sm" 
+                      className="text-destructive hover:text-destructive"
+                      onClick={() => handleDelete(property.id)}
+                      disabled={deletePropertyMutation.isPending}
+                    >
+                      {deletePropertyMutation.isPending ? (
+                        <Loader2 className="w-4 h-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="w-4 h-4" />
+                      )}
+                    </Button>
+                  </div>
                 </div>
-              </div>
-            </Card>
-          ))}
-        </div>
+              </Card>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Add Property Modal */}
@@ -902,16 +1020,27 @@ const PropertyManager = () => {
               </Button>
               
               {currentStep === 6 ? (
-                <Button onClick={handleSubmit} className="bg-primary hover:bg-primary/90">
-                  Submit for Verification
+                <Button 
+                  onClick={handleSubmit} 
+                  className="bg-primary hover:bg-primary/90"
+                  disabled={createPropertyMutation.isPending}
+                >
+                  {createPropertyMutation.isPending ? (
+                    <>
+                      <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                      Submitting...
+                    </>
+                  ) : (
+                    'Submit Property'
+                  )}
                 </Button>
               ) : (
                 <Button
                   onClick={handleNextStep}
                   disabled={
                     (currentStep === 1 && (!category || !propertyType)) ||
-                    (currentStep === 3 && (!pricing.amount || !pricing.unit || !pricing.status)) ||
-                    (currentStep === 4 && (!location.city || !location.locality))
+                    (currentStep === 3 && (!pricing.price)) ||
+                    (currentStep === 4 && (!location.city || !location.area))
                   }
                   className="bg-primary hover:bg-primary/90"
                 >
