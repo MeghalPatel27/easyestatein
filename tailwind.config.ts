@@ -24,6 +24,28 @@ export default {
 				ring: 'hsl(var(--ring))',
 				background: 'hsl(var(--background))',
 				foreground: 'hsl(var(--foreground))',
+				
+				// EasyEstate Colors
+				'easyestate-pink': 'hsl(var(--easyestate-pink))',
+				'easyestate-pink-light': 'hsl(var(--easyestate-pink-light))',
+				'easyestate-pink-dark': 'hsl(var(--easyestate-pink-dark))',
+				
+				'text-primary': 'hsl(var(--text-primary))',
+				'text-secondary': 'hsl(var(--text-secondary))',
+				'text-light': 'hsl(var(--text-light))',
+				'text-white': 'hsl(var(--text-white))',
+				
+				'bg-light': 'hsl(var(--bg-light))',
+				'bg-section': 'hsl(var(--bg-section))',
+				'bg-dark': 'hsl(var(--bg-dark))',
+				
+				'status-high': 'hsl(var(--status-high))',
+				'status-medium': 'hsl(var(--status-medium))',
+				'status-low': 'hsl(var(--status-low))',
+				'status-connected': 'hsl(var(--status-connected))',
+				'status-sent': 'hsl(var(--status-sent))',
+				'status-rejected': 'hsl(var(--status-rejected))',
+				
 				primary: {
 					DEFAULT: 'hsl(var(--primary))',
 					foreground: 'hsl(var(--primary-foreground))'
@@ -51,16 +73,6 @@ export default {
 				card: {
 					DEFAULT: 'hsl(var(--card))',
 					foreground: 'hsl(var(--card-foreground))'
-				},
-				sidebar: {
-					DEFAULT: 'hsl(var(--sidebar-background))',
-					foreground: 'hsl(var(--sidebar-foreground))',
-					primary: 'hsl(var(--sidebar-primary))',
-					'primary-foreground': 'hsl(var(--sidebar-primary-foreground))',
-					accent: 'hsl(var(--sidebar-accent))',
-					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
-					border: 'hsl(var(--sidebar-border))',
-					ring: 'hsl(var(--sidebar-ring))'
 				}
 			},
 			borderRadius: {
