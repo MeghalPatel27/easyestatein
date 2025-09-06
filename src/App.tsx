@@ -13,14 +13,6 @@ import PropertyManager from "./pages/PropertyManager";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
-// New pages
-import PostRequirement from "./pages/buyer/PostRequirement";
-import BuyerMessages from "./pages/buyer/BuyerMessages";
-import AdminDashboard from "./pages/admin/AdminDashboard";
-import KycVerification from "./pages/KycVerification";
-import DisputeManagement from "./pages/DisputeManagement";
-import PropertyVerification from "./pages/broker/PropertyVerification";
-
 // Broker Pages
 import BrokerLayout from "./pages/broker/BrokerLayout";
 import Dashboard from "./pages/broker/Dashboard";
@@ -50,17 +42,6 @@ const App = () => (
           <Route path="/property-manager" element={<PropertyManager />} />
           <Route path="/auth" element={<Auth />} />
           
-          {/* Buyer routes */}
-          <Route path="/buyer/post-requirement" element={<PostRequirement />} />
-          <Route path="/buyer/messages" element={<BuyerMessages />} />
-          
-          {/* Admin routes */}
-          <Route path="/admin/dashboard" element={<AdminDashboard />} />
-          
-          {/* General routes */}
-          <Route path="/kyc-verification" element={<KycVerification />} />
-          <Route path="/disputes" element={<DisputeManagement />} />
-          
           {/* New Broker System Routes */}
           <Route path="/broker" element={<BrokerLayout />}>
             <Route path="dashboard" element={<Dashboard />} />
@@ -68,7 +49,6 @@ const App = () => (
             <Route path="leads/:leadId" element={<LeadDetails />} />
             <Route path="properties" element={<PropertiesList />} />
             <Route path="properties/new" element={<PropertiesNew />} />
-            <Route path="properties/:propertyId/verification" element={<PropertyVerification />} />
             <Route path="lead-manager" element={<LeadManager />} />
             <Route path="wallet" element={<Wallet />} />
             <Route path="wallet/refill" element={<WalletRefill />} />
