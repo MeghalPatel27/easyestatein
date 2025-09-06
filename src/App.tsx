@@ -13,6 +13,17 @@ import PropertyManager from "./pages/PropertyManager";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
+// Broker Pages
+import BrokerLayout from "./pages/broker/BrokerLayout";
+import Dashboard from "./pages/broker/Dashboard";
+import LeadsListing from "./pages/broker/LeadsListing";
+import LeadDetails from "./pages/broker/LeadDetails";
+import PropertiesNew from "./pages/broker/PropertiesNew";
+import PropertiesList from "./pages/broker/PropertiesList";
+import Wallet from "./pages/broker/Wallet";
+import WalletRefill from "./pages/broker/WalletRefill";
+import LeadManager from "./pages/broker/LeadManager";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -30,6 +41,20 @@ const App = () => (
           <Route path="/broker-profile" element={<BrokerProfile />} />
           <Route path="/property-manager" element={<PropertyManager />} />
           <Route path="/auth" element={<Auth />} />
+          
+          {/* New Broker System Routes */}
+          <Route path="/broker" element={<BrokerLayout />}>
+            <Route path="dashboard" element={<Dashboard />} />
+            <Route path="leads" element={<LeadsListing />} />
+            <Route path="leads/:leadId" element={<LeadDetails />} />
+            <Route path="properties" element={<PropertiesList />} />
+            <Route path="properties/new" element={<PropertiesNew />} />
+            <Route path="lead-manager" element={<LeadManager />} />
+            <Route path="wallet" element={<Wallet />} />
+            <Route path="wallet/refill" element={<WalletRefill />} />
+            <Route path="profile" element={<BrokerProfile />} />
+          </Route>
+          
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
         </Routes>
