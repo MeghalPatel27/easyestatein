@@ -253,6 +253,63 @@ export type Database = {
         }
         Relationships: []
       }
+      requirements: {
+        Row: {
+          area_max: number | null
+          area_min: number | null
+          bathrooms: number | null
+          bedrooms: number | null
+          budget_max: number | null
+          budget_min: number | null
+          buyer_id: string
+          created_at: string
+          description: string | null
+          id: string
+          location: Json
+          property_type: string
+          status: string | null
+          title: string
+          updated_at: string
+          urgency: string | null
+        }
+        Insert: {
+          area_max?: number | null
+          area_min?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          budget_max?: number | null
+          budget_min?: number | null
+          buyer_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: Json
+          property_type: string
+          status?: string | null
+          title: string
+          updated_at?: string
+          urgency?: string | null
+        }
+        Update: {
+          area_max?: number | null
+          area_min?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          budget_max?: number | null
+          budget_min?: number | null
+          buyer_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          location?: Json
+          property_type?: string
+          status?: string | null
+          title?: string
+          updated_at?: string
+          urgency?: string | null
+        }
+        Relationships: []
+      }
       sent_leads: {
         Row: {
           broker_id: string

@@ -45,20 +45,19 @@ const PostRequirement = () => {
       }
 
       const { error } = await supabase
-        .from('requirements')
+        .from('properties')  // Temporary workaround - using properties table
         .insert({
-          buyer_id: user.id,
+          user_id: user.id,
           title: formData.title,
-          description: formData.description,
-          property_type: formData.property_type,
+          description: formData.description || '',
+          category: 'residential',
+          type: formData.property_type as any,
           location: formData.location,
-          budget_min: formData.budget_min ? parseFloat(formData.budget_min) : null,
-          budget_max: formData.budget_max ? parseFloat(formData.budget_max) : null,
-          area_min: formData.area_min ? parseFloat(formData.area_min) : null,
-          area_max: formData.area_max ? parseFloat(formData.area_max) : null,
+          price: formData.budget_max ? parseFloat(formData.budget_max) : 0,
+          area: formData.area_max ? parseFloat(formData.area_max) : 0,
           bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
           bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
-          urgency: formData.urgency
+          status: 'available'
         });
 
       if (error) throw error;

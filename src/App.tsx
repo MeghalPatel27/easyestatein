@@ -13,6 +13,13 @@ import PropertyManager from "./pages/PropertyManager";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
+// New Pages for Complete Flow
+import PostRequirement from "./pages/PostRequirement";
+import BuyerPropertyManager from "./pages/BuyerPropertyManager";
+import ChatsListing from "./pages/ChatsListing";
+import ChatBox from "./pages/ChatBox";
+import RequirementDetails from "./pages/RequirementDetails";
+
 // Broker Pages
 import BrokerLayout from "./pages/broker/BrokerLayout";
 import Dashboard from "./pages/broker/Dashboard";
@@ -34,13 +41,22 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/" element={<Index />} />
-          <Route path="/broker-dashboard" element={<BrokerDashboard />} />
+          <Route path="/auth" element={<Auth />} />
+          
+          {/* Buyer Flow Routes */}
+          <Route path="/post-requirement" element={<PostRequirement />} />
           <Route path="/buyer-dashboard" element={<BuyerDashboard />} />
+          <Route path="/buyer-property-manager" element={<BuyerPropertyManager />} />
+          <Route path="/chats" element={<ChatsListing />} />
+          <Route path="/chat/:chatId" element={<ChatBox />} />
+          <Route path="/requirement/:requirementId" element={<RequirementDetails />} />
+          
+          {/* Seller/Broker Flow Routes */}
+          <Route path="/broker-dashboard" element={<BrokerDashboard />} />
           <Route path="/lead-management" element={<LeadManagement />} />
           <Route path="/sent-leads" element={<SentLeads />} />
           <Route path="/broker-profile" element={<BrokerProfile />} />
           <Route path="/property-manager" element={<PropertyManager />} />
-          <Route path="/auth" element={<Auth />} />
           
           {/* New Broker System Routes */}
           <Route path="/broker" element={<BrokerLayout />}>

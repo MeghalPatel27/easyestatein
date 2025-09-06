@@ -51,14 +51,17 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
             <Button 
               className="bg-easyestate-pink hover:bg-easyestate-pink-dark text-white px-8 py-3 text-lg"
-              onClick={() => navigate('/buyer-dashboard')}
+              onClick={() => navigate('/post-requirement')}
             >
               Post Your Requirement →
             </Button>
             <Button 
               variant="outline" 
               className="px-8 py-3 text-lg border-text-secondary text-text-secondary hover:bg-bg-section"
-              onClick={() => navigate('/broker-dashboard')}
+              onClick={() => {
+                // Check if signed in, then redirect appropriately
+                navigate('/auth?role=broker');
+              }}
             >
               I'm a Broker
             </Button>
@@ -194,9 +197,9 @@ const Index = () => {
           </p>
           <Button 
             className="bg-white text-easyestate-pink hover:bg-white/90 px-8 py-3 text-lg font-semibold"
-            onClick={() => navigate('/buyer-dashboard')}
+            onClick={() => navigate('/post-requirement')}
           >
-            Get Started Today →
+            Get Started - Post Your Requirement →
           </Button>
         </div>
       </section>

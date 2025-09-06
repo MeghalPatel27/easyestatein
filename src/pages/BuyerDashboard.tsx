@@ -22,11 +22,14 @@ const BuyerDashboard = () => {
           <span className="text-text-secondary">Buyer Dashboard</span>
         </div>
         <div className="flex items-center space-x-4">
-          <Button className="bg-easyestate-pink hover:bg-easyestate-pink-dark text-white">
+          <Button 
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            onClick={() => navigate('/post-requirement')}
+          >
             + Post New Requirement
           </Button>
           <div className="flex items-center space-x-2">
-            <span className="text-sm text-text-secondary">2450 coins</span>
+            <span className="text-sm text-muted-foreground">2450 coins</span>
             <div className="w-6 h-6 bg-yellow-400 rounded-full"></div>
           </div>
           <Button variant="outline" size="sm">Profile</Button>
@@ -81,10 +84,17 @@ const BuyerDashboard = () => {
 
         {/* Main Content Tabs */}
         <div className="flex space-x-0 mb-8 border border-border rounded-lg overflow-hidden">
-          <Button className="flex-1 bg-easyestate-pink text-white rounded-none py-3">
+          <Button 
+            className="flex-1 bg-primary text-primary-foreground rounded-none py-3"
+            onClick={() => navigate('/buyer-property-manager')}
+          >
             Requirements (0)
           </Button>
-          <Button variant="outline" className="flex-1 rounded-none py-3 border-0">
+          <Button 
+            variant="outline" 
+            className="flex-1 rounded-none py-3 border-0"
+            onClick={() => navigate('/chats')}
+          >
             Chats (0)
           </Button>
         </div>
@@ -98,7 +108,10 @@ const BuyerDashboard = () => {
           <p className="text-text-secondary mb-6 max-w-md mx-auto">
             Post your first property requirement to start receiving broker responses.
           </p>
-          <Button className="bg-easyestate-pink hover:bg-easyestate-pink-dark text-white">
+          <Button 
+            className="bg-primary hover:bg-primary/90 text-primary-foreground"
+            onClick={() => navigate('/post-requirement')}
+          >
             + Post First Requirement
           </Button>
         </Card>
