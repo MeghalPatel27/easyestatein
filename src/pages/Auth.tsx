@@ -229,7 +229,8 @@ const Auth = () => {
                 <TabsTrigger value="signup">Sign Up</TabsTrigger>
               </TabsList>
               
-              <TabsContent value="signin" className="space-y-4 mt-6">
+              <div className="mt-6 min-h-[380px] flex flex-col">
+                <TabsContent value="signin" className="space-y-4 flex-1 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-right-2 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0 data-[state=inactive]:slide-out-to-left-2 duration-500">
                 <form onSubmit={handleSignIn} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signin-email">Email</Label>
@@ -299,7 +300,7 @@ const Auth = () => {
                 </form>
               </TabsContent>
               
-              <TabsContent value="signup" className="space-y-4 mt-6">
+              <TabsContent value="signup" className="space-y-4 flex-1 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-left-2 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0 data-[state=inactive]:slide-out-to-right-2 duration-500">
                 <form onSubmit={handleSignUp} className="space-y-4">
                   <div className="space-y-2">
                     <Label htmlFor="signup-email">Email</Label>
@@ -359,7 +360,7 @@ const Auth = () => {
                     )}
                   </div>
                   
-                  <div className="space-y-2">
+                  <div className="space-y-2 animate-in fade-in-0 slide-in-from-bottom-4 duration-700 delay-200">
                     <Label htmlFor="signup-confirm-password">Confirm Password</Label>
                     <Input
                       id="signup-confirm-password"
@@ -376,7 +377,7 @@ const Auth = () => {
                       required
                     />
                     {signUpConfirmPasswordError && (
-                      <p className="text-sm text-destructive">{signUpConfirmPasswordError}</p>
+                      <p className="text-sm text-destructive animate-in fade-in-0 slide-in-from-bottom-2 duration-300">{signUpConfirmPasswordError}</p>
                     )}
                   </div>
                   
@@ -388,7 +389,8 @@ const Auth = () => {
                     {isLoading ? "Creating Account..." : "Create Account"}
                   </Button>
                 </form>
-              </TabsContent>
+                </TabsContent>
+              </div>
             </Tabs>
           </CardContent>
           
