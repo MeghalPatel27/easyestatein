@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Eye, EyeOff, ArrowLeft } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
@@ -18,18 +19,20 @@ const Auth = () => {
   const [error, setError] = useState<string | null>(null);
   
   // Sign In Form State with validation
-  const [signInEmail, setSignInEmail] = useState("");
+  const [signInMobile, setSignInMobile] = useState("");
   const [signInPassword, setSignInPassword] = useState("");
-  const [signInEmailError, setSignInEmailError] = useState("");
+  const [signInMobileError, setSignInMobileError] = useState("");
   const [signInPasswordError, setSignInPasswordError] = useState("");
   
   // Sign Up Form State with validation
-  const [signUpEmail, setSignUpEmail] = useState("");
+  const [signUpMobile, setSignUpMobile] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
   const [signUpConfirmPassword, setSignUpConfirmPassword] = useState("");
-  const [signUpEmailError, setSignUpEmailError] = useState("");
+  const [accountType, setAccountType] = useState("");
+  const [signUpMobileError, setSignUpMobileError] = useState("");
   const [signUpPasswordError, setSignUpPasswordError] = useState("");
   const [signUpConfirmPasswordError, setSignUpConfirmPasswordError] = useState("");
+  const [accountTypeError, setAccountTypeError] = useState("");
 
   // Check if user is already authenticated
   useEffect(() => {
@@ -52,11 +55,11 @@ const Auth = () => {
   }, [navigate]);
 
   // Input validation functions
-  const validateEmail = (email: string): string => {
-    if (!email.trim()) return "Email is required";
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(email)) return "Please enter a valid email address";
-    if (email.length > 254) return "Email is too long";
+  const validateMobile = (mobile: string): string => {
+    if (!mobile.trim()) return "Mobile number is required";
+    const mobileRegex = /^[+]?[1-9][\d\s\-\(\)]{7,15}$/;
+    if (!mobileRegex.test(mobile.replace(/\s/g, ''))) return "Please enter a valid mobile number";
+    if (mobile.length > 20) return "Mobile number is too long";
     return "";
   };
 
@@ -84,33 +87,35 @@ const Auth = () => {
     setError(null);
     
     // Sanitize inputs
-    const cleanEmail = sanitizeInput(signInEmail);
+    const cleanMobile = sanitizeInput(signInMobile);
     const cleanPassword = sanitizeInput(signInPassword);
     
     // Validate inputs
-    const emailError = validateEmail(cleanEmail);
+    const mobileError = validateMobile(cleanMobile);
     const passwordError = validatePassword(cleanPassword);
     
-    setSignInEmailError(emailError);
+    setSignInMobileError(mobileError);
     setSignInPasswordError(passwordError);
     
-    if (emailError || passwordError) {
+    if (mobileError || passwordError) {
       return;
     }
 
     setIsLoading(true);
     
     try {
+      // Note: For now using mobile as email for Supabase auth
+      // In production, you'd implement phone auth or convert mobile to email format
       const { error } = await supabase.auth.signInWithPassword({
-        email: cleanEmail,
+        email: `${cleanMobile}@mobile.app`,
         password: cleanPassword,
       });
 
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
-          setError("Invalid email or password. Please check your credentials and try again.");
+          setError("Invalid mobile number or password. Please check your credentials and try again.");
         } else if (error.message.includes('Email not confirmed')) {
-          setError("Please check your email and click the confirmation link before signing in.");
+          setError("Please verify your mobile number before signing in.");
         } else if (error.message.includes('Too many requests')) {
           setError("Too many login attempts. Please wait a few minutes before trying again.");
         } else {
@@ -131,12 +136,12 @@ const Auth = () => {
     setError(null);
     
     // Sanitize inputs
-    const cleanEmail = sanitizeInput(signUpEmail);
+    const cleanMobile = sanitizeInput(signUpMobile);
     const cleanPassword = sanitizeInput(signUpPassword);
     const cleanConfirmPassword = sanitizeInput(signUpConfirmPassword);
     
     // Validate inputs
-    const emailError = validateEmail(cleanEmail);
+    const mobileError = validateMobile(cleanMobile);
     const passwordError = validatePassword(cleanPassword);
     
     let confirmPasswordError = "";
@@ -145,12 +150,18 @@ const Auth = () => {
     } else if (cleanPassword !== cleanConfirmPassword) {
       confirmPasswordError = "Passwords do not match";
     }
+
+    let accountTypeValidationError = "";
+    if (!accountType) {
+      accountTypeValidationError = "Please select an account type";
+    }
     
-    setSignUpEmailError(emailError);
+    setSignUpMobileError(mobileError);
     setSignUpPasswordError(passwordError);
     setSignUpConfirmPasswordError(confirmPasswordError);
+    setAccountTypeError(accountTypeValidationError);
     
-    if (emailError || passwordError || confirmPasswordError) {
+    if (mobileError || passwordError || confirmPasswordError || accountTypeValidationError) {
       return;
     }
 
@@ -159,17 +170,23 @@ const Auth = () => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
+      // Note: For now using mobile as email for Supabase auth
+      // In production, you'd implement phone auth or convert mobile to email format
       const { error } = await supabase.auth.signUp({
-        email: cleanEmail,
+        email: `${cleanMobile}@mobile.app`,
         password: cleanPassword,
         options: {
-          emailRedirectTo: redirectUrl
+          emailRedirectTo: redirectUrl,
+          data: {
+            mobile_number: cleanMobile,
+            account_type: accountType
+          }
         }
       });
 
       if (error) {
         if (error.message.includes('already registered')) {
-          setError("An account with this email already exists. Please sign in instead.");
+          setError("An account with this mobile number already exists. Please sign in instead.");
         } else if (error.message.includes('Password should be')) {
           setError("Password does not meet security requirements. Please choose a stronger password.");
         } else if (error.message.includes('Signup is disabled')) {
@@ -178,7 +195,7 @@ const Auth = () => {
           setError("Sign up failed. Please try again.");
         }
       } else {
-        toast.success("Account created! Please check your email to verify your account.");
+        toast.success("Account created! Please verify your mobile number.");
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -270,23 +287,23 @@ const Auth = () => {
 
                     <form onSubmit={handleSignIn} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="signin-email">Email Address</Label>
+                        <Label htmlFor="signin-mobile">Mobile Number</Label>
                         <Input
-                          id="signin-email"
-                          type="email"
-                          placeholder="Enter your email"
-                          value={signInEmail}
+                          id="signin-mobile"
+                          type="tel"
+                          placeholder="Enter your mobile number"
+                          value={signInMobile}
                           onChange={(e) => {
-                            setSignInEmail(e.target.value);
-                            if (signInEmailError) setSignInEmailError("");
+                            setSignInMobile(e.target.value);
+                            if (signInMobileError) setSignInMobileError("");
                           }}
-                          className={signInEmailError ? "border-destructive" : ""}
+                          className={signInMobileError ? "border-destructive" : ""}
                           disabled={isLoading}
-                          maxLength={254}
+                          maxLength={20}
                           required
                         />
-                        {signInEmailError && (
-                          <p className="text-sm text-destructive">{signInEmailError}</p>
+                        {signInMobileError && (
+                          <p className="text-sm text-destructive">{signInMobileError}</p>
                         )}
                       </div>
                       
@@ -342,13 +359,6 @@ const Auth = () => {
                       >
                         {isLoading ? "Signing In..." : "Log in"}
                       </Button>
-
-                      <div className="flex items-center space-x-2">
-                        <Checkbox id="terms-signin" />
-                        <Label htmlFor="terms-signin" className="text-sm text-muted-foreground">
-                          I agree to the <button type="button" className="underline hover:text-foreground">Terms & Condition</button>
-                        </Label>
-                      </div>
                     </form>
                   </TabsContent>
                   
@@ -393,23 +403,43 @@ const Auth = () => {
                       </div>
 
                       <div className="space-y-2">
-                        <Label htmlFor="signup-email">Email Address</Label>
+                        <Label htmlFor="signup-mobile">Mobile Number</Label>
                         <Input
-                          id="signup-email"
-                          type="email"
-                          placeholder="Enter your email"
-                          value={signUpEmail}
+                          id="signup-mobile"
+                          type="tel"
+                          placeholder="Enter your mobile number"
+                          value={signUpMobile}
                           onChange={(e) => {
-                            setSignUpEmail(e.target.value);
-                            if (signUpEmailError) setSignUpEmailError("");
+                            setSignUpMobile(e.target.value);
+                            if (signUpMobileError) setSignUpMobileError("");
                           }}
-                          className={signUpEmailError ? "border-destructive" : ""}
+                          className={signUpMobileError ? "border-destructive" : ""}
                           disabled={isLoading}
-                          maxLength={254}
+                          maxLength={20}
                           required
                         />
-                        {signUpEmailError && (
-                          <p className="text-sm text-destructive">{signUpEmailError}</p>
+                        {signUpMobileError && (
+                          <p className="text-sm text-destructive">{signUpMobileError}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
+                        <Label htmlFor="account-type">Type of Account</Label>
+                        <Select value={accountType} onValueChange={(value) => {
+                          setAccountType(value);
+                          if (accountTypeError) setAccountTypeError("");
+                        }}>
+                          <SelectTrigger className={accountTypeError ? "border-destructive" : ""}>
+                            <SelectValue placeholder="Select account type" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="buyer">Buyer</SelectItem>
+                            <SelectItem value="broker">Broker</SelectItem>
+                            <SelectItem value="developer">Developer</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        {accountTypeError && (
+                          <p className="text-sm text-destructive">{accountTypeError}</p>
                         )}
                       </div>
                       
@@ -479,10 +509,14 @@ const Auth = () => {
                         {isLoading ? "Creating Account..." : "Create Account"}
                       </Button>
 
-                      <div className="flex items-center space-x-2">
-                        <Checkbox id="terms-signup" />
-                        <Label htmlFor="terms-signup" className="text-sm text-muted-foreground">
-                          I agree to the <button type="button" className="underline hover:text-foreground">Terms & Condition</button>
+                      <div className="flex items-start space-x-2">
+                        <Checkbox id="terms-signup" className="mt-1" />
+                        <Label htmlFor="terms-signup" className="text-sm text-muted-foreground leading-relaxed">
+                          I agree that my mobile number will be forever associated with the account type{" "}
+                          <span className="font-medium text-foreground">
+                            {accountType ? accountType.charAt(0).toUpperCase() + accountType.slice(1) : "[Selected Account Type]"}
+                          </span>
+                          . It will not be changed until the company approves.
                         </Label>
                       </div>
                     </form>
