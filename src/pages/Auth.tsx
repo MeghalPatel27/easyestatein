@@ -266,7 +266,7 @@ const Auth = () => {
                   </TabsList>
                 </div>
                 
-                <div className="h-[520px] flex flex-col relative overflow-hidden">
+                <div className="h-[600px] flex flex-col relative overflow-hidden">
                   <TabsContent value="signin" className="space-y-6 flex-1 absolute inset-0 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-right-4 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0 data-[state=inactive]:slide-out-to-left-4 duration-700 ease-in-out">
                     <div className="text-center space-y-2">
                       <h1 className="text-3xl font-bold text-foreground">Log in</h1>
