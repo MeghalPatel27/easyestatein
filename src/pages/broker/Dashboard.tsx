@@ -392,10 +392,10 @@ const Dashboard = () => {
                 {/* Action & Price */}
                 <div className="flex items-center gap-4 min-w-[240px]">
                   <div className="flex items-center gap-2">
-                    <div className="w-6 h-6 rounded-full bg-amber-500 flex items-center justify-center">
-                      <span className="text-white text-xs font-bold">₹</span>
+                    <div className="w-5 h-5 rounded-full bg-muted-foreground/20 flex items-center justify-center">
+                      <div className="w-3 h-3 rounded-full bg-muted-foreground"></div>
                     </div>
-                    <span className="text-foreground font-semibold">{buyer.leadPrice}</span>
+                    <span className="text-muted-foreground font-medium">{buyer.leadPrice}</span>
                   </div>
                   <Link to={`/broker/leads/${buyer.id}`}>
                     <Button size="sm" className="bg-primary hover:bg-primary/90">
