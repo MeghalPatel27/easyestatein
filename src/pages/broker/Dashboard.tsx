@@ -231,9 +231,86 @@ const Dashboard = () => {
           {potentialBuyers.map((buyer) => (
             <div
               key={buyer.id}
-              className="p-6 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer"
+              className="p-4 md:p-6 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer"
             >
-              <div className="flex items-center gap-6">
+              {/* Mobile Layout */}
+              <div className="block md:hidden">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <RadialProgress 
+                      value={Math.round(buyer.rating * 20)} 
+                      size={48} 
+                      className="text-primary"
+                    />
+                    <div>
+                      <div className="font-semibold text-foreground">
+                        {maskName(buyer.name, buyer.unlocked)}
+                      </div>
+                      {!buyer.unlocked && (
+                        <Badge variant="outline" className="text-xs mt-1">
+                          Locked
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <RadialProgress 
+                      value={100 - buyer.rejectionRate} 
+                      size={48} 
+                      className="text-emerald-500"
+                    />
+                    <span className="text-xs text-muted-foreground">Success</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div>
+                    <div className="text-xs text-muted-foreground">Category</div>
+                    <div className="text-sm font-medium text-foreground">{buyer.category}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Type</div>
+                    <div className="text-sm font-medium text-foreground">{buyer.propertyType}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Location</div>
+                    <div className="text-sm font-medium text-foreground flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {buyer.area}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Priority</div>
+                    <Badge 
+                      variant={buyer.urgency === "High" ? "destructive" : buyer.urgency === "Medium" ? "secondary" : "outline"}
+                      className="text-xs"
+                    >
+                      {buyer.urgency}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs text-muted-foreground">Budget</div>
+                    <div className="text-sm font-semibold text-primary">{buyer.budget}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex items-center gap-1 text-orange-600 font-semibold text-sm mb-2">
+                      <span>{buyer.leadPrice}</span>
+                      <span>coins</span>
+                    </div>
+                    <Link to={`/broker/leads/${buyer.id}`}>
+                      <Button size="sm" className="bg-primary hover:bg-primary/90 text-xs">
+                        Submit Property
+                      </Button>
+                    </Link>
+                  </div>
+                </div>
+              </div>
+
+              {/* Desktop Layout */}
+              <div className="hidden md:flex items-center gap-6">
                 {/* Overall Score */}
                 <div className="flex flex-col items-center gap-1">
                   <RadialProgress 
