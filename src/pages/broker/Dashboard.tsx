@@ -15,74 +15,120 @@ const Dashboard = () => {
   const potentialBuyers = [
     {
       id: 1,
+      name: "Rajesh Kumar",
       rating: 4.8,
-      type: "Residential",
+      category: "Residential",
+      propertyType: "Apartment",
       area: "Mumbai Central",
       budget: "₹2.5-3.5 Cr",
       urgency: "High",
-      rejectionRate: "15%",
+      rejectionRate: 15,
       leadPrice: 50,
-      verified: true
+      unlocked: true
     },
     {
       id: 2,
+      name: "Priya Sharma",
       rating: 4.6,
-      type: "Commercial",
+      category: "Commercial",
+      propertyType: "Office Space",
       area: "BKC",
       budget: "₹5-8 Cr",
       urgency: "Medium",
-      rejectionRate: "8%",
+      rejectionRate: 8,
       leadPrice: 75,
-      verified: true
+      unlocked: true
     },
     {
       id: 3,
+      name: "Amit Patel",
       rating: 4.4,
-      type: "Residential",
+      category: "Residential",
+      propertyType: "Villa",
       area: "Andheri West",
       budget: "₹1.2-2 Cr",
       urgency: "High",
-      rejectionRate: "12%",
+      rejectionRate: 12,
       leadPrice: 40,
-      verified: false
+      unlocked: false
     },
     {
       id: 4,
+      name: "Sunita Gupta",
       rating: 4.7,
-      type: "Villa",
+      category: "Residential",
+      propertyType: "Bungalow",
       area: "Lonavala",
       budget: "₹3-5 Cr",
       urgency: "Low",
-      rejectionRate: "20%",
+      rejectionRate: 20,
       leadPrice: 60,
-      verified: true
+      unlocked: true
     },
     {
       id: 5,
+      name: "Rohit Mehta",
       rating: 4.5,
-      type: "Commercial",
+      category: "Commercial",
+      propertyType: "Warehouse",
       area: "Lower Parel",
       budget: "₹10-15 Cr",
       urgency: "High",
-      rejectionRate: "5%",
+      rejectionRate: 5,
       leadPrice: 100,
-      verified: true
+      unlocked: false
     }
   ];
 
-  const getRatingColor = (rating: number) => {
-    if (rating >= 4.5) return "border-emerald-500 bg-emerald-50";
-    if (rating >= 4.0) return "border-blue-500 bg-blue-50";
-    return "border-orange-500 bg-orange-50";
+  const maskName = (name: string, unlocked: boolean) => {
+    if (unlocked) return name;
+    const firstTwo = name.slice(0, 2);
+    const lastTwo = name.slice(-2);
+    const middle = "*".repeat(Math.max(0, name.length - 4));
+    return firstTwo + middle + lastTwo;
   };
 
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case "High": return "bg-red-100 text-red-700 border-red-200";
-      case "Medium": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "Low": return "bg-green-100 text-green-700 border-green-200";
-      default: return "bg-gray-100 text-gray-700 border-gray-200";
-    }
+  const RadialProgress = ({ value, size = 48, strokeWidth = 4, className = "" }: {
+    value: number;
+    size?: number;
+    strokeWidth?: number;
+    className?: string;
+  }) => {
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDasharray = circumference;
+    const strokeDashoffset = circumference - (value / 100) * circumference;
+
+    return (
+      <div className={`relative ${className}`}>
+        <svg width={size} height={size} className="transform -rotate-90">
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="currentColor"
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            className="text-muted/20"
+          />
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="currentColor"
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+            className="text-primary transition-all duration-300"
+            strokeLinecap="round"
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-xs font-semibold">{value}</span>
+        </div>
+      </div>
+    );
   };
 
   return (
@@ -185,36 +231,82 @@ const Dashboard = () => {
           {potentialBuyers.map((buyer) => (
             <div
               key={buyer.id}
-              className={`p-4 rounded-lg border-2 transition-all hover:shadow-md cursor-pointer ${getRatingColor(buyer.rating)}`}
+              className="p-6 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer"
             >
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-4">
-                  <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                    <span className="font-semibold">{buyer.rating}</span>
-                    {buyer.verified && (
-                      <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
-                        Verified
-                      </Badge>
-                    )}
+              <div className="flex items-center gap-6">
+                {/* Overall Score */}
+                <div className="flex flex-col items-center gap-1">
+                  <RadialProgress 
+                    value={Math.round(buyer.rating * 20)} 
+                    size={56} 
+                    className="text-primary"
+                  />
+                  <span className="text-xs text-muted-foreground">Score</span>
+                </div>
+
+                {/* Name */}
+                <div className="min-w-[120px]">
+                  <div className="font-semibold text-foreground">
+                    {maskName(buyer.name, buyer.unlocked)}
                   </div>
-                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                    <span className="font-medium">{buyer.type}</span>
-                    <span>•</span>
-                    <MapPin className="h-3 w-3" />
-                    <span>{buyer.area}</span>
+                  {!buyer.unlocked && (
+                    <Badge variant="outline" className="text-xs mt-1">
+                      Locked
+                    </Badge>
+                  )}
+                </div>
+
+                {/* Category */}
+                <div className="min-w-[100px]">
+                  <div className="text-sm font-medium text-foreground">{buyer.category}</div>
+                  <div className="text-xs text-muted-foreground">Category</div>
+                </div>
+
+                {/* Property Type */}
+                <div className="min-w-[100px]">
+                  <div className="text-sm font-medium text-foreground">{buyer.propertyType}</div>
+                  <div className="text-xs text-muted-foreground">Type</div>
+                </div>
+
+                {/* Area */}
+                <div className="min-w-[120px] flex items-center gap-1">
+                  <MapPin className="h-3 w-3 text-muted-foreground" />
+                  <div>
+                    <div className="text-sm font-medium text-foreground">{buyer.area}</div>
+                    <div className="text-xs text-muted-foreground">Location</div>
                   </div>
                 </div>
-                
-                <div className="flex items-center gap-6">
-                  <div className="text-right">
-                    <p className="font-semibold text-primary">{buyer.budget}</p>
-                    <Badge className={getUrgencyColor(buyer.urgency)}>
-                      {buyer.urgency} Priority
-                    </Badge>
-                  </div>
+
+                {/* Budget */}
+                <div className="min-w-[120px]">
+                  <div className="text-sm font-semibold text-primary">{buyer.budget}</div>
+                  <div className="text-xs text-muted-foreground">Budget</div>
+                </div>
+
+                {/* Urgency */}
+                <div className="min-w-[80px]">
+                  <Badge 
+                    variant={buyer.urgency === "High" ? "destructive" : buyer.urgency === "Medium" ? "secondary" : "outline"}
+                    className="text-xs"
+                  >
+                    {buyer.urgency}
+                  </Badge>
+                  <div className="text-xs text-muted-foreground mt-1">Priority</div>
+                </div>
+
+                {/* Rejection Rate */}
+                <div className="flex flex-col items-center gap-1">
+                  <RadialProgress 
+                    value={100 - buyer.rejectionRate} 
+                    size={56} 
+                    className="text-emerald-500"
+                  />
+                  <span className="text-xs text-muted-foreground">Success</span>
+                </div>
+
+                {/* Action & Price */}
+                <div className="flex flex-col items-end gap-2 ml-auto">
                   <div className="text-right text-sm">
-                    <p className="text-muted-foreground">Rejection: {buyer.rejectionRate}</p>
                     <div className="flex items-center gap-1 text-orange-600 font-semibold">
                       <span>{buyer.leadPrice}</span>
                       <span>coins</span>
