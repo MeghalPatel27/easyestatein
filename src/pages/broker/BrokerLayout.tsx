@@ -13,11 +13,9 @@ const BrokerLayout = () => {
     { name: "Dashboard", href: "/broker/dashboard" },
     { name: "Leads", href: "/broker/leads" },
     { name: "Properties", href: "/broker/properties" },
-    { name: "Inventory", href: "/broker/inventory" },
     { name: "Lead Manager", href: "/broker/lead-manager" },
     { name: "Wallet", href: "/broker/wallet" },
     { name: "Analytics", href: "/broker/analytics" },
-    { name: "Profile", href: "/broker/profile" },
   ];
 
   const NavItems = () => (
@@ -58,7 +56,7 @@ const BrokerLayout = () => {
                   </div>
                 </SheetContent>
               </Sheet>
-              <h1 className="text-xl font-bold">PropertyHub Pro</h1>
+              <h1 className="text-xl font-bold">easyestate</h1>
             </div>
 
             {/* Desktop Navigation */}
@@ -69,17 +67,15 @@ const BrokerLayout = () => {
             {/* Right Section */}
             <div className="flex items-center gap-4">
               {/* Coin Balance */}
-              <div className="flex items-center gap-2 bg-gradient-to-r from-yellow-500 to-orange-500 text-white px-3 py-1 rounded-full">
+              <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
                 <Coins className="h-4 w-4" />
-                <span className="font-semibold">{coinBalance}</span>
+                <span>{coinBalance}</span>
               </div>
 
               {/* Notifications */}
-              <Button variant="ghost" size="icon" className="relative">
-                <Bell className="h-5 w-5" />
-                <Badge className="absolute -top-1 -right-1 h-5 w-5 rounded-full p-0 text-xs bg-destructive">
-                  3
-                </Badge>
+              <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
+                <Bell className="h-4 w-4" />
+                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary"></span>
               </Button>
 
               {/* Profile */}

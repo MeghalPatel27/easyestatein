@@ -87,14 +87,9 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      {/* Header with Lead Manager Button */}
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div>
         <h1 className="text-3xl font-bold text-foreground">Broker Dashboard</h1>
-        <Link to="/broker/lead-manager">
-          <Button className="bg-primary hover:bg-primary/90">
-            Lead Manager
-          </Button>
-        </Link>
       </div>
 
       {/* Search and Filters */}
