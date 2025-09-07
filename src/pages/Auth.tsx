@@ -499,26 +499,26 @@ const Auth = () => {
                         {signUpConfirmPasswordError && (
                           <p className="text-sm text-destructive animate-in fade-in-0 slide-in-from-bottom-2 duration-300">{signUpConfirmPasswordError}</p>
                         )}
-                      </div>
-                      
-                      <Button 
-                        type="submit" 
-                        className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-full font-medium" 
-                        disabled={isLoading}
-                      >
-                        {isLoading ? "Creating Account..." : "Create Account"}
-                      </Button>
-
-                      <div className="flex items-start space-x-2">
-                        <Checkbox id="terms-signup" className="mt-1" />
-                        <Label htmlFor="terms-signup" className="text-sm text-muted-foreground leading-relaxed">
-                          I agree that my mobile number will be forever associated with the account type{" "}
-                          <span className="font-medium text-foreground">
-                            {accountType ? accountType.charAt(0).toUpperCase() + accountType.slice(1) : "[Selected Account Type]"}
-                          </span>
-                          . It will not be changed until the company approves.
-                        </Label>
-                      </div>
+                       </div>
+                       
+                       <div className="flex items-start space-x-2">
+                         <Checkbox id="terms-signup" className="mt-1" />
+                         <Label htmlFor="terms-signup" className="text-sm text-muted-foreground leading-relaxed">
+                           I agree that my mobile number will be forever associated with the account type{" "}
+                           <span className="font-medium text-foreground">
+                             {accountType ? accountType.charAt(0).toUpperCase() + accountType.slice(1) : "[Selected Account Type]"}
+                           </span>
+                           . It will not be changed until the company approves.
+                         </Label>
+                       </div>
+                       
+                       <Button 
+                         type="submit" 
+                         className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-full font-medium" 
+                         disabled={isLoading}
+                       >
+                         {isLoading ? "Creating Account..." : "Create Account"}
+                       </Button>
                     </form>
                   </TabsContent>
                 </div>
