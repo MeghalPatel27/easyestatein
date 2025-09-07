@@ -390,15 +390,18 @@ const Dashboard = () => {
                 </div>
 
                 {/* Action & Price */}
-                <div className="flex flex-col items-end gap-2 ml-auto">
-                  <div className="text-right text-sm">
-                    <div className="flex items-center gap-1 text-orange-600 font-semibold">
-                      <span>{buyer.leadPrice}</span>
-                      <span>coins</span>
+                <div className="flex flex-col items-center gap-3 min-w-[140px]">
+                  <div className="flex items-center gap-2 bg-orange-100 dark:bg-orange-900/20 px-3 py-2 rounded-full">
+                    <div className="w-6 h-6 bg-orange-500 rounded-full flex items-center justify-center">
+                      <span className="text-white text-xs font-bold">₹</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <span className="text-orange-700 dark:text-orange-300 font-semibold text-sm">{buyer.leadPrice}</span>
+                      <span className="text-orange-600 dark:text-orange-400 text-xs">coins</span>
                     </div>
                   </div>
                   <Link to={`/broker/leads/${buyer.id}`}>
-                    <Button size="sm" className="bg-primary hover:bg-primary/90">
+                    <Button size="sm" className="bg-primary hover:bg-primary/90 w-full">
                       Submit Property
                     </Button>
                   </Link>
