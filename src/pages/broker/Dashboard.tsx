@@ -99,6 +99,14 @@ const Dashboard = () => {
     const strokeDasharray = circumference;
     const strokeDashoffset = circumference - (value / 100) * circumference;
 
+    // Determine color based on score
+    const getScoreColor = (score: number) => {
+      if (score >= 80) return "text-green-500";
+      if (score >= 60) return "text-yellow-500";
+      if (score >= 40) return "text-orange-500";
+      return "text-red-500";
+    };
+
     return (
       <div className={`relative ${className}`}>
         <svg width={size} height={size} className="transform -rotate-90">
@@ -120,7 +128,7 @@ const Dashboard = () => {
             fill="transparent"
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
-            className="text-primary transition-all duration-300"
+            className={`${getScoreColor(value)} transition-all duration-300`}
             strokeLinecap="round"
           />
         </svg>
