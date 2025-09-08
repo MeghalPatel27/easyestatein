@@ -197,8 +197,8 @@ const Dashboard = () => {
               <TrendingUp className="h-6 w-6 text-green-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Conversion Rate</p>
-              <p className="text-2xl font-bold">18.5%</p>
+              <p className="text-sm text-muted-foreground">Engaged Leads</p>
+              <p className="text-2xl font-bold">156</p>
             </div>
           </div>
         </Card>
