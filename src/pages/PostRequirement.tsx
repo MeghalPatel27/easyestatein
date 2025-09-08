@@ -399,38 +399,6 @@ const PostRequirement = () => {
         );
 
       case 4:
-        const minBudget = formData.budgetRange[0];
-        const maxBudget = formData.budgetRange[1];
-        const minInCrores = minBudget / 100;
-        
-        // Calculate dynamic max allowed based on min value
-        const getMaxAllowed = (min: number) => {
-          const minCr = min / 100;
-          if (minCr < 1) return Math.min(min * 2, 1000); // 100% gap, max 10Cr
-          if (minCr <= 2) return Math.min(min * 1.5, 1000); // 50% gap
-          return Math.min(min * 1.3, 1000); // 30% gap
-        };
-        
-        const getGapText = (min: number) => {
-          const minCr = min / 100;
-          if (minCr < 1) return "100% of min budget";
-          if (minCr <= 2) return "50% of min budget";
-          return "30% of min budget";
-        };
-        
-        const handleBudgetChange = (value: number[]) => {
-          const [newMin, newMax] = value;
-          const maxAllowed = getMaxAllowed(newMin);
-          
-          // Auto-clamp max if it exceeds allowed range
-          const clampedMax = Math.min(newMax, maxAllowed);
-          
-          setFormData({ 
-            ...formData, 
-            budgetRange: [newMin, clampedMax] 
-          });
-        };
-
         return (
           <div className="space-y-6">
             <div className="text-center mb-8">
@@ -439,44 +407,25 @@ const PostRequirement = () => {
             </div>
             
             <div className="space-y-6">
-              <div className="text-center py-6">
-                <div className="text-4xl font-bold text-primary mb-3 transition-all duration-300">
-                  {formatBudget(minBudget)} - {formatBudget(maxBudget)}
+              <div className="text-center py-4">
+                <div className="text-3xl font-bold text-primary mb-2">
+                  {formatBudget(formData.budgetRange[0])} - {formatBudget(formData.budgetRange[1])}
                 </div>
-                <div className="space-y-2">
-                  <p className="text-muted-foreground">Drag handles to adjust your budget</p>
-                  <p className="text-sm text-orange-600 font-medium">
-                    Maximum allowed gap: {getGapText(minBudget)}
-                  </p>
-                </div>
+                <p className="text-muted-foreground">Slide to adjust your budget</p>
               </div>
               
-              <div className="px-6">
-                <div className="relative">
-                  <Slider
-                    value={[minBudget, maxBudget]}
-                    onValueChange={handleBudgetChange}
-                    max={1000}
-                    min={10}
-                    step={5}
-                    className="w-full transition-all duration-200"
-                  />
-                  <div className="flex justify-between text-sm text-muted-foreground mt-3">
-                    <span>₹10L</span>
-                    <span>₹10Cr+</span>
-                  </div>
-                </div>
-                
-                {/* Individual Budget Labels */}
-                <div className="grid grid-cols-2 gap-4 mt-6">
-                  <div className="text-center p-4 bg-muted/30 rounded-lg border">
-                    <p className="text-sm text-muted-foreground mb-1">Min Budget</p>
-                    <p className="text-xl font-semibold text-green-600">{formatBudget(minBudget)}</p>
-                  </div>
-                  <div className="text-center p-4 bg-muted/30 rounded-lg border">
-                    <p className="text-sm text-muted-foreground mb-1">Max Budget</p>
-                    <p className="text-xl font-semibold text-blue-600">{formatBudget(maxBudget)}</p>
-                  </div>
+              <div className="px-4">
+                <Slider
+                  value={formData.budgetRange}
+                  onValueChange={(value) => setFormData({ ...formData, budgetRange: value })}
+                  max={1000}
+                  min={10}
+                  step={10}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-sm text-muted-foreground mt-2">
+                  <span>₹10L</span>
+                  <span>₹10Cr+</span>
                 </div>
               </div>
             </div>
