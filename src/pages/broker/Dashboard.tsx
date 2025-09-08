@@ -88,7 +88,7 @@ const Dashboard = () => {
     return firstTwo + middle + lastTwo;
   };
 
-  const RadialProgress = ({ value, size = 48, strokeWidth = 4, className = "" }: {
+  const RadialProgress = ({ value, size = 48, strokeWidth = 6, className = "" }: {
     value: number;
     size?: number;
     strokeWidth?: number;
@@ -99,41 +99,44 @@ const Dashboard = () => {
     const strokeDasharray = circumference;
     const strokeDashoffset = circumference - (value / 100) * circumference;
 
-    // Determine color based on score
+    // Determine color based on score with your specified colors
     const getScoreColor = (score: number) => {
-      if (score >= 80) return "text-green-500";
-      if (score >= 60) return "text-yellow-500";
-      if (score >= 40) return "text-orange-500";
-      return "text-red-500";
+      if (score >= 85) return "#60d394"; // Green
+      if (score >= 70) return "#ffd97d"; // Yellow
+      if (score >= 50) return "#ff9b85"; // Orange
+      return "#ee6055"; // Red
     };
+
+    const color = getScoreColor(value);
 
     return (
       <div className={`relative ${className}`}>
         <svg width={size} height={size} className="transform -rotate-90">
+          {/* Background circle */}
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="currentColor"
+            stroke="#f1f5f9"
             strokeWidth={strokeWidth}
             fill="transparent"
-            className="text-muted/20"
           />
+          {/* Progress circle */}
           <circle
             cx={size / 2}
             cy={size / 2}
             r={radius}
-            stroke="currentColor"
+            stroke={color}
             strokeWidth={strokeWidth}
             fill="transparent"
             strokeDasharray={strokeDasharray}
             strokeDashoffset={strokeDashoffset}
-            className={`${getScoreColor(value)} transition-all duration-300`}
+            className="transition-all duration-500 ease-out"
             strokeLinecap="round"
           />
         </svg>
         <div className="absolute inset-0 flex items-center justify-center">
-          <span className="text-xs font-semibold">{value}</span>
+          <span className="text-xs font-semibold" style={{ color }}>{value}%</span>
         </div>
       </div>
     );
