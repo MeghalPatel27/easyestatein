@@ -128,7 +128,7 @@ const PostRequirement = () => {
     budgetRange: [50, 200] as number[],
     
     // Step 5: Size & Specifications
-    bhk: '',
+    bhk: [] as string[],
     bathrooms: '',
     area: '',
     areaUnit: 'sqft',
@@ -214,7 +214,7 @@ const PostRequirement = () => {
         budget_min: formData.budgetRange[0] * 100000,
         budget_max: formData.budgetRange[1] * 100000,
         specifications: {
-          bhk: formData.bhk,
+          bhk: formData.bhk.join(', '),
           bathrooms: formData.bathrooms,
           area: formData.area,
           area_unit: formData.areaUnit,
@@ -245,7 +245,7 @@ const PostRequirement = () => {
           location: { city: formData.city, area: formData.localities[0] || '' },
           price: formData.budgetRange[1] * 100000,
           area: parseInt(formData.area) || 0,
-          bedrooms: parseInt(formData.bhk) || null,
+          bedrooms: parseInt(formData.bhk[0]) || null,
           bathrooms: parseInt(formData.bathrooms) || null,
           status: 'available'
         });
@@ -491,18 +491,40 @@ const PostRequirement = () => {
                 <>
                   <div>
                     <Label>BHK Configuration</Label>
+                    <p className="text-muted-foreground text-sm mb-2">Select up to 2 configurations</p>
+                    {formData.bhk.length > 0 && (
+                      <p className="text-sm text-easyestate-pink mb-2">
+                        {formData.bhk.length}/2 selected
+                      </p>
+                    )}
                     <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mt-2">
-                      {['1', '2', '3', '4', '5', '6+'].map((bhk) => (
-                        <Button
-                          key={bhk}
-                          variant={formData.bhk === bhk ? 'default' : 'outline'}
-                          size="sm"
-                          onClick={() => setFormData({ ...formData, bhk })}
-                          className="h-12"
-                        >
-                          {bhk}BHK
-                        </Button>
-                      ))}
+                      {['1', '2', '3', '4', '5', '6+'].map((bhk) => {
+                        const isSelected = formData.bhk.includes(bhk);
+                        const canSelect = formData.bhk.length < 2 || isSelected;
+                        
+                        return (
+                          <Button
+                            key={bhk}
+                            variant={isSelected ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => {
+                              if (!canSelect) return;
+                              
+                              const newBhk = isSelected
+                                ? formData.bhk.filter(id => id !== bhk)
+                                : [...formData.bhk, bhk];
+                              
+                              setFormData({ ...formData, bhk: newBhk });
+                            }}
+                            className={`h-12 ${!canSelect ? 'opacity-50 cursor-not-allowed' : ''}`}
+                          >
+                            {bhk}BHK
+                            {isSelected && (
+                              <CheckCircle className="w-3 h-3 ml-1" />
+                            )}
+                          </Button>
+                        );
+                      })}
                     </div>
                   </div>
                   
