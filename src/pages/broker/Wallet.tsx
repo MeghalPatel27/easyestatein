@@ -6,8 +6,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { 
   Coins, 
   Plus, 
-  TrendingUp, 
-  TrendingDown, 
+  ArrowUp,
+  ArrowDown,
+  Hourglass,
   Calendar,
   Receipt,
   CreditCard,
@@ -57,13 +58,13 @@ const Wallet = () => {
     },
     {
       id: 4,
-      type: "debit",
+      type: "hold",
       amount: 75,
-      description: "Lead unlock - Commercial space seeker",
+      description: "Lead unlock pending verification",
       leadId: "L003",
       date: "2024-01-17",
       time: "16:20",
-      status: "completed"
+      status: "pending"
     },
     {
       id: 5,
@@ -77,22 +78,41 @@ const Wallet = () => {
     },
     {
       id: 6,
-      type: "credit",
-      amount: 1000,
-      description: "Coins purchase - Payment ID: PAY123455",
-      paymentId: "PAY123455",
+      type: "hold",
+      amount: 120,
+      description: "Payment processing - Awaiting confirmation",
+      paymentId: "PAY123457",
       date: "2024-01-15",
       time: "10:30",
-      status: "completed"
+      status: "pending"
     }
   ];
 
   const getTransactionIcon = (type: string) => {
-    return type === "credit" ? TrendingUp : TrendingDown;
+    switch(type) {
+      case "credit": return ArrowDown; // Refunded credits - green down arrow
+      case "debit": return ArrowUp;   // Paid outgoing - red up arrow  
+      case "hold": return Hourglass;  // On hold - yellow hourglass
+      default: return ArrowUp;
+    }
   };
 
   const getTransactionColor = (type: string) => {
-    return type === "credit" ? "text-green-600" : "text-red-600";
+    switch(type) {
+      case "credit": return "text-green-600"; // Refunded credits - green
+      case "debit": return "text-red-600";    // Paid outgoing - red
+      case "hold": return "text-yellow-600";  // On hold - yellow
+      default: return "text-red-600";
+    }
+  };
+
+  const getBgColor = (type: string) => {
+    switch(type) {
+      case "credit": return "bg-green-100"; // Refunded credits - green
+      case "debit": return "bg-red-100";    // Paid outgoing - red
+      case "hold": return "bg-yellow-100";  // On hold - yellow
+      default: return "bg-red-100";
+    }
   };
 
   return (
@@ -137,7 +157,7 @@ const Wallet = () => {
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
             <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center">
-              <TrendingDown className="h-6 w-6 text-red-600" />
+              <ArrowUp className="h-6 w-6 text-red-600" />
             </div>
           </div>
           <div>
@@ -195,9 +215,7 @@ const Wallet = () => {
                 return (
                   <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${
-                        transaction.type === "credit" ? "bg-green-100" : "bg-red-100"
-                      }`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.type)}`}>
                         <Icon className={`h-5 w-5 ${colorClass}`} />
                       </div>
                       <div>
@@ -243,7 +261,7 @@ const Wallet = () => {
                 return (
                   <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-green-100 rounded-full flex items-center justify-center">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.type)}`}>
                         <Icon className={`h-5 w-5 ${colorClass}`} />
                       </div>
                       <div>
@@ -277,7 +295,7 @@ const Wallet = () => {
                 return (
                   <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center">
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.type)}`}>
                         <Icon className={`h-5 w-5 ${colorClass}`} />
                       </div>
                       <div>
