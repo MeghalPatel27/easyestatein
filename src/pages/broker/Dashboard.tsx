@@ -186,7 +186,7 @@ const Dashboard = () => {
               <Users className="h-6 w-6 text-blue-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Active Leads</p>
+              <p className="text-sm text-muted-foreground">Matching Leads</p>
               <p className="text-2xl font-bold">247</p>
             </div>
           </div>
