@@ -138,6 +138,10 @@ const PostRequirement = () => {
     facilities: [] as string[],
     landArea: '',
     irrigation: false,
+    directions: '',
+    floor: '',
+    minParking: '',
+    balcony: '',
     
     // Step 6: Timeline
     timeline: '',
@@ -578,6 +582,68 @@ const PostRequirement = () => {
                     ))}
                   </div>
                 </div>
+              )}
+              
+              {/* Additional Specifications */}
+              {(isResidential || isCommercial) && (
+                <>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label>Preferred Directions</Label>
+                      <div className="grid grid-cols-2 gap-2 mt-2">
+                        {['North', 'South', 'East', 'West', 'North-East', 'North-West', 'South-East', 'South-West'].map((direction) => (
+                          <Button
+                            key={direction}
+                            variant={formData.directions === direction ? 'default' : 'outline'}
+                            size="sm"
+                            onClick={() => setFormData({ ...formData, directions: direction })}
+                            className="h-10 text-xs"
+                          >
+                            {direction}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="floor">Preferred Floor</Label>
+                      <Input
+                        id="floor"
+                        type="number"
+                        placeholder="e.g., 3"
+                        value={formData.floor}
+                        onChange={(e) => setFormData({ ...formData, floor: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="minParking">Minimum Parking Required</Label>
+                      <Input
+                        id="minParking"
+                        type="number"
+                        placeholder="e.g., 1"
+                        value={formData.minParking}
+                        onChange={(e) => setFormData({ ...formData, minParking: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="balcony">Number of Balconies</Label>
+                      <Input
+                        id="balcony"
+                        type="number"
+                        placeholder="e.g., 2"
+                        value={formData.balcony}
+                        onChange={(e) => setFormData({ ...formData, balcony: e.target.value })}
+                        className="mt-1"
+                      />
+                    </div>
+                  </div>
+                </>
               )}
             </div>
           </div>
