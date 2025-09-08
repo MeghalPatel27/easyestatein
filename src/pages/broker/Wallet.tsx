@@ -13,14 +13,15 @@ import {
   CreditCard,
   RefreshCw,
   Download,
-  Filter
+  Filter,
+  Wallet as WalletIcon
 } from "lucide-react";
 import { Link } from "react-router-dom";
 
 const Wallet = () => {
   const [currentBalance] = useState(250);
   const [monthlySpent] = useState(180);
-  const [monthlyEarned] = useState(420);
+  const [averageLeadCost] = useState(65);
 
   // Mock transaction data
   const transactions = [
@@ -146,17 +147,17 @@ const Wallet = () => {
           </div>
         </Card>
 
-        {/* Monthly Earned */}
+        {/* Average Lead Cost */}
         <Card className="p-6">
           <div className="flex items-center justify-between mb-4">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <TrendingUp className="h-6 w-6 text-green-600" />
+            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+              <WalletIcon className="h-6 w-6 text-blue-600" />
             </div>
           </div>
           <div>
-            <p className="text-sm text-muted-foreground">This Month Earned</p>
-            <p className="text-3xl font-bold text-green-600">{monthlyEarned}</p>
-            <p className="text-sm text-muted-foreground">coins (refunds)</p>
+            <p className="text-sm text-muted-foreground">Average Lead Cost</p>
+            <p className="text-3xl font-bold text-blue-600">{averageLeadCost}</p>
+            <p className="text-sm text-muted-foreground">coins per lead</p>
           </div>
         </Card>
       </div>
