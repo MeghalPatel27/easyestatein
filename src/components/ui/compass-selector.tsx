@@ -1,6 +1,5 @@
 import React from 'react';
 import { cn } from '@/lib/utils';
-import { Navigation } from 'lucide-react';
 
 interface Direction {
   id: string;
@@ -78,20 +77,17 @@ export const CompassSelector: React.FC<CompassSelectorProps> = ({
                 "hover:scale-110 hover:shadow-md active:scale-95",
                 "focus:outline-none focus:ring-1 focus:ring-primary focus:ring-offset-1",
                 isSelected
-                  ? "bg-primary border-primary text-primary-foreground shadow-sm"
-                  : "bg-background border-border text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5"
+                  ? "bg-red-500 border-red-500 text-white shadow-sm"
+                  : "bg-background border-border text-muted-foreground hover:border-red-500 hover:text-red-600 hover:bg-red-50"
               )}
               title={direction.fullName}
             >
-              <Navigation 
-                className={cn(
-                  "w-3 h-3 transition-all duration-200",
-                  isSelected ? "text-primary-foreground" : "text-current"
-                )}
-                style={{ 
-                  transform: `rotate(${direction.angle}deg)` 
-                }}
-              />
+              <span className={cn(
+                "text-xs font-semibold transition-all duration-200",
+                isSelected ? "text-white" : "text-current"
+              )}>
+                {direction.id}
+              </span>
               
               {/* Direction Label */}
               <span className={cn(
@@ -110,16 +106,26 @@ export const CompassSelector: React.FC<CompassSelectorProps> = ({
         {/* Compass Lines */}
         <div className="absolute inset-0 pointer-events-none">
           {/* Main axes - shorter lines */}
-          <div className="absolute top-1/2 left-1/4 right-1/4 h-px bg-border/20" />
-          <div className="absolute left-1/2 top-1/4 bottom-1/4 w-px bg-border/20" />
+          <div className={cn(
+            "absolute top-1/2 left-1/4 right-1/4 h-px transition-colors duration-200",
+            selectedDirections.length > 0 ? "bg-red-500/40" : "bg-border/20"
+          )} />
+          <div className={cn(
+            "absolute left-1/2 top-1/4 bottom-1/4 w-px transition-colors duration-200",
+            selectedDirections.length > 0 ? "bg-red-500/40" : "bg-border/20"
+          )} />
           {/* Diagonal axes - shorter */}
           <div className="absolute inset-1/4"
                style={{ 
-                 background: `linear-gradient(45deg, transparent 48%, hsl(var(--border) / 0.15) 50%, transparent 52%)` 
+                 background: selectedDirections.length > 0 
+                   ? `linear-gradient(45deg, transparent 48%, rgba(239, 68, 68, 0.4) 50%, transparent 52%)`
+                   : `linear-gradient(45deg, transparent 48%, hsl(var(--border) / 0.15) 50%, transparent 52%)` 
                }} />
           <div className="absolute inset-1/4"
                style={{ 
-                 background: `linear-gradient(-45deg, transparent 48%, hsl(var(--border) / 0.15) 50%, transparent 52%)` 
+                 background: selectedDirections.length > 0
+                   ? `linear-gradient(-45deg, transparent 48%, rgba(239, 68, 68, 0.4) 50%, transparent 52%)`
+                   : `linear-gradient(-45deg, transparent 48%, hsl(var(--border) / 0.15) 50%, transparent 52%)` 
                }} />
         </div>
       </div>
@@ -130,7 +136,7 @@ export const CompassSelector: React.FC<CompassSelectorProps> = ({
           <span className="text-sm text-muted-foreground">
             {selectedDirections.length} direction{selectedDirections.length !== 1 ? 's' : ''} selected
           </span>
-          <div className="text-xs text-primary mt-1">
+          <div className="text-xs text-red-600 mt-1">
             {selectedDirections.join(', ')}
           </div>
         </div>
