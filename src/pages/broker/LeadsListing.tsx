@@ -6,143 +6,185 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, Star, MapPin, Send, TrendingUp, TrendingDown } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Coin } from "@/components/ui/coin";
 
 const LeadsListing = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState("all");
   const [sortBy, setSortBy] = useState("rating");
 
-  // Mock data for all leads
+  // Mock data for all leads (updated with varied ratings for color testing)
   const allLeads = [
     {
       id: 1,
+      name: "Rajesh Kumar",
       rating: 4.8,
-      type: "Residential",
+      category: "Residential",
+      propertyType: "Apartment",
       area: "Mumbai Central",
       budget: "₹2.5-3.5 Cr",
       urgency: "High",
-      rejectionRate: 15,
+      rejectionRate: 5,
       leadPrice: 50,
-      verified: true,
-      trending: "up"
+      unlocked: true
     },
     {
       id: 2,
-      rating: 4.6,
-      type: "Commercial",
+      name: "Priya Sharma",
+      rating: 4.0,
+      category: "Commercial",
+      propertyType: "Office Space",
       area: "BKC",
       budget: "₹5-8 Cr",
       urgency: "Medium",
-      rejectionRate: 8,
+      rejectionRate: 20,
       leadPrice: 75,
-      verified: true,
-      trending: "up"
+      unlocked: true
     },
     {
       id: 3,
-      rating: 4.4,
-      type: "Residential",
+      name: "Amit Patel",
+      rating: 3.0,
+      category: "Residential",
+      propertyType: "Villa",
       area: "Andheri West",
       budget: "₹1.2-2 Cr",
       urgency: "High",
-      rejectionRate: 12,
+      rejectionRate: 60,
       leadPrice: 40,
-      verified: false,
-      trending: "stable"
+      unlocked: false
     },
     {
       id: 4,
-      rating: 4.7,
-      type: "Villa",
+      name: "Sunita Gupta",
+      rating: 2.25,
+      category: "Residential",
+      propertyType: "Bungalow",
       area: "Lonavala",
       budget: "₹3-5 Cr",
       urgency: "Low",
-      rejectionRate: 20,
+      rejectionRate: 80,
       leadPrice: 60,
-      verified: true,
-      trending: "down"
+      unlocked: true
     },
     {
       id: 5,
-      rating: 4.5,
-      type: "Commercial",
+      name: "Rohit Mehta",
+      rating: 4.3,
+      category: "Commercial",
+      propertyType: "Warehouse",
       area: "Lower Parel",
       budget: "₹10-15 Cr",
       urgency: "High",
-      rejectionRate: 5,
+      rejectionRate: 15,
       leadPrice: 100,
-      verified: true,
-      trending: "up"
+      unlocked: false
     },
     {
       id: 6,
-      rating: 4.3,
-      type: "Residential",
+      name: "Anita Shah",
+      rating: 3.5,
+      category: "Residential",
+      propertyType: "Penthouse",
       area: "Bandra West",
       budget: "₹4-6 Cr",
       urgency: "Medium",
-      rejectionRate: 18,
+      rejectionRate: 35,
       leadPrice: 65,
-      verified: true,
-      trending: "stable"
+      unlocked: true
     },
     {
       id: 7,
+      name: "Vikas Agarwal",
       rating: 4.2,
-      type: "Office",
+      category: "Commercial",
+      propertyType: "Office",
       area: "Worli",
       budget: "₹8-12 Cr",
       urgency: "High",
-      rejectionRate: 10,
+      rejectionRate: 25,
       leadPrice: 85,
-      verified: false,
-      trending: "up"
+      unlocked: false
     },
     {
       id: 8,
-      rating: 4.1,
-      type: "Retail",
+      name: "Kavya Reddy",
+      rating: 2.8,
+      category: "Commercial",
+      propertyType: "Retail",
       area: "Linking Road",
       budget: "₹1.5-2.5 Cr",
       urgency: "Low",
-      rejectionRate: 25,
+      rejectionRate: 70,
       leadPrice: 35,
-      verified: true,
-      trending: "down"
+      unlocked: true
     }
   ];
 
-  const getRatingColor = (rating: number) => {
-    if (rating >= 4.5) return "border-emerald-500 bg-emerald-50";
-    if (rating >= 4.0) return "border-blue-500 bg-blue-50";
-    return "border-orange-500 bg-orange-50";
+  const maskName = (name: string, unlocked: boolean) => {
+    if (unlocked) return name;
+    const firstTwo = name.slice(0, 2);
+    const lastTwo = name.slice(-2);
+    const middle = "*".repeat(Math.max(0, name.length - 4));
+    return firstTwo + middle + lastTwo;
   };
 
-  const getUrgencyColor = (urgency: string) => {
-    switch (urgency) {
-      case "High": return "bg-red-100 text-red-700 border-red-200";
-      case "Medium": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "Low": return "bg-green-100 text-green-700 border-green-200";
-      default: return "bg-gray-100 text-gray-700 border-gray-200";
-    }
-  };
+  const RadialProgress = ({ value, size = 48, strokeWidth = 6, className = "" }: {
+    value: number;
+    size?: number;
+    strokeWidth?: number;
+    className?: string;
+  }) => {
+    const radius = (size - strokeWidth) / 2;
+    const circumference = 2 * Math.PI * radius;
+    const strokeDasharray = circumference;
+    const strokeDashoffset = circumference - (value / 100) * circumference;
 
-  const getRejectionRateColor = (rate: number) => {
-    if (rate <= 10) return "text-green-600";
-    if (rate <= 20) return "text-yellow-600";
-    return "text-red-600";
-  };
+    // Determine color based on score with specified colors
+    const getScoreColor = (score: number) => {
+      if (score >= 85) return "#60d394"; // Green
+      if (score >= 70) return "#ffd97d"; // Yellow
+      if (score >= 50) return "#ff9b85"; // Orange
+      return "#ee6055"; // Red
+    };
 
-  const getTrendingIcon = (trend: string) => {
-    switch (trend) {
-      case "up": return <TrendingUp className="h-4 w-4 text-green-500" />;
-      case "down": return <TrendingDown className="h-4 w-4 text-red-500" />;
-      default: return null;
-    }
+    const color = getScoreColor(value);
+
+    return (
+      <div className={`relative ${className}`}>
+        <svg width={size} height={size} className="transform -rotate-90">
+          {/* Background circle */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke="#f1f5f9"
+            strokeWidth={strokeWidth}
+            fill="transparent"
+          />
+          {/* Progress circle */}
+          <circle
+            cx={size / 2}
+            cy={size / 2}
+            r={radius}
+            stroke={color}
+            strokeWidth={strokeWidth}
+            fill="transparent"
+            strokeDasharray={strokeDasharray}
+            strokeDashoffset={strokeDashoffset}
+            className="transition-all duration-500 ease-out"
+            strokeLinecap="round"
+          />
+        </svg>
+        <div className="absolute inset-0 flex items-center justify-center">
+          <span className="text-xs font-semibold" style={{ color }}>{value}%</span>
+        </div>
+      </div>
+    );
   };
 
   const filteredLeads = allLeads.filter(lead => {
-    if (filterType !== "all" && lead.type.toLowerCase() !== filterType) return false;
+    if (filterType !== "all" && lead.category.toLowerCase() !== filterType) return false;
     if (searchQuery && !lead.area.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
   });
@@ -208,90 +250,192 @@ const LeadsListing = () => {
         </div>
       </Card>
 
-      {/* Leads Table Header */}
+      {/* Leads Listing */}
       <Card className="p-6">
-        <div className="grid grid-cols-12 gap-4 font-semibold text-sm text-muted-foreground border-b pb-3 mb-4">
-          <div className="col-span-1">Rating</div>
-          <div className="col-span-2">Type</div>
-          <div className="col-span-2">Area</div>
-          <div className="col-span-2">Budget</div>
-          <div className="col-span-1">Urgency</div>
-          <div className="col-span-1">Rejection Rate</div>
-          <div className="col-span-2">Lead Price (Coins)</div>
-          <div className="col-span-1">Action</div>
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="text-xl font-semibold">All Qualified Leads ({filteredLeads.length})</h2>
         </div>
-
-        {/* Leads List */}
-        <div className="space-y-3">
+        
+        <div className="space-y-4">
           {filteredLeads.map((lead) => (
             <div
               key={lead.id}
-              className={`grid grid-cols-12 gap-4 items-center p-4 rounded-lg border-2 transition-all hover:shadow-md hover:bg-accent/50 cursor-pointer ${getRatingColor(lead.rating)}`}
+              className="p-4 md:p-6 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer"
             >
-              {/* Rating */}
-              <div className="col-span-1">
-                <div className="flex items-center gap-1">
-                  <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                  <span className="font-semibold">{lead.rating}</span>
-                  {getTrendingIcon(lead.trending)}
+              {/* Mobile Layout */}
+              <div className="block md:hidden">
+                <div className="flex items-start justify-between mb-4">
+                  <div className="flex items-center gap-3">
+                    <RadialProgress 
+                      value={Math.round(lead.rating * 20)} 
+                      size={48} 
+                      className="text-primary"
+                    />
+                    <div>
+                      <div className="font-semibold text-foreground">
+                        {maskName(lead.name, lead.unlocked)}
+                      </div>
+                      {!lead.unlocked && (
+                        <Badge variant="outline" className="text-xs mt-1">
+                          Locked
+                        </Badge>
+                      )}
+                    </div>
+                  </div>
+                  <div className="flex flex-col items-center gap-1">
+                    <RadialProgress 
+                      value={100 - lead.rejectionRate} 
+                      size={48} 
+                      className="text-emerald-500"
+                    />
+                    <span className="text-xs text-muted-foreground">Acceptance</span>
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-2 gap-3 mb-4">
+                  <div>
+                    <div className="text-xs text-muted-foreground">Category</div>
+                    <div className="text-sm font-medium text-foreground">{lead.category}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Type</div>
+                    <div className="text-sm font-medium text-foreground">{lead.propertyType}</div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Location</div>
+                    <div className="text-sm font-medium text-foreground flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {lead.area}
+                    </div>
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Priority</div>
+                    <Badge 
+                      variant={lead.urgency === "High" ? "destructive" : lead.urgency === "Medium" ? "secondary" : "outline"}
+                      className={`text-xs ${
+                        lead.urgency === "High" 
+                          ? "bg-green-500 text-white hover:bg-green-600" 
+                          : lead.urgency === "Medium" 
+                          ? "bg-yellow-500 text-white hover:bg-yellow-600 border-yellow-500" 
+                          : "bg-red-500 text-white hover:bg-red-600 border-red-500"
+                      }`}
+                    >
+                      {lead.urgency}
+                    </Badge>
+                  </div>
+                </div>
+
+                <div className="flex items-center justify-between">
+                  <div>
+                    <div className="text-xs text-muted-foreground">Budget</div>
+                    <div className="text-sm font-semibold text-primary">{lead.budget}</div>
+                  </div>
+                  <div className="text-right">
+                    <div className="flex justify-center mb-2">
+                      <Coin value={lead.leadPrice} size="sm" />
+                    </div>
+                    <Link to={`/broker/leads/${lead.id}`}>
+                      <Button size="sm" className="bg-primary hover:bg-primary/90 text-xs gap-1">
+                        <Send className="h-3 w-3" />
+                        Submit
+                      </Button>
+                    </Link>
+                  </div>
                 </div>
               </div>
 
-              {/* Type */}
-              <div className="col-span-2">
-                <div className="flex items-center gap-2">
-                  <span className="font-medium">{lead.type}</span>
-                  {lead.verified && (
-                    <Badge variant="secondary" className="bg-emerald-100 text-emerald-700 text-xs">
-                      Verified
+              {/* Desktop Layout */}
+              <div className="hidden md:flex items-center gap-4 lg:gap-6 overflow-x-auto">
+                {/* Overall Score */}
+                <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                  <span className="text-xs text-muted-foreground mb-1">Score</span>
+                  <RadialProgress 
+                    value={Math.round(lead.rating * 20)} 
+                    size={56} 
+                    className="text-primary"
+                  />
+                </div>
+
+                {/* Name */}
+                <div className="min-w-[120px] flex-shrink-0">
+                  <div className="text-xs text-muted-foreground mb-1">Name</div>
+                  <div className="font-semibold text-foreground">
+                    {maskName(lead.name, lead.unlocked)}
+                  </div>
+                  {!lead.unlocked && (
+                    <Badge variant="outline" className="text-xs mt-1">
+                      Locked
                     </Badge>
                   )}
                 </div>
-              </div>
 
-              {/* Area */}
-              <div className="col-span-2">
-                <div className="flex items-center gap-1">
-                  <MapPin className="h-3 w-3 text-muted-foreground" />
-                  <span className="text-sm">{lead.area}</span>
+                {/* Category */}
+                <div className="min-w-[100px] flex-shrink-0">
+                  <div className="text-xs text-muted-foreground mb-1">Category</div>
+                  <div className="text-sm font-medium text-foreground">{lead.category}</div>
                 </div>
-              </div>
 
-              {/* Budget */}
-              <div className="col-span-2">
-                <span className="font-semibold text-primary">{lead.budget}</span>
-              </div>
-
-              {/* Urgency */}
-              <div className="col-span-1">
-                <Badge className={getUrgencyColor(lead.urgency)} variant="outline">
-                  {lead.urgency}
-                </Badge>
-              </div>
-
-              {/* Rejection Rate */}
-              <div className="col-span-1">
-                <span className={`font-semibold ${getRejectionRateColor(lead.rejectionRate)}`}>
-                  {lead.rejectionRate}%
-                </span>
-              </div>
-
-              {/* Lead Price */}
-              <div className="col-span-2">
-                <div className="flex items-center gap-1">
-                  <span className="font-semibold text-orange-600">{lead.leadPrice}</span>
-                  <span className="text-sm text-muted-foreground">coins</span>
+                {/* Property Type */}
+                <div className="min-w-[100px] flex-shrink-0">
+                  <div className="text-xs text-muted-foreground mb-1">Type</div>
+                  <div className="text-sm font-medium text-foreground">{lead.propertyType}</div>
                 </div>
-              </div>
 
-              {/* Action */}
-              <div className="col-span-1">
-                <Link to={`/broker/leads/${lead.id}`}>
-                  <Button size="sm" className="gap-1">
-                    <Send className="h-3 w-3" />
-                    Submit
-                  </Button>
-                </Link>
+                {/* Area */}
+                <div className="min-w-[120px] flex-shrink-0">
+                  <div className="text-xs text-muted-foreground mb-1">Location</div>
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3 text-muted-foreground" />
+                    <div className="text-sm font-medium text-foreground">{lead.area}</div>
+                  </div>
+                </div>
+
+                {/* Budget */}
+                <div className="min-w-[120px] flex-shrink-0">
+                  <div className="text-xs text-muted-foreground mb-1">Budget</div>
+                  <div className="text-sm font-semibold text-primary">{lead.budget}</div>
+                </div>
+
+                {/* Urgency */}
+                <div className="min-w-[80px] flex-shrink-0">
+                  <div className="text-xs text-muted-foreground mb-1">Priority</div>
+                  <Badge 
+                    variant={lead.urgency === "High" ? "default" : "outline"}
+                    className={`text-xs ${
+                      lead.urgency === "High" 
+                        ? "bg-green-500 text-white hover:bg-green-600" 
+                        : lead.urgency === "Medium" 
+                        ? "bg-yellow-500 text-white hover:bg-yellow-600 border-yellow-500" 
+                        : "bg-red-500 text-white hover:bg-red-600 border-red-500"
+                    }`}
+                  >
+                    {lead.urgency}
+                  </Badge>
+                </div>
+
+                {/* Acceptance Rate */}
+                <div className="flex flex-col items-center gap-1 flex-shrink-0">
+                  <span className="text-xs text-muted-foreground mb-1">Acceptance Rate</span>
+                  <RadialProgress 
+                    value={100 - lead.rejectionRate} 
+                    size={56} 
+                    className="text-emerald-500"
+                  />
+                </div>
+
+                {/* Action & Price */}
+                <div className="flex items-center gap-4 min-w-[240px] flex-shrink-0">
+                  <div className="flex flex-col items-center gap-1">
+                    <span className="text-xs text-muted-foreground">Cost</span>
+                    <Coin value={lead.leadPrice} size="sm" />
+                  </div>
+                  <Link to={`/broker/leads/${lead.id}`}>
+                    <Button size="sm" className="bg-primary hover:bg-primary/90 gap-1">
+                      <Send className="h-3 w-3" />
+                      Submit Property
+                    </Button>
+                  </Link>
+                </div>
               </div>
             </div>
           ))}
