@@ -208,8 +208,8 @@ const Dashboard = () => {
               <Star className="h-6 w-6 text-purple-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">Avg Rating</p>
-              <p className="text-2xl font-bold">4.6</p>
+              <p className="text-sm text-muted-foreground">Acceptance Rate</p>
+              <p className="text-2xl font-bold">72.3%</p>
             </div>
           </div>
         </Card>
