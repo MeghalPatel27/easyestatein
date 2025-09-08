@@ -219,8 +219,8 @@ const Dashboard = () => {
               <Calendar className="h-6 w-6 text-orange-600" />
             </div>
             <div>
-              <p className="text-sm text-muted-foreground">This Month</p>
-              <p className="text-2xl font-bold">42</p>
+              <p className="text-sm text-muted-foreground">Visits Arranged</p>
+              <p className="text-2xl font-bold">89</p>
             </div>
           </div>
         </Card>
