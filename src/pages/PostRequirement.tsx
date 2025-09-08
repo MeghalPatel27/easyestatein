@@ -590,11 +590,11 @@ const PostRequirement = () => {
                 <>
                   <div className="flex flex-col items-center">
                     <div>
-                      <Label className="block mb-3 text-center">Preferred Entry Directions</Label>
+                      <Label className="block mb-6 text-center">Preferred Entry Directions</Label>
                       <CompassSelector
                         selectedDirections={formData.directions}
                         onDirectionsChange={(directions) => setFormData({ ...formData, directions })}
-                        className="mb-4"
+                        className="mb-8"
                       />
                     </div>
                     
@@ -905,7 +905,7 @@ const PostRequirement = () => {
       </div>
 
       {/* Main Content */}
-      <div className="max-w-2xl mx-auto p-4 md:p-6 pb-24">
+      <div className="max-w-2xl mx-auto p-4 md:p-6 pb-32">
         <div className="animate-fade-in">
           {renderStep()}
         </div>
