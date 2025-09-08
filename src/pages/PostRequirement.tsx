@@ -3,33 +3,190 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Slider } from "@/components/ui/slider";
+import { Progress } from "@/components/ui/progress";
+import { Toggle } from "@/components/ui/toggle";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Home, MapPin, DollarSign } from "lucide-react";
+import { 
+  ArrowLeft, 
+  ArrowRight, 
+  Home, 
+  Building, 
+  Factory, 
+  TreePine, 
+  MapPin, 
+  IndianRupee, 
+  Calendar, 
+  CreditCard, 
+  Heart, 
+  X, 
+  Smartphone, 
+  Mail, 
+  CheckCircle,
+  Bed,
+  Bath,
+  Square,
+  Car,
+  Shield,
+  Waves,
+  Zap,
+  Users,
+  Navigation,
+  Volume2,
+  Wrench,
+  Clock,
+  DollarSign
+} from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+
+// Property categories and types
+const PROPERTY_CATEGORIES = [
+  { id: 'residential', label: 'Residential', icon: Home, color: 'bg-blue-50 text-blue-600 border-blue-200' },
+  { id: 'commercial', label: 'Commercial', icon: Building, color: 'bg-green-50 text-green-600 border-green-200' },
+  { id: 'industrial', label: 'Industrial', icon: Factory, color: 'bg-orange-50 text-orange-600 border-orange-200' },
+  { id: 'agricultural', label: 'Agricultural', icon: TreePine, color: 'bg-emerald-50 text-emerald-600 border-emerald-200' }
+];
+
+const PROPERTY_TYPES = {
+  residential: [
+    { id: 'apartment', label: 'Apartment', icon: Building },
+    { id: 'villa', label: 'Villa', icon: Home },
+    { id: 'bungalow', label: 'Bungalow', icon: Home },
+    { id: 'rowhouse', label: 'Row House', icon: Home },
+    { id: 'duplex', label: 'Duplex', icon: Building },
+    { id: 'penthouse', label: 'Penthouse', icon: Building },
+    { id: 'plot', label: 'Plot', icon: Square }
+  ],
+  commercial: [
+    { id: 'office', label: 'Office', icon: Building },
+    { id: 'shop', label: 'Shop', icon: Building },
+    { id: 'showroom', label: 'Showroom', icon: Building },
+    { id: 'coworking', label: 'Co-working Space', icon: Users }
+  ],
+  industrial: [
+    { id: 'shed', label: 'Shed', icon: Factory },
+    { id: 'warehouse', label: 'Warehouse', icon: Factory },
+    { id: 'factory', label: 'Factory', icon: Factory },
+    { id: 'industrialland', label: 'Industrial Land', icon: Square }
+  ],
+  agricultural: [
+    { id: 'farmland', label: 'Farm Land', icon: TreePine },
+    { id: 'agriplot', label: 'Agri-Plot', icon: Square },
+    { id: 'greenhouse', label: 'Greenhouse', icon: TreePine }
+  ]
+};
+
+const AMENITIES = [
+  { id: 'parking', label: 'Parking', icon: Car },
+  { id: 'security', label: 'Gated Security', icon: Shield },
+  { id: 'pool', label: 'Swimming Pool', icon: Waves },
+  { id: 'backup', label: 'Power Backup', icon: Zap },
+  { id: 'garden', label: 'Garden', icon: TreePine }
+];
+
+const DISLIKES = [
+  { id: 'highway', label: 'Near Highway', icon: Navigation },
+  { id: 'crowded', label: 'Crowded locality', icon: Users },
+  { id: 'maintenance', label: 'High Maintenance', icon: Wrench },
+  { id: 'noise', label: 'Noisy Area', icon: Volume2 }
+];
+
+const TIMELINE_OPTIONS = [
+  { id: 'immediate', label: 'Immediately' },
+  { id: '3months', label: 'Within 3 months' },
+  { id: '6months', label: '3-6 months' },
+  { id: '12months', label: '6-12 months' },
+  { id: 'exploring', label: 'Just exploring' }
+];
+
+const FINANCING_OPTIONS = [
+  { id: 'yes', label: 'Yes' },
+  { id: 'no', label: 'No' },
+  { id: 'maybe', label: 'Maybe later' }
+];
 
 const PostRequirement = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
+
   const [formData, setFormData] = useState({
-    title: "",
-    description: "",
-    property_type: "",
-    location: { area: "", city: "", state: "" },
-    budget_min: "",
-    budget_max: "",
-    area_min: "",
-    area_max: "",
-    bedrooms: "",
-    bathrooms: "",
-    urgency: "medium"
+    // Step 1: Core Intent
+    category: '',
+    
+    // Step 2: Property Type
+    propertyType: '',
+    
+    // Step 3: Location
+    city: '',
+    localities: [] as string[],
+    landmark: '',
+    
+    // Step 4: Budget
+    budgetRange: [50, 200] as number[],
+    
+    // Step 5: Size & Specifications
+    bhk: '',
+    bathrooms: '',
+    area: '',
+    areaUnit: 'sqft',
+    furnishing: '',
+    plotSize: '',
+    builtupArea: '',
+    facilities: [] as string[],
+    landArea: '',
+    irrigation: false,
+    
+    // Step 6: Timeline
+    timeline: '',
+    
+    // Step 7: Financing
+    financing: '',
+    
+    // Step 8: Must-haves & Dislikes
+    amenities: [] as string[],
+    dislikes: [] as string[],
+    
+    // Step 9: Verification
+    phone: '',
+    email: '',
+    otp: '',
+    
+    // Step 10: Additional
+    description: ''
   });
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const totalSteps = 10;
+  const progress = (currentStep / totalSteps) * 100;
+
+  const handleNext = () => {
+    if (currentStep < totalSteps) {
+      setCurrentStep(currentStep + 1);
+    }
+  };
+
+  const handlePrevious = () => {
+    if (currentStep > 1) {
+      setCurrentStep(currentStep - 1);
+    }
+  };
+
+  const formatBudget = (value: number) => {
+    if (value >= 100) {
+      return `₹${(value / 100).toFixed(1)}Cr`;
+    }
+    return `₹${value}L`;
+  };
+
+  const toggleArrayItem = (array: string[], item: string) => {
+    return array.includes(item) 
+      ? array.filter(i => i !== item)
+      : [...array, item];
+  };
+
+  const handleSubmit = async () => {
     setLoading(true);
 
     try {
@@ -44,19 +201,52 @@ const PostRequirement = () => {
         return;
       }
 
+      // Create requirement object
+      const requirement = {
+        user_id: user.id,
+        category: formData.category,
+        property_type: formData.propertyType,
+        location: {
+          city: formData.city,
+          localities: formData.localities,
+          landmark: formData.landmark
+        },
+        budget_min: formData.budgetRange[0] * 100000,
+        budget_max: formData.budgetRange[1] * 100000,
+        specifications: {
+          bhk: formData.bhk,
+          bathrooms: formData.bathrooms,
+          area: formData.area,
+          area_unit: formData.areaUnit,
+          furnishing: formData.furnishing,
+          facilities: formData.facilities
+        },
+        timeline: formData.timeline,
+        financing: formData.financing,
+        amenities: formData.amenities,
+        dislikes: formData.dislikes,
+        description: formData.description,
+        contact: {
+          phone: formData.phone,
+          email: formData.email
+        },
+        status: 'active'
+      };
+
+      // For now, insert into properties table (temporary workaround)
       const { error } = await supabase
-        .from('properties')  // Temporary workaround - using properties table
+        .from('properties')
         .insert({
           user_id: user.id,
-          title: formData.title,
-          description: formData.description || '',
-          category: 'residential',
-          type: formData.property_type as any,
-          location: formData.location,
-          price: formData.budget_max ? parseFloat(formData.budget_max) : 0,
-          area: formData.area_max ? parseFloat(formData.area_max) : 0,
-          bedrooms: formData.bedrooms ? parseInt(formData.bedrooms) : null,
-          bathrooms: formData.bathrooms ? parseInt(formData.bathrooms) : null,
+          title: `${formData.propertyType} in ${formData.city}`,
+          description: formData.description || `Looking for ${formData.propertyType} in ${formData.city}`,
+          category: formData.category as any,
+          type: formData.propertyType as any,
+          location: { city: formData.city, area: formData.localities[0] || '' },
+          price: formData.budgetRange[1] * 100000,
+          area: parseInt(formData.area) || 0,
+          bedrooms: parseInt(formData.bhk) || null,
+          bathrooms: parseInt(formData.bathrooms) || null,
           status: 'available'
         });
 
@@ -80,6 +270,465 @@ const PostRequirement = () => {
     }
   };
 
+  const renderStep = () => {
+    switch (currentStep) {
+      case 1:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">What type of property are you looking for?</h2>
+              <p className="text-muted-foreground">Choose the category that best fits your needs</p>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {PROPERTY_CATEGORIES.map((category) => {
+                const Icon = category.icon;
+                return (
+                  <Card
+                    key={category.id}
+                    className={`p-6 cursor-pointer transition-all duration-200 hover:shadow-md border-2 ${
+                      formData.category === category.id 
+                        ? 'border-primary bg-primary/5' 
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => setFormData({ ...formData, category: category.id, propertyType: '' })}
+                  >
+                    <div className="flex flex-col items-center text-center space-y-3">
+                      <div className={`w-12 h-12 rounded-full flex items-center justify-center ${category.color}`}>
+                        <Icon className="w-6 h-6" />
+                      </div>
+                      <h3 className="font-semibold text-foreground">{category.label}</h3>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        );
+
+      case 2:
+        const categoryTypes = PROPERTY_TYPES[formData.category as keyof typeof PROPERTY_TYPES] || [];
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Choose Property Type</h2>
+              <p className="text-muted-foreground">Select the specific type of {formData.category} property</p>
+            </div>
+            
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+              {categoryTypes.map((type) => {
+                const Icon = type.icon;
+                return (
+                  <Card
+                    key={type.id}
+                    className={`p-4 cursor-pointer transition-all duration-200 hover:shadow-md border-2 ${
+                      formData.propertyType === type.id 
+                        ? 'border-primary bg-primary/5' 
+                        : 'border-border hover:border-primary/50'
+                    }`}
+                    onClick={() => setFormData({ ...formData, propertyType: type.id })}
+                  >
+                    <div className="flex flex-col items-center text-center space-y-2">
+                      <Icon className="w-8 h-8 text-primary" />
+                      <h3 className="font-medium text-sm text-foreground">{type.label}</h3>
+                    </div>
+                  </Card>
+                );
+              })}
+            </div>
+          </div>
+        );
+
+      case 3:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Location Preferences</h2>
+              <p className="text-muted-foreground">Where would you like your property to be?</p>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="city">City *</Label>
+                <Input
+                  id="city"
+                  placeholder="e.g., Mumbai, Delhi, Bangalore"
+                  value={formData.city}
+                  onChange={(e) => setFormData({ ...formData, city: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="landmark">Nearby Landmark (Optional)</Label>
+                <Input
+                  id="landmark"
+                  placeholder="e.g., Phoenix Mall, Cyber City"
+                  value={formData.landmark}
+                  onChange={(e) => setFormData({ ...formData, landmark: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 4:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Budget Range</h2>
+              <p className="text-muted-foreground">Set your comfortable budget range</p>
+            </div>
+            
+            <div className="space-y-6">
+              <div className="text-center py-4">
+                <div className="text-3xl font-bold text-primary mb-2">
+                  {formatBudget(formData.budgetRange[0])} - {formatBudget(formData.budgetRange[1])}
+                </div>
+                <p className="text-muted-foreground">Slide to adjust your budget</p>
+              </div>
+              
+              <div className="px-4">
+                <Slider
+                  value={formData.budgetRange}
+                  onValueChange={(value) => setFormData({ ...formData, budgetRange: value })}
+                  max={1000}
+                  min={10}
+                  step={10}
+                  className="w-full"
+                />
+                <div className="flex justify-between text-sm text-muted-foreground mt-2">
+                  <span>₹10L</span>
+                  <span>₹10Cr+</span>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 5:
+        const isResidential = formData.category === 'residential';
+        const isPlot = formData.propertyType === 'plot';
+        const isCommercial = formData.category === 'commercial';
+        const isIndustrial = formData.category === 'industrial';
+        const isAgricultural = formData.category === 'agricultural';
+
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Size & Specifications</h2>
+              <p className="text-muted-foreground">Tell us about your space requirements</p>
+            </div>
+            
+            <div className="space-y-4">
+              {isResidential && !isPlot && (
+                <>
+                  <div>
+                    <Label>BHK Configuration</Label>
+                    <div className="grid grid-cols-3 md:grid-cols-6 gap-2 mt-2">
+                      {['1', '2', '3', '4', '5', '6+'].map((bhk) => (
+                        <Button
+                          key={bhk}
+                          variant={formData.bhk === bhk ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setFormData({ ...formData, bhk })}
+                          className="h-12"
+                        >
+                          {bhk}BHK
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                  
+                  <div>
+                    <Label>Bathrooms</Label>
+                    <div className="grid grid-cols-4 gap-2 mt-2">
+                      {['1', '2', '3', '4+'].map((bath) => (
+                        <Button
+                          key={bath}
+                          variant={formData.bathrooms === bath ? 'default' : 'outline'}
+                          size="sm"
+                          onClick={() => setFormData({ ...formData, bathrooms: bath })}
+                          className="h-12"
+                        >
+                          {bath}
+                        </Button>
+                      ))}
+                    </div>
+                  </div>
+                </>
+              )}
+              
+              <div>
+                <Label htmlFor="area">
+                  {isPlot ? 'Plot Size' : isAgricultural ? 'Land Area' : 'Carpet Area'} (sq.ft)
+                </Label>
+                <Input
+                  id="area"
+                  type="number"
+                  placeholder="e.g., 1200"
+                  value={formData.area}
+                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              
+              {isCommercial && (
+                <div>
+                  <Label>Furnishing Preference</Label>
+                  <div className="grid grid-cols-1 md:grid-cols-3 gap-2 mt-2">
+                    {['Bare Shell', 'Semi-Furnished', 'Fully Furnished'].map((furnish) => (
+                      <Button
+                        key={furnish}
+                        variant={formData.furnishing === furnish ? 'default' : 'outline'}
+                        size="sm"
+                        onClick={() => setFormData({ ...formData, furnishing: furnish })}
+                        className="h-12"
+                      >
+                        {furnish}
+                      </Button>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </div>
+          </div>
+        );
+
+      case 6:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Timeline</h2>
+              <p className="text-muted-foreground">When do you plan to buy?</p>
+            </div>
+            
+            <div className="space-y-2">
+              {TIMELINE_OPTIONS.map((option) => (
+                <Card
+                  key={option.id}
+                  className={`p-4 cursor-pointer transition-all duration-200 border-2 ${
+                    formData.timeline === option.id 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  onClick={() => setFormData({ ...formData, timeline: option.id })}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-4 h-4 rounded-full border-2 ${
+                      formData.timeline === option.id ? 'bg-primary border-primary' : 'border-border'
+                    }`} />
+                    <span className="font-medium">{option.label}</span>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 7:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Financing</h2>
+              <p className="text-muted-foreground">Do you need a home loan?</p>
+            </div>
+            
+            <div className="space-y-2">
+              {FINANCING_OPTIONS.map((option) => (
+                <Card
+                  key={option.id}
+                  className={`p-4 cursor-pointer transition-all duration-200 border-2 ${
+                    formData.financing === option.id 
+                      ? 'border-primary bg-primary/5' 
+                      : 'border-border hover:border-primary/50'
+                  }`}
+                  onClick={() => setFormData({ ...formData, financing: option.id })}
+                >
+                  <div className="flex items-center space-x-3">
+                    <div className={`w-4 h-4 rounded-full border-2 ${
+                      formData.financing === option.id ? 'bg-primary border-primary' : 'border-border'
+                    }`} />
+                    <span className="font-medium">{option.label}</span>
+                  </div>
+                </Card>
+              ))}
+            </div>
+          </div>
+        );
+
+      case 8:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Preferences</h2>
+              <p className="text-muted-foreground">Tell us what you love and what you'd rather avoid</p>
+            </div>
+            
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-semibold text-foreground mb-3 flex items-center">
+                  <Heart className="w-4 h-4 mr-2 text-green-600" />
+                  Must-Haves
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {AMENITIES.map((amenity) => {
+                    const Icon = amenity.icon;
+                    return (
+                      <Toggle
+                        key={amenity.id}
+                        pressed={formData.amenities.includes(amenity.id)}
+                        onPressedChange={() => 
+                          setFormData({
+                            ...formData,
+                            amenities: toggleArrayItem(formData.amenities, amenity.id)
+                          })
+                        }
+                        className="h-16 flex-col space-y-1"
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span className="text-xs">{amenity.label}</span>
+                      </Toggle>
+                    );
+                  })}
+                </div>
+              </div>
+              
+              <div>
+                <h3 className="font-semibold text-foreground mb-3 flex items-center">
+                  <X className="w-4 h-4 mr-2 text-red-600" />
+                  Dislikes
+                </h3>
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-2">
+                  {DISLIKES.map((dislike) => {
+                    const Icon = dislike.icon;
+                    return (
+                      <Toggle
+                        key={dislike.id}
+                        pressed={formData.dislikes.includes(dislike.id)}
+                        onPressedChange={() => 
+                          setFormData({
+                            ...formData,
+                            dislikes: toggleArrayItem(formData.dislikes, dislike.id)
+                          })
+                        }
+                        className="h-16 flex-col space-y-1"
+                      >
+                        <Icon className="w-4 h-4" />
+                        <span className="text-xs">{dislike.label}</span>
+                      </Toggle>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+
+      case 9:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Verification</h2>
+              <p className="text-muted-foreground">We'll send you matching properties</p>
+            </div>
+            
+            <div className="space-y-4">
+              <div>
+                <Label htmlFor="phone">Phone Number *</Label>
+                <Input
+                  id="phone"
+                  type="tel"
+                  placeholder="+91 98765 43210"
+                  value={formData.phone}
+                  onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="email">Email (Optional)</Label>
+                <Input
+                  id="email"
+                  type="email"
+                  placeholder="your@email.com"
+                  value={formData.email}
+                  onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+            </div>
+          </div>
+        );
+
+      case 10:
+        return (
+          <div className="space-y-6">
+            <div className="text-center mb-8">
+              <h2 className="text-2xl font-bold text-foreground mb-2">Requirement Summary</h2>
+              <p className="text-muted-foreground">Review your requirement before posting</p>
+            </div>
+            
+            <Card className="p-6 space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <h4 className="font-semibold text-foreground">Property Type</h4>
+                  <p className="text-muted-foreground capitalize">{formData.propertyType} ({formData.category})</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground">Location</h4>
+                  <p className="text-muted-foreground">{formData.city}</p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground">Budget</h4>
+                  <p className="text-muted-foreground">
+                    {formatBudget(formData.budgetRange[0])} - {formatBudget(formData.budgetRange[1])}
+                  </p>
+                </div>
+                <div>
+                  <h4 className="font-semibold text-foreground">Timeline</h4>
+                  <p className="text-muted-foreground capitalize">
+                    {TIMELINE_OPTIONS.find(t => t.id === formData.timeline)?.label}
+                  </p>
+                </div>
+              </div>
+              
+              <div>
+                <Label htmlFor="description">Additional Requirements (Optional)</Label>
+                <Input
+                  id="description"
+                  placeholder="Any specific requirements or notes..."
+                  value={formData.description}
+                  onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                  className="mt-1"
+                />
+              </div>
+            </Card>
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  };
+
+  const canProceed = () => {
+    switch (currentStep) {
+      case 1: return formData.category;
+      case 2: return formData.propertyType;
+      case 3: return formData.city;
+      case 4: return true;
+      case 5: return true;
+      case 6: return formData.timeline;
+      case 7: return formData.financing;
+      case 8: return true;
+      case 9: return formData.phone;
+      case 10: return true;
+      default: return false;
+    }
+  };
+
   return (
     <div className="min-h-screen bg-background">
       {/* Header */}
@@ -87,253 +736,78 @@ const PostRequirement = () => {
         <div className="flex items-center space-x-4">
           <button
             onClick={() => navigate('/')}
-            className="flex items-center text-muted-foreground hover:text-foreground"
+            className="flex items-center text-muted-foreground hover:text-foreground transition-colors"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </button>
-          <div className="text-primary font-bold text-lg">easyestate</div>
+          <div className="text-easyestate-pink font-bold text-lg">easyestate</div>
         </div>
       </div>
 
-      <div className="max-w-2xl mx-auto p-6">
-        <div className="mb-8">
-          <h1 className="text-3xl font-bold text-foreground mb-2">Post Your Requirement</h1>
-          <p className="text-muted-foreground">Tell us what kind of property you're looking for</p>
+      {/* Progress Bar */}
+      <div className="bg-background border-b border-border px-4 py-3">
+        <div className="max-w-2xl mx-auto">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-foreground">Step {currentStep} of {totalSteps}</span>
+            <span className="text-sm text-muted-foreground">{Math.round(progress)}% Complete</span>
+          </div>
+          <Progress value={progress} className="h-2" />
         </div>
+      </div>
 
-        <Card className="p-6">
-          <form onSubmit={handleSubmit} className="space-y-6">
-            {/* Basic Information */}
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-foreground">Basic Information</h2>
-              
-              <div>
-                <Label htmlFor="title">Requirement Title</Label>
-                <Input
-                  id="title"
-                  placeholder="e.g., 3 BHK Apartment in Baner"
-                  value={formData.title}
-                  onChange={(e) => setFormData({...formData, title: e.target.value})}
-                  required
-                />
-              </div>
+      {/* Main Content */}
+      <div className="max-w-2xl mx-auto p-4 md:p-6 pb-24">
+        <div className="animate-fade-in">
+          {renderStep()}
+        </div>
+      </div>
 
-              <div>
-                <Label htmlFor="property_type">Property Type</Label>
-                <Select 
-                  value={formData.property_type} 
-                  onValueChange={(value) => setFormData({...formData, property_type: value})}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select property type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="apartment">Apartment</SelectItem>
-                    <SelectItem value="villa">Villa</SelectItem>
-                    <SelectItem value="townhouse">Townhouse</SelectItem>
-                    <SelectItem value="penthouse">Penthouse</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label htmlFor="description">Description</Label>
-                <Textarea
-                  id="description"
-                  placeholder="Describe your requirements in detail..."
-                  value={formData.description}
-                  onChange={(e) => setFormData({...formData, description: e.target.value})}
-                  rows={4}
-                />
-              </div>
-            </div>
-
-            {/* Location */}
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-foreground flex items-center">
-                <MapPin className="w-5 h-5 mr-2" />
-                Location
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                <div>
-                  <Label htmlFor="area">Area</Label>
-                  <Input
-                    id="area"
-                    placeholder="e.g., Baner"
-                    value={formData.location.area}
-                    onChange={(e) => setFormData({
-                      ...formData, 
-                      location: {...formData.location, area: e.target.value}
-                    })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="city">City</Label>
-                  <Input
-                    id="city"
-                    placeholder="e.g., Pune"
-                    value={formData.location.city}
-                    onChange={(e) => setFormData({
-                      ...formData, 
-                      location: {...formData.location, city: e.target.value}
-                    })}
-                    required
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="state">State</Label>
-                  <Input
-                    id="state"
-                    placeholder="e.g., Maharashtra"
-                    value={formData.location.state}
-                    onChange={(e) => setFormData({
-                      ...formData, 
-                      location: {...formData.location, state: e.target.value}
-                    })}
-                    required
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Budget */}
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-foreground flex items-center">
-                <DollarSign className="w-5 h-5 mr-2" />
-                Budget
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <Label htmlFor="budget_min">Minimum Budget (₹)</Label>
-                  <Input
-                    id="budget_min"
-                    type="number"
-                    placeholder="e.g., 5000000"
-                    value={formData.budget_min}
-                    onChange={(e) => setFormData({...formData, budget_min: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="budget_max">Maximum Budget (₹)</Label>
-                  <Input
-                    id="budget_max"
-                    type="number"
-                    placeholder="e.g., 8000000"
-                    value={formData.budget_max}
-                    onChange={(e) => setFormData({...formData, budget_max: e.target.value})}
-                  />
-                </div>
-              </div>
-            </div>
-
-            {/* Property Details */}
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-foreground flex items-center">
-                <Home className="w-5 h-5 mr-2" />
-                Property Details
-              </h2>
-              
-              <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <Label htmlFor="area_min">Min Area (sq ft)</Label>
-                  <Input
-                    id="area_min"
-                    type="number"
-                    placeholder="e.g., 1000"
-                    value={formData.area_min}
-                    onChange={(e) => setFormData({...formData, area_min: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="area_max">Max Area (sq ft)</Label>
-                  <Input
-                    id="area_max"
-                    type="number"
-                    placeholder="e.g., 1500"
-                    value={formData.area_max}
-                    onChange={(e) => setFormData({...formData, area_max: e.target.value})}
-                  />
-                </div>
-                <div>
-                  <Label htmlFor="bedrooms">Bedrooms</Label>
-                  <Select 
-                    value={formData.bedrooms} 
-                    onValueChange={(value) => setFormData({...formData, bedrooms: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1 BHK</SelectItem>
-                      <SelectItem value="2">2 BHK</SelectItem>
-                      <SelectItem value="3">3 BHK</SelectItem>
-                      <SelectItem value="4">4 BHK</SelectItem>
-                      <SelectItem value="5">5+ BHK</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <div>
-                  <Label htmlFor="bathrooms">Bathrooms</Label>
-                  <Select 
-                    value={formData.bathrooms} 
-                    onValueChange={(value) => setFormData({...formData, bathrooms: value})}
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Select" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="1">1</SelectItem>
-                      <SelectItem value="2">2</SelectItem>
-                      <SelectItem value="3">3</SelectItem>
-                      <SelectItem value="4">4+</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-            </div>
-
-            {/* Urgency */}
-            <div className="space-y-4">
-              <h2 className="text-xl font-semibold text-foreground">Urgency</h2>
-              <Select 
-                value={formData.urgency} 
-                onValueChange={(value) => setFormData({...formData, urgency: value})}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select urgency" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="low">Low - Within 6 months</SelectItem>
-                  <SelectItem value="medium">Medium - Within 3 months</SelectItem>
-                  <SelectItem value="high">High - Within 1 month</SelectItem>
-                  <SelectItem value="urgent">Urgent - ASAP</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="flex gap-4 pt-6">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => navigate('/')}
-                className="flex-1"
-              >
-                Cancel
-              </Button>
-              <Button
-                type="submit"
-                disabled={loading}
-                className="flex-1"
-              >
-                {loading ? "Posting..." : "Post Requirement"}
-              </Button>
-            </div>
-          </form>
-        </Card>
+      {/* Bottom Navigation */}
+      <div className="fixed bottom-0 left-0 right-0 bg-background border-t border-border p-4">
+        <div className="max-w-2xl mx-auto flex gap-3">
+          <Button
+            variant="outline"
+            size="lg"
+            onClick={handlePrevious}
+            disabled={currentStep === 1}
+            className="flex-1"
+          >
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Previous
+          </Button>
+          
+          {currentStep === totalSteps ? (
+            <Button
+              size="lg"
+              onClick={handleSubmit}
+              disabled={loading || !canProceed()}
+              className="flex-1"
+            >
+              {loading ? (
+                <>
+                  <div className="w-4 h-4 border-2 border-background border-t-transparent rounded-full animate-spin mr-2" />
+                  Posting...
+                </>
+              ) : (
+                <>
+                  <CheckCircle className="w-4 h-4 mr-2" />
+                  Post Requirement
+                </>
+              )}
+            </Button>
+          ) : (
+            <Button
+              size="lg"
+              onClick={handleNext}
+              disabled={!canProceed()}
+              className="flex-1"
+            >
+              Next
+              <ArrowRight className="w-4 h-4 ml-2" />
+            </Button>
+          )}
+        </div>
       </div>
     </div>
   );
