@@ -40,7 +40,7 @@ export const CompassSelector: React.FC<CompassSelectorProps> = ({
   };
 
   const getPositionStyles = (angle: number) => {
-    const radius = 80; // Distance from center
+    const radius = 60; // Reduced distance from center
     const centerX = 50; // Center X percentage
     const centerY = 50; // Center Y percentage
     
@@ -57,11 +57,11 @@ export const CompassSelector: React.FC<CompassSelectorProps> = ({
   };
 
   return (
-    <div className={cn("relative w-full max-w-xs mx-auto", className)}>
+    <div className={cn("relative w-full max-w-[200px] mx-auto", className)}>
       {/* Compass Circle */}
       <div className="relative aspect-square w-full">
         {/* Center Circle */}
-        <div className="absolute inset-1/2 w-4 h-4 -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted border-2 border-border" />
+        <div className="absolute inset-1/2 w-3 h-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-muted border border-border" />
         
         {/* Direction Arrows */}
         {DIRECTIONS.map((direction) => {
@@ -74,18 +74,18 @@ export const CompassSelector: React.FC<CompassSelectorProps> = ({
               style={getPositionStyles(direction.angle)}
               className={cn(
                 "absolute group flex items-center justify-center",
-                "w-12 h-12 rounded-full border-2 transition-all duration-200",
-                "hover:scale-110 hover:shadow-lg active:scale-95",
-                "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2",
+                "w-8 h-8 rounded-full border transition-all duration-200",
+                "hover:scale-110 hover:shadow-md active:scale-95",
+                "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1",
                 isSelected
-                  ? "bg-primary border-primary text-primary-foreground shadow-md"
+                  ? "bg-primary border-primary text-primary-foreground shadow-sm"
                   : "bg-background border-border text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5"
               )}
               title={direction.fullName}
             >
               <Navigation 
                 className={cn(
-                  "w-5 h-5 transition-all duration-200",
+                  "w-4 h-4 transition-all duration-200",
                   isSelected ? "text-primary-foreground" : "text-current"
                 )}
                 style={{ 
@@ -109,17 +109,17 @@ export const CompassSelector: React.FC<CompassSelectorProps> = ({
         
         {/* Compass Lines */}
         <div className="absolute inset-0 pointer-events-none">
-          {/* Main axes */}
-          <div className="absolute top-1/2 left-0 right-0 h-px bg-border/30" />
-          <div className="absolute left-1/2 top-0 bottom-0 w-px bg-border/30" />
-          {/* Diagonal axes */}
-          <div className="absolute top-0 left-0 right-0 bottom-0 bg-gradient-to-br from-transparent via-border/20 to-transparent" 
+          {/* Main axes - shorter lines */}
+          <div className="absolute top-1/2 left-1/4 right-1/4 h-px bg-border/20" />
+          <div className="absolute left-1/2 top-1/4 bottom-1/4 w-px bg-border/20" />
+          {/* Diagonal axes - shorter */}
+          <div className="absolute inset-1/4"
                style={{ 
-                 background: `linear-gradient(45deg, transparent 49%, hsl(var(--border) / 0.2) 50%, transparent 51%)` 
+                 background: `linear-gradient(45deg, transparent 48%, hsl(var(--border) / 0.15) 50%, transparent 52%)` 
                }} />
-          <div className="absolute top-0 left-0 right-0 bottom-0"
+          <div className="absolute inset-1/4"
                style={{ 
-                 background: `linear-gradient(-45deg, transparent 49%, hsl(var(--border) / 0.2) 50%, transparent 51%)` 
+                 background: `linear-gradient(-45deg, transparent 48%, hsl(var(--border) / 0.15) 50%, transparent 52%)` 
                }} />
         </div>
       </div>
