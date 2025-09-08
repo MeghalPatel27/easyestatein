@@ -588,9 +588,9 @@ const PostRequirement = () => {
               {/* Additional Specifications */}
               {(isResidential || isCommercial) && (
                 <>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="flex flex-col items-center">
                     <div>
-                      <Label className="block mb-3">Preferred Entry Directions</Label>
+                      <Label className="block mb-3 text-center">Preferred Entry Directions</Label>
                       <CompassSelector
                         selectedDirections={formData.directions}
                         onDirectionsChange={(directions) => setFormData({ ...formData, directions })}
@@ -598,7 +598,7 @@ const PostRequirement = () => {
                       />
                     </div>
                     
-                    <div>
+                    <div className="w-full max-w-xs">
                       <Label htmlFor="floor">Preferred Floor</Label>
                       <Input
                         id="floor"

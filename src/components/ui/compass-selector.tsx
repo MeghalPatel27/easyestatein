@@ -40,7 +40,7 @@ export const CompassSelector: React.FC<CompassSelectorProps> = ({
   };
 
   const getPositionStyles = (angle: number) => {
-    const radius = 60; // Reduced distance from center
+    const radius = 50; // Further reduced distance from center
     const centerX = 50; // Center X percentage
     const centerY = 50; // Center Y percentage
     
@@ -57,7 +57,7 @@ export const CompassSelector: React.FC<CompassSelectorProps> = ({
   };
 
   return (
-    <div className={cn("relative w-full max-w-[200px] mx-auto", className)}>
+    <div className={cn("relative w-full max-w-[160px] mx-auto", className)}>
       {/* Compass Circle */}
       <div className="relative aspect-square w-full">
         {/* Center Circle */}
@@ -74,9 +74,9 @@ export const CompassSelector: React.FC<CompassSelectorProps> = ({
               style={getPositionStyles(direction.angle)}
               className={cn(
                 "absolute group flex items-center justify-center",
-                "w-8 h-8 rounded-full border transition-all duration-200",
+                "w-7 h-7 rounded-full border transition-all duration-200",
                 "hover:scale-110 hover:shadow-md active:scale-95",
-                "focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-1",
+                "focus:outline-none focus:ring-1 focus:ring-primary focus:ring-offset-1",
                 isSelected
                   ? "bg-primary border-primary text-primary-foreground shadow-sm"
                   : "bg-background border-border text-muted-foreground hover:border-primary hover:text-primary hover:bg-primary/5"
@@ -85,7 +85,7 @@ export const CompassSelector: React.FC<CompassSelectorProps> = ({
             >
               <Navigation 
                 className={cn(
-                  "w-4 h-4 transition-all duration-200",
+                  "w-3 h-3 transition-all duration-200",
                   isSelected ? "text-primary-foreground" : "text-current"
                 )}
                 style={{ 
