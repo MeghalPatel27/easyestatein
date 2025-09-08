@@ -39,6 +39,7 @@ import {
 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
+import { CompassSelector } from "@/components/ui/compass-selector";
 
 // Property categories and types
 const PROPERTY_CATEGORIES = [
@@ -138,7 +139,7 @@ const PostRequirement = () => {
     facilities: [] as string[],
     landArea: '',
     irrigation: false,
-    directions: '',
+    directions: [] as string[],
     floor: '',
     minParking: '',
     balcony: '',
@@ -589,20 +590,12 @@ const PostRequirement = () => {
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div>
-                      <Label>Preferred Directions</Label>
-                      <div className="grid grid-cols-2 gap-2 mt-2">
-                        {['North', 'South', 'East', 'West', 'North-East', 'North-West', 'South-East', 'South-West'].map((direction) => (
-                          <Button
-                            key={direction}
-                            variant={formData.directions === direction ? 'default' : 'outline'}
-                            size="sm"
-                            onClick={() => setFormData({ ...formData, directions: direction })}
-                            className="h-10 text-xs"
-                          >
-                            {direction}
-                          </Button>
-                        ))}
-                      </div>
+                      <Label className="block mb-3">Preferred Entry Directions</Label>
+                      <CompassSelector
+                        selectedDirections={formData.directions}
+                        onDirectionsChange={(directions) => setFormData({ ...formData, directions })}
+                        className="mb-4"
+                      />
                     </div>
                     
                     <div>
