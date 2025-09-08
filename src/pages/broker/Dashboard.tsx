@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, Star, MapPin, Calendar, TrendingUp, Users } from "lucide-react";
 import { Link } from "react-router-dom";
+import { Coin } from "@/components/ui/coin";
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -307,9 +308,8 @@ const Dashboard = () => {
                     <div className="text-sm font-semibold text-primary">{buyer.budget}</div>
                   </div>
                   <div className="text-right">
-                    <div className="flex items-center gap-1 text-orange-600 font-semibold text-sm mb-2">
-                      <span>{buyer.leadPrice}</span>
-                      <span>coins</span>
+                    <div className="flex justify-center mb-2">
+                      <Coin value={buyer.leadPrice} size="sm" />
                     </div>
                     <Link to={`/broker/leads/${buyer.id}`}>
                       <Button size="sm" className="bg-primary hover:bg-primary/90 text-xs">
@@ -403,12 +403,7 @@ const Dashboard = () => {
                 <div className="flex items-center gap-4 min-w-[240px] flex-shrink-0">
                   <div className="flex flex-col items-center gap-1">
                     <span className="text-xs text-muted-foreground">Cost</span>
-                    <div className="flex items-center gap-2 bg-gradient-to-r from-amber-400 to-orange-500 px-3 py-1.5 rounded-full">
-                      <div className="w-4 h-4 bg-gradient-to-br from-yellow-300 to-amber-500 rounded-full flex items-center justify-center shadow-sm">
-                        <div className="w-2 h-2 bg-amber-600 rounded-full"></div>
-                      </div>
-                      <span className="text-white font-semibold text-sm">{buyer.leadPrice}</span>
-                    </div>
+                    <Coin value={buyer.leadPrice} size="sm" />
                   </div>
                   <Link to={`/broker/leads/${buyer.id}`}>
                     <Button size="sm" className="bg-primary hover:bg-primary/90">
