@@ -117,7 +117,7 @@ const PostRequirement = () => {
     category: '',
     
     // Step 2: Property Type
-    propertyType: '',
+    propertyType: [] as string[],
     
     // Step 3: Location
     city: '',
@@ -205,7 +205,7 @@ const PostRequirement = () => {
       const requirement = {
         user_id: user.id,
         category: formData.category,
-        property_type: formData.propertyType,
+        property_type: formData.propertyType.join(', '),
         location: {
           city: formData.city,
           localities: formData.localities,
@@ -238,10 +238,10 @@ const PostRequirement = () => {
         .from('properties')
         .insert({
           user_id: user.id,
-          title: `${formData.propertyType} in ${formData.city}`,
-          description: formData.description || `Looking for ${formData.propertyType} in ${formData.city}`,
+          title: `${formData.propertyType.join('/')} in ${formData.city}`,
+          description: formData.description || `Looking for ${formData.propertyType.join(' or ')} in ${formData.city}`,
           category: formData.category as any,
-          type: formData.propertyType as any,
+          type: formData.propertyType[0] as any,
           location: { city: formData.city, area: formData.localities[0] || '' },
           price: formData.budgetRange[1] * 100000,
           area: parseInt(formData.area) || 0,
@@ -291,7 +291,7 @@ const PostRequirement = () => {
                         ? 'border-primary bg-primary/5' 
                         : 'border-border hover:border-primary/50'
                     }`}
-                    onClick={() => setFormData({ ...formData, category: category.id, propertyType: '' })}
+                    onClick={() => setFormData({ ...formData, category: category.id, propertyType: [] })}
                   >
                     <div className="flex flex-col items-center text-center space-y-3">
                       <div className={`w-12 h-12 rounded-full flex items-center justify-center ${category.color}`}>
@@ -312,25 +312,50 @@ const PostRequirement = () => {
           <div className="space-y-6">
             <div className="text-center mb-8">
               <h2 className="text-2xl font-bold text-foreground mb-2">Choose Property Type</h2>
-              <p className="text-muted-foreground">Select the specific type of {formData.category} property</p>
+              <p className="text-muted-foreground">Select up to 2 types of {formData.category} property</p>
+              {formData.propertyType.length > 0 && (
+                <p className="text-sm text-easyestate-pink mt-2">
+                  {formData.propertyType.length}/2 selected
+                </p>
+              )}
             </div>
             
             <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
               {categoryTypes.map((type) => {
                 const Icon = type.icon;
+                const isSelected = formData.propertyType.includes(type.id);
+                const canSelect = formData.propertyType.length < 2 || isSelected;
+                
                 return (
                   <Card
                     key={type.id}
                     className={`p-4 cursor-pointer transition-all duration-200 hover:shadow-md border-2 ${
-                      formData.propertyType === type.id 
+                      isSelected 
                         ? 'border-primary bg-primary/5' 
-                        : 'border-border hover:border-primary/50'
+                        : canSelect 
+                        ? 'border-border hover:border-primary/50'
+                        : 'border-border opacity-50 cursor-not-allowed'
                     }`}
-                    onClick={() => setFormData({ ...formData, propertyType: type.id })}
+                    onClick={() => {
+                      if (!canSelect) return;
+                      
+                      const newPropertyTypes = isSelected
+                        ? formData.propertyType.filter(id => id !== type.id)
+                        : [...formData.propertyType, type.id];
+                      
+                      setFormData({ ...formData, propertyType: newPropertyTypes });
+                    }}
                   >
                     <div className="flex flex-col items-center text-center space-y-2">
-                      <Icon className="w-8 h-8 text-primary" />
-                      <h3 className="font-medium text-sm text-foreground">{type.label}</h3>
+                      <Icon className={`w-8 h-8 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <h3 className={`font-medium text-sm ${isSelected ? 'text-foreground' : 'text-muted-foreground'}`}>
+                        {type.label}
+                      </h3>
+                      {isSelected && (
+                        <div className="w-5 h-5 bg-primary rounded-full flex items-center justify-center">
+                          <CheckCircle className="w-3 h-3 text-white" />
+                        </div>
+                      )}
                     </div>
                   </Card>
                 );
@@ -409,7 +434,7 @@ const PostRequirement = () => {
 
       case 5:
         const isResidential = formData.category === 'residential';
-        const isPlot = formData.propertyType === 'plot';
+        const isPlot = formData.propertyType.includes('plot');
         const isCommercial = formData.category === 'commercial';
         const isIndustrial = formData.category === 'industrial';
         const isAgricultural = formData.category === 'agricultural';
@@ -674,7 +699,9 @@ const PostRequirement = () => {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <h4 className="font-semibold text-foreground">Property Type</h4>
-                  <p className="text-muted-foreground capitalize">{formData.propertyType} ({formData.category})</p>
+                  <p className="text-muted-foreground capitalize">
+                    {formData.propertyType.join(', ')} ({formData.category})
+                  </p>
                 </div>
                 <div>
                   <h4 className="font-semibold text-foreground">Location</h4>
@@ -716,7 +743,7 @@ const PostRequirement = () => {
   const canProceed = () => {
     switch (currentStep) {
       case 1: return formData.category;
-      case 2: return formData.propertyType;
+      case 2: return formData.propertyType.length > 0;
       case 3: return formData.city;
       case 4: return true;
       case 5: return true;
