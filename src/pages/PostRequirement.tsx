@@ -407,25 +407,65 @@ const PostRequirement = () => {
             </div>
             
             <div className="space-y-6">
-              <div className="text-center py-4">
-                <div className="text-3xl font-bold text-primary mb-2">
-                  {formatBudget(formData.budgetRange[0])} - {formatBudget(formData.budgetRange[1])}
+              {/* Budget Display Cards */}
+              <div className="grid grid-cols-2 gap-4 mb-6">
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
+                  <div className="text-sm text-muted-foreground mb-1">Min Budget</div>
+                  <div className="text-2xl font-bold text-primary">
+                    {formatBudget(formData.budgetRange[0])}
+                  </div>
                 </div>
-                <p className="text-muted-foreground">Slide to adjust your budget</p>
+                <div className="bg-primary/5 border border-primary/20 rounded-lg p-4 text-center">
+                  <div className="text-sm text-muted-foreground mb-1">Max Budget</div>
+                  <div className="text-2xl font-bold text-primary">
+                    {formatBudget(formData.budgetRange[1])}
+                  </div>
+                </div>
               </div>
               
               <div className="px-4">
                 <Slider
                   value={formData.budgetRange}
-                  onValueChange={(value) => setFormData({ ...formData, budgetRange: value })}
+                  onValueChange={(value) => {
+                    const [min, max] = value;
+                    const maxGap = 200; // ₹2 Cr in lakhs
+                    
+                    let newMin = min;
+                    let newMax = max;
+                    
+                    // If max exceeds min + 2Cr, adjust min to maintain 2Cr gap
+                    if (max - min > maxGap) {
+                      newMin = max - maxGap;
+                    }
+                    
+                    // Ensure min doesn't go below 10
+                    if (newMin < 10) {
+                      newMin = 10;
+                      newMax = Math.min(newMin + maxGap, 1000);
+                    }
+                    
+                    setFormData({ ...formData, budgetRange: [newMin, newMax] });
+                  }}
                   max={1000}
                   min={10}
                   step={10}
-                  className="w-full"
+                  className="w-full mb-4"
                 />
-                <div className="flex justify-between text-sm text-muted-foreground mt-2">
+                <div className="flex justify-between text-sm text-muted-foreground mb-3">
                   <span>₹10L</span>
                   <span>₹10Cr+</span>
+                </div>
+                
+                {/* Helper Text */}
+                <div className="text-center">
+                  <p className="text-sm text-muted-foreground">
+                    Maximum gap allowed: <span className="font-medium text-primary">₹2 Cr</span>
+                  </p>
+                  <p className="text-xs text-muted-foreground mt-1">
+                    Current gap: <span className="font-medium">
+                      {formatBudget(formData.budgetRange[1] - formData.budgetRange[0])}
+                    </span>
+                  </p>
                 </div>
               </div>
             </div>
