@@ -162,34 +162,6 @@ const Wallet = () => {
         </Card>
       </div>
 
-      {/* Quick Actions */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-          <Link to="/broker/wallet/refill">
-            <Button variant="outline" className="w-full gap-2 h-auto p-4 flex-col">
-              <Plus className="h-6 w-6" />
-              <span>Buy Coins</span>
-            </Button>
-          </Link>
-          <Button variant="outline" className="w-full gap-2 h-auto p-4 flex-col">
-            <Receipt className="h-6 w-6" />
-            <span>View Invoices</span>
-          </Button>
-          <Link to="/broker/subscription">
-            <Button variant="outline" className="w-full gap-2 h-auto p-4 flex-col">
-              <CreditCard className="h-6 w-6" />
-              <span>Subscription</span>
-            </Button>
-          </Link>
-          <Link to="/broker/disputes">
-            <Button variant="outline" className="w-full gap-2 h-auto p-4 flex-col">
-              <RefreshCw className="h-6 w-6" />
-              <span>Disputes</span>
-            </Button>
-          </Link>
-        </div>
-      </Card>
 
       {/* Transaction History */}
       <Card className="p-6">
