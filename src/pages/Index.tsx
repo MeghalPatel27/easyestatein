@@ -2,9 +2,40 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { useNavigate } from "react-router-dom";
 import { Shield, MapPin, DollarSign, Home, Users, Star } from "lucide-react";
+import { useEffect, useState } from "react";
+import { supabase } from "@/integrations/supabase/client";
+import type { User } from "@supabase/supabase-js";
 
 const Index = () => {
   const navigate = useNavigate();
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    // Check current auth status
+    const getSession = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      setUser(session?.user ?? null);
+    };
+
+    getSession();
+
+    // Listen for auth changes
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      (event, session) => {
+        setUser(session?.user ?? null);
+      }
+    );
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  const handlePostRequirement = () => {
+    if (user) {
+      navigate('/post-requirement');
+    } else {
+      navigate('/auth');
+    }
+  };
 
   return (
     <div className="min-h-screen bg-white">
@@ -51,7 +82,7 @@ const Index = () => {
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
             <Button 
               className="bg-easyestate-pink hover:bg-easyestate-pink-dark text-white px-8 py-3 text-lg"
-              onClick={() => navigate('/post-requirement')}
+              onClick={handlePostRequirement}
             >
               Post Your Requirement →
             </Button>
@@ -197,7 +228,7 @@ const Index = () => {
           </p>
           <Button 
             className="bg-white text-easyestate-pink hover:bg-white/90 px-8 py-3 text-lg font-semibold"
-            onClick={() => navigate('/post-requirement')}
+            onClick={handlePostRequirement}
           >
             Get Started - Post Your Requirement →
           </Button>
