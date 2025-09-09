@@ -81,20 +81,6 @@ const ChatsListing = () => {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <div className="bg-background border-b border-border px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center space-x-4">
-          <button
-            onClick={() => navigate('/buyer-dashboard')}
-            className="flex items-center text-muted-foreground hover:text-foreground"
-          >
-            <ArrowLeft className="w-4 h-4 mr-2" />
-            Back to Dashboard
-          </button>
-          <div className="text-primary font-bold text-lg">easyestate</div>
-          <span className="text-muted-foreground">Chats</span>
-        </div>
-      </div>
 
       <div className="max-w-4xl mx-auto p-6">
         <div className="mb-8">
