@@ -7,6 +7,7 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import logo from "@/assets/easyestate-logo.png";
 
 const BrokerLayout = () => {
   const location = useLocation();
@@ -71,7 +72,7 @@ const BrokerLayout = () => {
                   </div>
                 </SheetContent>
               </Sheet>
-              <h1 className="text-xl font-bold">easyestate</h1>
+              <img src={logo} alt="EasyEstate" className="h-8 w-auto" />
             </div>
 
             {/* Desktop Navigation */}
