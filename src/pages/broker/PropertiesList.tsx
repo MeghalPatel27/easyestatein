@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { EnhancedSearch } from "@/components/ui/enhanced-search";
 import { 
   Search, 
   Filter, 
@@ -165,13 +166,12 @@ const PropertiesList = () => {
       {/* Search and Filters */}
       <Card className="p-6">
         <div className="flex flex-col md:flex-row gap-4">
-          <div className="flex-1 relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
+          <div className="flex-1">
+            <EnhancedSearch
               placeholder="Search properties..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
+              onChange={setSearchQuery}
+              searchKey="properties-list"
             />
           </div>
           <div className="flex gap-2">

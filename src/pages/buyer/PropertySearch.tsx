@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, Heart, Share, Building, Home, MapPin, Bed, Bath, Car, Maximize } from "lucide-react";
+import { EnhancedSearch } from "@/components/ui/enhanced-search";
 
 const PropertySearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -108,15 +109,12 @@ const PropertySearch = () => {
       {/* Search and Filters */}
       <Card className="p-6">
         <div className="space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by location, property name..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
-          </div>
+          <EnhancedSearch
+            placeholder="Search by location, property name..."
+            value={searchQuery}
+            onChange={setSearchQuery}
+            searchKey="property-search"
+          />
           
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Select value={propertyType} onValueChange={setPropertyType}>

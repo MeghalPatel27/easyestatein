@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, Search, MessageSquare, History, Building, Home, MapPin, Clock, CheckCircle, Calendar, Send } from "lucide-react";
+import { EnhancedSearch } from "@/components/ui/enhanced-search";
 
 const ChatsListing = () => {
   const navigate = useNavigate();
@@ -89,13 +90,12 @@ const ChatsListing = () => {
         </div>
 
         {/* Search */}
-        <div className="relative mb-6">
-          <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-          <Input
+        <div className="mb-6">
+          <EnhancedSearch
             placeholder="Search chats..."
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="pl-10"
+            onChange={setSearchTerm}
+            searchKey="chats"
           />
         </div>
 
