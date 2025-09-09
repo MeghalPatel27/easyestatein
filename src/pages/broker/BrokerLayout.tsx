@@ -14,6 +14,7 @@ const BrokerLayout = () => {
     { name: "Leads", href: "/broker/leads" },
     { name: "Properties", href: "/broker/properties" },
     { name: "Lead Manager", href: "/broker/lead-manager" },
+    { name: "Chat Manager", href: "/broker/chat-manager" },
     { name: "Wallet", href: "/broker/wallet" },
     { name: "Analytics", href: "/broker/analytics" },
   ];

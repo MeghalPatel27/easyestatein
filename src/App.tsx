@@ -24,6 +24,7 @@ import PropertiesList from "./pages/broker/PropertiesList";
 import Wallet from "./pages/broker/Wallet";
 import WalletRefill from "./pages/broker/WalletRefill";
 import LeadManager from "./pages/broker/LeadManager";
+import ChatManager from "./pages/broker/ChatManager";
 
 const queryClient = new QueryClient();
 
@@ -54,6 +55,7 @@ const App = () => (
             <Route path="properties" element={<PropertiesList />} />
             <Route path="properties/new" element={<PropertiesNew />} />
             <Route path="lead-manager" element={<LeadManager />} />
+            <Route path="chat-manager" element={<ChatManager />} />
             <Route path="wallet" element={<Wallet />} />
             <Route path="wallet/refill" element={<WalletRefill />} />
             
