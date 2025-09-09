@@ -42,7 +42,7 @@ const Index = () => {
       {/* Header */}
       <header className="bg-white border-b border-border px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <img src="/lovable-uploads/f5037665-4ef9-41e4-b367-ed6a7bc46f19.png" alt="easyestate" className="h-14 w-auto" />
+          <img src="/lovable-uploads/f5037665-4ef9-41e4-b367-ed6a7bc46f19.png" alt="easyestate" className="h-20 w-auto" />
           <nav className="hidden md:flex items-center space-x-8">
             <a href="#how-it-works" className="text-text-secondary hover:text-text-primary">How it works</a>
             <a href="#features" className="text-text-secondary hover:text-text-primary">Features</a>
