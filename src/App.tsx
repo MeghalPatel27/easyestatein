@@ -26,6 +26,13 @@ import WalletRefill from "./pages/broker/WalletRefill";
 import LeadManager from "./pages/broker/LeadManager";
 import ChatManager from "./pages/broker/ChatManager";
 
+// Buyer Pages
+import BuyerLayout from "./pages/buyer/BuyerLayout";
+import BuyerDashboard from "./pages/buyer/Dashboard";
+import Requirements from "./pages/buyer/Requirements";
+import BuyerChats from "./pages/buyer/BuyerChats";
+import PropertySearch from "./pages/buyer/PropertySearch";
+
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -43,6 +50,14 @@ const App = () => (
           <Route path="/chats" element={<ChatsListing />} />
           <Route path="/chat/:chatId" element={<ChatBox />} />
           <Route path="/requirement/:requirementId" element={<RequirementDetails />} />
+          
+          {/* Buyer Dashboard Routes */}
+          <Route path="/buyer" element={<BuyerLayout />}>
+            <Route path="dashboard" element={<BuyerDashboard />} />
+            <Route path="requirements" element={<Requirements />} />
+            <Route path="chats" element={<BuyerChats />} />
+            <Route path="search" element={<PropertySearch />} />
+          </Route>
           
           {/* Seller/Broker Flow Routes */}
           <Route path="/property-manager" element={<PropertyManager />} />
