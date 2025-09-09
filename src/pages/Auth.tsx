@@ -29,25 +29,55 @@ const Auth = () => {
   const [signUpPassword, setSignUpPassword] = useState("");
   const [signUpConfirmPassword, setSignUpConfirmPassword] = useState("");
   const [accountType, setAccountType] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
   const [signUpMobileError, setSignUpMobileError] = useState("");
   const [signUpPasswordError, setSignUpPasswordError] = useState("");
   const [signUpConfirmPasswordError, setSignUpConfirmPasswordError] = useState("");
   const [accountTypeError, setAccountTypeError] = useState("");
+  const [firstNameError, setFirstNameError] = useState("");
+  const [lastNameError, setLastNameError] = useState("");
 
-  // Check if user is already authenticated
+  // Check if user is already authenticated and redirect to appropriate dashboard
   useEffect(() => {
-    const checkUser = async () => {
+    const checkUserAndRedirect = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        navigate('/property-manager');
+        // Get user profile to determine redirect path
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('user_type')
+          .eq('user_id', session.user.id)
+          .single();
+
+        if (profile?.user_type === 'buyer') {
+          navigate('/buyer/dashboard');
+        } else if (profile?.user_type === 'broker') {
+          navigate('/broker/dashboard');
+        } else {
+          navigate('/');
+        }
       }
     };
-    checkUser();
+    checkUserAndRedirect();
 
     // Listen for auth state changes
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user && event === 'SIGNED_IN') {
-        navigate('/property-manager');
+        // Get user profile to determine redirect path
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('user_type')
+          .eq('user_id', session.user.id)
+          .single();
+
+        if (profile?.user_type === 'buyer') {
+          navigate('/buyer/dashboard');
+        } else if (profile?.user_type === 'broker') {
+          navigate('/broker/dashboard');
+        } else {
+          navigate('/');
+        }
       }
     });
 
@@ -139,6 +169,8 @@ const Auth = () => {
     const cleanMobile = sanitizeInput(signUpMobile);
     const cleanPassword = sanitizeInput(signUpPassword);
     const cleanConfirmPassword = sanitizeInput(signUpConfirmPassword);
+    const cleanFirstName = sanitizeInput(firstName);
+    const cleanLastName = sanitizeInput(lastName);
     
     // Validate inputs
     const mobileError = validateMobile(cleanMobile);
@@ -155,13 +187,25 @@ const Auth = () => {
     if (!accountType) {
       accountTypeValidationError = "Please select an account type";
     }
+
+    let firstNameValidationError = "";
+    if (!cleanFirstName.trim()) {
+      firstNameValidationError = "First name is required";
+    }
+
+    let lastNameValidationError = "";
+    if (!cleanLastName.trim()) {
+      lastNameValidationError = "Last name is required";
+    }
     
     setSignUpMobileError(mobileError);
     setSignUpPasswordError(passwordError);
     setSignUpConfirmPasswordError(confirmPasswordError);
     setAccountTypeError(accountTypeValidationError);
+    setFirstNameError(firstNameValidationError);
+    setLastNameError(lastNameValidationError);
     
-    if (mobileError || passwordError || confirmPasswordError || accountTypeValidationError) {
+    if (mobileError || passwordError || confirmPasswordError || accountTypeValidationError || firstNameValidationError || lastNameValidationError) {
       return;
     }
 
@@ -179,7 +223,9 @@ const Auth = () => {
           emailRedirectTo: redirectUrl,
           data: {
             mobile_number: cleanMobile,
-            account_type: accountType
+            account_type: accountType,
+            first_name: cleanFirstName,
+            last_name: cleanLastName
           }
         }
       });
@@ -195,7 +241,7 @@ const Auth = () => {
           setError("Sign up failed. Please try again.");
         }
       } else {
-        toast.success("Account created! Please verify your mobile number.");
+        toast.success("Account created successfully! Welcome to easyestate!");
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -388,17 +434,37 @@ const Auth = () => {
                             id="first-name"
                             type="text"
                             placeholder="John"
+                            value={firstName}
+                            onChange={(e) => {
+                              setFirstName(e.target.value);
+                              if (firstNameError) setFirstNameError("");
+                            }}
+                            className={firstNameError ? "border-destructive" : ""}
                             disabled={isLoading}
+                            required
                           />
+                          {firstNameError && (
+                            <p className="text-sm text-destructive">{firstNameError}</p>
+                          )}
                         </div>
                         <div className="space-y-2">
                           <Label htmlFor="last-name">Last Name</Label>
                           <Input
                             id="last-name"
                             type="text"
-                            placeholder="Last Name"
+                            placeholder="Doe"
+                            value={lastName}
+                            onChange={(e) => {
+                              setLastName(e.target.value);
+                              if (lastNameError) setLastNameError("");
+                            }}
+                            className={lastNameError ? "border-destructive" : ""}
                             disabled={isLoading}
+                            required
                           />
+                          {lastNameError && (
+                            <p className="text-sm text-destructive">{lastNameError}</p>
+                          )}
                         </div>
                       </div>
 

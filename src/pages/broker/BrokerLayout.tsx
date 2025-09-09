@@ -1,13 +1,27 @@
 import { Outlet, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Coins, User, Menu } from "lucide-react";
+import { Bell, Coins, User, Menu, LogOut } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const BrokerLayout = () => {
   const location = useLocation();
-  const [coinBalance] = useState(250); // Mock coin balance
+  const navigate = useNavigate();
+  const { profile, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Signed out successfully");
+      navigate("/");
+    } catch (error) {
+      toast.error("Error signing out");
+    }
+  };
 
   const navigation = [
     { name: "Dashboard", href: "/broker/dashboard" },
@@ -70,7 +84,7 @@ const BrokerLayout = () => {
               {/* Coin Balance */}
               <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
                 <Coins className="h-4 w-4" />
-                <span>{coinBalance}</span>
+                <span>{profile?.coin_balance || 0}</span>
               </div>
 
               {/* Notifications */}
@@ -79,12 +93,23 @@ const BrokerLayout = () => {
                 <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary"></span>
               </Button>
 
-              {/* Profile */}
-              <Link to="/broker/profile">
-                <Button variant="ghost" size="icon">
-                  <User className="h-5 w-5" />
-                </Button>
-              </Link>
+              {/* Profile Info */}
+              <div className="hidden sm:flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">
+                  {profile?.display_name || 'Broker'}
+                </span>
+              </div>
+
+              {/* Sign Out */}
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleSignOut}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </Button>
             </div>
           </div>
         </div>

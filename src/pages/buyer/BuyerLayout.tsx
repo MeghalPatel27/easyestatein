@@ -1,12 +1,27 @@
 import { Outlet, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, User, Menu, Home, MessageSquare, FileText, Search } from "lucide-react";
+import { Bell, User, Menu, Home, MessageSquare, FileText, Search, LogOut } from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 const BuyerLayout = () => {
   const location = useLocation();
+  const navigate = useNavigate();
+  const { profile, signOut } = useAuth();
+
+  const handleSignOut = async () => {
+    try {
+      await signOut();
+      toast.success("Signed out successfully");
+      navigate("/");
+    } catch (error) {
+      toast.error("Error signing out");
+    }
+  };
 
   const navigation = [
     { name: "Dashboard", href: "/buyer/dashboard", icon: Home },
@@ -71,12 +86,23 @@ const BuyerLayout = () => {
                 <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary"></span>
               </Button>
 
-              {/* Profile */}
-              <Link to="/buyer/profile">
-                <Button variant="ghost" size="icon">
-                  <User className="h-5 w-5" />
-                </Button>
-              </Link>
+              {/* Profile Info */}
+              <div className="hidden sm:flex items-center gap-2 text-sm">
+                <span className="text-muted-foreground">
+                  {profile?.display_name || 'Buyer'}
+                </span>
+              </div>
+
+              {/* Sign Out */}
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={handleSignOut}
+                className="flex items-center gap-2"
+              >
+                <LogOut className="h-4 w-4" />
+                <span className="hidden sm:inline">Sign Out</span>
+              </Button>
             </div>
           </div>
         </div>
