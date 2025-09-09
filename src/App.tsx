@@ -4,18 +4,12 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Index from "./pages/Index";
-import BrokerDashboard from "./pages/BrokerDashboard";
-import BuyerDashboard from "./pages/BuyerDashboard";
-import LeadManagement from "./pages/LeadManagement";
-import SentLeads from "./pages/SentLeads";
-import BrokerProfile from "./pages/BrokerProfile";
 import PropertyManager from "./pages/PropertyManager";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
 // New Pages for Complete Flow
 import PostRequirement from "./pages/PostRequirement";
-import BuyerPropertyManager from "./pages/BuyerPropertyManager";
 import ChatsListing from "./pages/ChatsListing";
 import ChatBox from "./pages/ChatBox";
 import RequirementDetails from "./pages/RequirementDetails";
@@ -45,17 +39,11 @@ const App = () => (
           
           {/* Buyer Flow Routes */}
           <Route path="/post-requirement" element={<PostRequirement />} />
-          <Route path="/buyer-dashboard" element={<BuyerDashboard />} />
-          <Route path="/buyer-property-manager" element={<BuyerPropertyManager />} />
           <Route path="/chats" element={<ChatsListing />} />
           <Route path="/chat/:chatId" element={<ChatBox />} />
           <Route path="/requirement/:requirementId" element={<RequirementDetails />} />
           
           {/* Seller/Broker Flow Routes */}
-          <Route path="/broker-dashboard" element={<BrokerDashboard />} />
-          <Route path="/lead-management" element={<LeadManagement />} />
-          <Route path="/sent-leads" element={<SentLeads />} />
-          <Route path="/broker-profile" element={<BrokerProfile />} />
           <Route path="/property-manager" element={<PropertyManager />} />
           
           {/* New Broker System Routes */}
@@ -68,7 +56,7 @@ const App = () => (
             <Route path="lead-manager" element={<LeadManager />} />
             <Route path="wallet" element={<Wallet />} />
             <Route path="wallet/refill" element={<WalletRefill />} />
-            <Route path="profile" element={<BrokerProfile />} />
+            
           </Route>
           
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
