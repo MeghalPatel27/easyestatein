@@ -42,7 +42,7 @@ const Index = () => {
       {/* Header */}
       <header className="bg-white border-b border-border px-4 py-3">
         <div className="max-w-7xl mx-auto flex items-center justify-between">
-          <div className="text-easyestate-pink font-bold text-xl">easyestate</div>
+          <img src="/lovable-uploads/f5037665-4ef9-41e4-b367-ed6a7bc46f19.png" alt="easyestate" className="h-10 w-auto" />
           <nav className="hidden md:flex items-center space-x-8">
             <a href="#how-it-works" className="text-text-secondary hover:text-text-primary">How it works</a>
             <a href="#features" className="text-text-secondary hover:text-text-primary">Features</a>
@@ -240,7 +240,7 @@ const Index = () => {
         <div className="max-w-7xl mx-auto px-4">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-12">
             <div>
-              <div className="text-easyestate-pink font-bold text-xl mb-4">easyestate</div>
+              <img src="/lovable-uploads/f5037665-4ef9-41e4-b367-ed6a7bc46f19.png" alt="easyestate" className="h-10 w-auto mb-4" />
               <p className="text-text-light mb-4">
                 Making property search effortless for everyone.
               </p>

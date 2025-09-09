@@ -709,7 +709,7 @@ const PropertyManager = () => {
               <ArrowLeft className="w-4 h-4" />
               <span>Back</span>
             </Button>
-            <div className="text-easyestate-pink font-bold text-xl">easyestate</div>
+            <img src="/lovable-uploads/f5037665-4ef9-41e4-b367-ed6a7bc46f19.png" alt="easyestate" className="h-10 w-auto" />
           </div>
           <div className="flex items-center space-x-4">
             <span className="text-text-secondary">Welcome, {user.email}</span>

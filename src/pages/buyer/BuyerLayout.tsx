@@ -69,7 +69,7 @@ const BuyerLayout = () => {
                   </div>
                 </SheetContent>
               </Sheet>
-              <h1 className="text-xl font-bold">easyestate</h1>
+              <img src="/lovable-uploads/f5037665-4ef9-41e4-b367-ed6a7bc46f19.png" alt="easyestate" className="h-8 w-auto" />
               <Badge variant="secondary" className="text-xs">Buyer</Badge>
             </div>
 

@@ -72,7 +72,7 @@ const BrokerLayout = () => {
                   </div>
                 </SheetContent>
               </Sheet>
-              <img src={logo} alt="EasyEstate" className="h-8 w-auto" />
+              <img src="/lovable-uploads/f5037665-4ef9-41e4-b367-ed6a7bc46f19.png" alt="easyestate" className="h-8 w-auto" />
             </div>
 
             {/* Desktop Navigation */}

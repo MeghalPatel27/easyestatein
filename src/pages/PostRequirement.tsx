@@ -889,7 +889,7 @@ const PostRequirement = () => {
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Home
           </button>
-          <div className="text-easyestate-pink font-bold text-lg">easyestate</div>
+          <img src="/lovable-uploads/f5037665-4ef9-41e4-b367-ed6a7bc46f19.png" alt="easyestate" className="h-8 w-auto" />
         </div>
       </div>
 
