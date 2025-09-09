@@ -147,28 +147,42 @@ const ChatBox = () => {
           <Button 
             size="sm" 
             variant="outline"
-            onClick={() => setMessage("Can we schedule a property visit?")}
+            onClick={() => setMessage("I'm sending you the complete property details including floor plans, amenities, and pricing.")}
           >
-            Schedule Visit
+            Send Property Details
           </Button>
           <Button 
             size="sm" 
             variant="outline"
-            onClick={() => setMessage("What are the nearby amenities?")}
+            onClick={() => setMessage("Here's the property information package with all specifications and photos.")}
           >
-            Ask About Amenities
+            Property Info Package
           </Button>
           <Button 
             size="sm" 
             variant="outline"
-            onClick={() => setMessage("Is the price negotiable?")}
+            onClick={() => setMessage("The property is available for immediate viewing. Let me know your preferred time slots.")}
           >
-            Price Negotiation
+            Schedule Viewing
           </Button>
           <Button 
             size="sm" 
             variant="outline"
-            onClick={() => setMessage("Thank you for your time.")}
+            onClick={() => setMessage("I can arrange a virtual tour or site visit at your convenience.")}
+          >
+            Arrange Tour
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => setMessage("Here are my contact details for direct communication: [Phone/Email]")}
+          >
+            Share Contact
+          </Button>
+          <Button 
+            size="sm" 
+            variant="outline"
+            onClick={() => setMessage("Thank you for your interest. I'm here to assist with any queries.")}
           >
             Thank You
           </Button>
