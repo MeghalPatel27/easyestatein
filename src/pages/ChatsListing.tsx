@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, MessageSquare, Phone } from "lucide-react";
+import { ArrowLeft, Search, MessageSquare, History, Building, Home, MapPin, Clock, CheckCircle, Calendar, Send } from "lucide-react";
 
 const ChatsListing = () => {
   const navigate = useNavigate();
@@ -15,37 +16,63 @@ const ChatsListing = () => {
       id: "1",
       participantName: "John Realty",
       participantType: "broker",
-      propertyTitle: "3 BHK Apartment in Baner",
-      lastMessage: "What's the price range? And when can we schedule a visit?",
-      timestamp: "2 min ago",
+      propertyType: "apartment",
+      bedrooms: "3 BHK",
+      location: "Baner",
+      clientStage: "Visit Scheduled",
       unreadCount: 2,
-      status: "active"
+      status: "active",
+      history: [
+        { date: "2024-01-15", event: "Lead Accepted", icon: CheckCircle },
+        { date: "2024-01-16", event: "Details Sent", icon: Send },
+        { date: "2024-01-17", event: "Visit Scheduled", icon: Calendar },
+      ]
     },
     {
       id: "2",
       participantName: "Prime Properties", 
       participantType: "broker",
-      propertyTitle: "2 BHK Villa in Wakad",
-      lastMessage: "The property is available for immediate possession",
-      timestamp: "1 hour ago",
+      propertyType: "villa",
+      bedrooms: "2 BHK",
+      location: "Wakad",
+      clientStage: "Details Sent",
       unreadCount: 0,
-      status: "active"
+      status: "active",
+      history: [
+        { date: "2024-01-14", event: "Lead Accepted", icon: CheckCircle },
+        { date: "2024-01-15", event: "Details Sent", icon: Send },
+      ]
     },
     {
       id: "3",
       participantName: "Elite Homes",
       participantType: "broker", 
-      propertyTitle: "4 BHK Penthouse in Koregaon Park",
-      lastMessage: "Let me know if you need any additional information",
-      timestamp: "1 day ago",
+      propertyType: "apartment",
+      bedrooms: "4 BHK",
+      location: "Koregaon Park",
+      clientStage: "Inquiry Received",
       unreadCount: 1,
-      status: "active"
+      status: "active",
+      history: [
+        { date: "2024-01-12", event: "Lead Accepted", icon: CheckCircle },
+      ]
     }
   ];
 
+  const getPropertyIcon = (type: string) => {
+    switch (type) {
+      case "apartment":
+        return Building;
+      case "villa":
+        return Home;
+      default:
+        return Building;
+    }
+  };
+
   const filteredChats = mockChats.filter(chat =>
     chat.participantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    chat.propertyTitle.toLowerCase().includes(searchTerm.toLowerCase())
+    chat.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
   const handleChatClick = (chatId: string) => {
@@ -100,33 +127,70 @@ const ChatsListing = () => {
                     <div className="w-12 h-12 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold">
                       {chat.participantName.charAt(0)}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center justify-between mb-1">
-                        <h3 className="font-semibold text-foreground truncate">
-                          {chat.participantName}
-                        </h3>
-                        <span className="text-xs text-muted-foreground">
-                          {chat.timestamp}
-                        </span>
-                      </div>
-                      <p className="text-sm text-muted-foreground mb-1">
-                        {chat.propertyTitle}
-                      </p>
-                      <p className="text-sm text-muted-foreground truncate">
-                        {chat.lastMessage}
-                      </p>
-                    </div>
+                     <div className="flex-1 min-w-0">
+                       <div className="flex items-center mb-1">
+                         <h3 className="font-semibold text-foreground truncate">
+                           {chat.participantName}
+                         </h3>
+                       </div>
+                       
+                       {/* Property details with symbols */}
+                       <div className="flex items-center space-x-2 mb-1">
+                         {(() => {
+                           const PropertyIcon = getPropertyIcon(chat.propertyType);
+                           return <PropertyIcon className="w-4 h-4 text-muted-foreground" />;
+                         })()}
+                         <span className="text-sm text-muted-foreground">{chat.bedrooms}</span>
+                         <MapPin className="w-3 h-3 text-muted-foreground" />
+                         <span className="text-sm text-muted-foreground">{chat.location}</span>
+                       </div>
+                       
+                       {/* Client stage instead of last message */}
+                       <p className="text-sm font-medium text-foreground">
+                         {chat.clientStage}
+                       </p>
+                     </div>
                   </div>
-                  <div className="flex items-center space-x-2">
-                    {chat.unreadCount > 0 && (
-                      <div className="bg-primary text-primary-foreground text-xs rounded-full w-6 h-6 flex items-center justify-center">
-                        {chat.unreadCount}
-                      </div>
-                    )}
-                    <Button size="sm" variant="outline">
-                      <MessageSquare className="w-4 h-4" />
-                    </Button>
-                  </div>
+                   <div className="flex items-center space-x-2">
+                     {chat.unreadCount > 0 && (
+                       <div className="bg-primary text-primary-foreground text-xs rounded-full w-6 h-6 flex items-center justify-center">
+                         {chat.unreadCount}
+                       </div>
+                     )}
+                     
+                     {/* History popup */}
+                     <Dialog>
+                       <DialogTrigger asChild>
+                         <Button 
+                           size="sm" 
+                           variant="outline"
+                           onClick={(e) => e.stopPropagation()}
+                         >
+                           <History className="w-4 h-4" />
+                         </Button>
+                       </DialogTrigger>
+                       <DialogContent>
+                         <DialogHeader>
+                           <DialogTitle>Client History - {chat.participantName}</DialogTitle>
+                         </DialogHeader>
+                         <div className="space-y-4">
+                           {chat.history.map((event, index) => (
+                             <div key={index} className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg">
+                               <event.icon className="w-5 h-5 text-primary" />
+                               <div className="flex-1">
+                                 <p className="font-medium text-foreground">{event.event}</p>
+                                 <p className="text-sm text-muted-foreground">{event.date}</p>
+                               </div>
+                             </div>
+                           ))}
+                         </div>
+                       </DialogContent>
+                     </Dialog>
+                     
+                     <Button size="sm" variant="outline">
+                       <MessageSquare className="w-4 h-4" />
+                     </Button>
+                   </div>
                 </div>
               </Card>
             ))
