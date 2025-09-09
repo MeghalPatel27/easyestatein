@@ -2,8 +2,9 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Send, Phone, Video, MoreVertical } from "lucide-react";
+import { ArrowLeft, Send, Phone, MoreVertical, Clock, Building, MapPin } from "lucide-react";
 
 const ChatBox = () => {
   const navigate = useNavigate();
@@ -15,9 +16,19 @@ const ChatBox = () => {
     id: chatId,
     participantName: "John Realty",
     participantType: "broker",
-    propertyTitle: "3 BHK Apartment in Baner",
+    propertyType: "apartment",
+    bedrooms: "3BHK",
+    location: "Baner",
+    clientStage: "Visit Scheduled",
     status: "active"
   };
+
+  // Mock client history timeline
+  const clientHistory = [
+    { date: "2024-01-15", event: "Lead Accepted", description: "Client showed interest in the property" },
+    { date: "2024-01-16", event: "Details Sent", description: "Complete property information package shared" },
+    { date: "2024-01-17", event: "Visit Scheduled", description: "Property viewing arranged for tomorrow" },
+  ];
 
   const mockMessages = [
     {
@@ -79,18 +90,47 @@ const ChatBox = () => {
             <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-semibold">
               {chatData.participantName.charAt(0)}
             </div>
+            <Dialog>
+              <DialogTrigger asChild>
+                <Button size="sm" variant="ghost" className="p-1 h-auto">
+                  <Clock className="w-4 h-4 text-muted-foreground hover:text-foreground" />
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-md">
+                <DialogHeader>
+                  <DialogTitle>Client History</DialogTitle>
+                </DialogHeader>
+                <div className="space-y-4">
+                  {clientHistory.map((item, index) => (
+                    <div key={index} className="flex items-start space-x-3 pb-3 border-b border-border last:border-b-0">
+                      <div className="w-2 h-2 bg-primary rounded-full mt-2 flex-shrink-0" />
+                      <div className="flex-1">
+                        <div className="flex items-center justify-between">
+                          <h4 className="font-medium text-sm">{item.event}</h4>
+                          <span className="text-xs text-muted-foreground">{item.date}</span>
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-1">{item.description}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </DialogContent>
+            </Dialog>
             <div>
               <h2 className="font-semibold text-foreground">{chatData.participantName}</h2>
-              <p className="text-sm text-muted-foreground">{chatData.propertyTitle}</p>
+              <div className="flex items-center space-x-1 text-sm text-muted-foreground">
+                <Building className="w-3 h-3" />
+                <span>{chatData.bedrooms}</span>
+                <MapPin className="w-3 h-3 ml-1" />
+                <span>{chatData.location}</span>
+              </div>
+              <p className="text-xs text-primary font-medium">{chatData.clientStage}</p>
             </div>
           </div>
         </div>
         <div className="flex items-center space-x-2">
           <Button size="sm" variant="outline">
             <Phone className="w-4 h-4" />
-          </Button>
-          <Button size="sm" variant="outline">
-            <Video className="w-4 h-4" />
           </Button>
           <Button size="sm" variant="outline">
             <MoreVertical className="w-4 h-4" />
