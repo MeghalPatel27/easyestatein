@@ -1,7 +1,20 @@
 import { Outlet, useLocation, Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Bell, Coins, User, Menu, LogOut } from "lucide-react";
+import { 
+  Bell, 
+  Coins, 
+  User, 
+  Menu, 
+  LogOut, 
+  LayoutDashboard, 
+  Users, 
+  Building, 
+  UserCheck, 
+  MessageSquare, 
+  Wallet, 
+  TrendingUp 
+} from "lucide-react";
 import { useState } from "react";
 import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
@@ -25,30 +38,34 @@ const BrokerLayout = () => {
   };
 
   const navigation = [
-    { name: "Dashboard", href: "/broker/dashboard" },
-    { name: "Leads", href: "/broker/leads" },
-    { name: "Properties", href: "/broker/properties" },
-    { name: "Lead Manager", href: "/broker/lead-manager" },
-    { name: "Chat Manager", href: "/broker/chat-manager" },
-    { name: "Wallet", href: "/broker/wallet" },
-    { name: "Analytics", href: "/broker/analytics" },
+    { name: "Dashboard", href: "/broker/dashboard", icon: LayoutDashboard },
+    { name: "Leads", href: "/broker/leads", icon: Users },
+    { name: "Properties", href: "/broker/properties", icon: Building },
+    { name: "Lead Manager", href: "/broker/lead-manager", icon: UserCheck },
+    { name: "Chat Manager", href: "/broker/chat-manager", icon: MessageSquare },
+    { name: "Wallet", href: "/broker/wallet", icon: Wallet },
+    { name: "Analytics", href: "/broker/analytics", icon: TrendingUp },
   ];
 
   const NavItems = () => (
     <>
-      {navigation.map((item) => (
-        <Link
-          key={item.name}
-          to={item.href}
-          className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-            location.pathname.startsWith(item.href)
-              ? "bg-primary text-primary-foreground"
-              : "text-muted-foreground hover:text-foreground hover:bg-accent"
-          }`}
-        >
-          {item.name}
-        </Link>
-      ))}
+      {navigation.map((item) => {
+        const Icon = item.icon;
+        return (
+          <Link
+            key={item.name}
+            to={item.href}
+            className={`relative inline-flex items-center justify-center gap-2 whitespace-nowrap bg-transparent px-0 py-3 text-sm font-medium transition-all duration-300 ease-out focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 after:absolute after:bottom-0 after:left-0 after:h-0.5 after:w-full after:origin-left after:scale-x-0 after:bg-primary after:transition-transform after:duration-500 after:ease-[cubic-bezier(0.34,1.56,0.64,1)] ${
+              location.pathname.startsWith(item.href)
+                ? "text-primary after:scale-x-100"
+                : "text-muted-foreground hover:text-foreground hover:after:scale-x-100"
+            }`}
+          >
+            <Icon className="h-4 w-4" />
+            {item.name}
+          </Link>
+        );
+      })}
     </>
   );
 
@@ -76,7 +93,7 @@ const BrokerLayout = () => {
             </div>
 
             {/* Desktop Navigation */}
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-8 border-b-0">
               <NavItems />
             </nav>
 
