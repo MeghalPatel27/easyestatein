@@ -17,7 +17,9 @@ import {
   MessageSquare,
   Clock,
   TrendingUp,
-  Shield
+  Shield,
+  FileText,
+  User
 } from "lucide-react";
 
 const LeadDetails = () => {
@@ -150,12 +152,22 @@ const LeadDetails = () => {
       {/* Main Content Tabs */}
       <Tabs defaultValue="requirements" className="w-full">
         <TabsList className="grid w-full grid-cols-4">
-          <TabsTrigger value="requirements">Requirements</TabsTrigger>
-          <TabsTrigger value="buyer-info">Buyer Info</TabsTrigger>
+          <TabsTrigger value="requirements">
+            <FileText className="h-4 w-4" />
+            Requirements
+          </TabsTrigger>
+          <TabsTrigger value="buyer-info">
+            <User className="h-4 w-4" />
+            Buyer Info
+          </TabsTrigger>
           <TabsTrigger value="contact" disabled={!isUnlocked}>
+            <Phone className="h-4 w-4" />
             {isUnlocked ? "Contact Details" : "🔒 Contact"}
           </TabsTrigger>
-          <TabsTrigger value="history">Lead History</TabsTrigger>
+          <TabsTrigger value="history">
+            <Clock className="h-4 w-4" />
+            Lead History
+          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="requirements" className="space-y-6">

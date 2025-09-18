@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Eye, EyeOff, ArrowLeft } from "lucide-react";
+import { Eye, EyeOff, ArrowLeft, User, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import authHeroImage from "@/assets/auth-hero.jpg";
@@ -307,8 +307,14 @@ const Auth = () => {
               <div className="space-y-6">
                 <div className="text-center">
                   <TabsList className="grid w-full grid-cols-2 mb-8">
-                    <TabsTrigger value="signin">Log in</TabsTrigger>
-                    <TabsTrigger value="signup">Create an Account</TabsTrigger>
+                    <TabsTrigger value="signin">
+                      <User className="h-4 w-4" />
+                      Log in
+                    </TabsTrigger>
+                    <TabsTrigger value="signup">
+                      <UserPlus className="h-4 w-4" />
+                      Create an Account
+                    </TabsTrigger>
                   </TabsList>
                 </div>
                 

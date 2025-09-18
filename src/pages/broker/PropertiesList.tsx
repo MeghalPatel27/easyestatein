@@ -20,7 +20,8 @@ import {
   CheckCircle,
   XCircle,
   Clock,
-  Archive
+  Archive,
+  List
 } from "lucide-react";
 import { Link } from "react-router-dom";
 import {
@@ -187,6 +188,7 @@ const PropertiesList = () => {
       <Tabs value={statusFilter} onValueChange={setStatusFilter} className="w-full">
         <TabsList className="grid w-full grid-cols-6">
           <TabsTrigger value="all" className="gap-2">
+            <List className="h-3 w-3" />
             All ({counts.all})
           </TabsTrigger>
           <TabsTrigger value="draft" className="gap-2">
