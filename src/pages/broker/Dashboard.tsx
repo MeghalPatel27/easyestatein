@@ -8,79 +8,86 @@ import { Search, Filter, Star, MapPin, Calendar, TrendingUp, Users } from "lucid
 import { Link } from "react-router-dom";
 import { Coin } from "@/components/ui/coin";
 import { EnhancedSearch } from "@/components/ui/enhanced-search";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("rating");
+  const { user } = useAuth();
 
-  // Mock data for potential buyers
-  const potentialBuyers = [
-    {
-      id: 1,
-      name: "Rajesh Kumar",
-      rating: 4.8,
-      category: "Residential",
-      propertyType: "Apartment",
-      area: "Mumbai Central",
-      budget: "₹2.5-3.5 Cr",
-      urgency: "High",
-      rejectionRate: 5,
-      leadPrice: 50,
-      unlocked: true
-    },
-    {
-      id: 2,
-      name: "Priya Sharma",
-      rating: 4.0,
-      category: "Commercial",
-      propertyType: "Office Space",
-      area: "BKC",
-      budget: "₹5-8 Cr",
-      urgency: "Medium",
-      rejectionRate: 25,
-      leadPrice: 75,
-      unlocked: true
-    },
-    {
-      id: 3,
-      name: "Amit Patel",
-      rating: 3.5,
-      category: "Residential",
-      propertyType: "Villa",
-      area: "Andheri West",
-      budget: "₹1.2-2 Cr",
-      urgency: "High",
-      rejectionRate: 40,
-      leadPrice: 40,
-      unlocked: false
-    },
-    {
-      id: 4,
-      name: "Sunita Gupta",
-      rating: 2.8,
-      category: "Residential",
-      propertyType: "Bungalow",
-      area: "Lonavala",
-      budget: "₹3-5 Cr",
-      urgency: "Low",
-      rejectionRate: 55,
-      leadPrice: 60,
-      unlocked: true
-    },
-    {
-      id: 5,
-      name: "Rohit Mehta",
-      rating: 4.3,
-      category: "Commercial",
-      propertyType: "Warehouse",
-      area: "Lower Parel",
-      budget: "₹10-15 Cr",
-      urgency: "High",
-      rejectionRate: 15,
-      leadPrice: 100,
-      unlocked: false
+  // Fetch active leads (buyer requirements) that brokers can see
+  const { data: potentialBuyers = [], isLoading } = useQuery({
+    queryKey: ['active-leads', sortBy],
+    queryFn: async () => {
+      let query = supabase
+        .from('leads')
+        .select('*')
+        .eq('status', 'active');
+
+      // Apply sorting
+      switch (sortBy) {
+        case 'budget':
+          query = query.order('budget_max', { ascending: false });
+          break;
+        case 'urgency':
+          query = query.order('urgency', { ascending: false });
+          break;
+        case 'price':
+          query = query.order('lead_price', { ascending: false });
+          break;
+        default:
+          query = query.order('created_at', { ascending: false });
+      }
+
+      const { data, error } = await query.limit(10);
+      if (error) throw error;
+
+      return data.map(lead => ({
+        id: lead.id,
+        name: 'Anonymous Buyer', // Will be populated when we properly join profiles
+        rating: 4.0, // Default rating
+        category: lead.category?.charAt(0).toUpperCase() + lead.category?.slice(1) || 'Residential',
+        propertyType: lead.type?.charAt(0).toUpperCase() + lead.type?.slice(1) || 'Apartment',
+        area: typeof lead.location === 'object' && lead.location && 'city' in lead.location ? lead.location.city as string : 'Location not specified',
+        budget: lead.budget_min && lead.budget_max ? 
+          `₹${lead.budget_min}L - ₹${lead.budget_max}L` : 'Budget not specified',
+        urgency: lead.urgency?.charAt(0).toUpperCase() + lead.urgency?.slice(1) || 'Medium',
+        rejectionRate: lead.rejection_rate || 0,
+        leadPrice: lead.lead_price || 10,
+        unlocked: true // For now, all leads are unlocked
+      }));
     }
-  ];
+  });
+
+  // Fetch broker stats
+  const { data: stats } = useQuery({
+    queryKey: ['broker-stats', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return { matchingLeads: 0, engagedLeads: 0, acceptanceRate: 0, visitsArranged: 0 };
+      
+      // Count total active leads
+      const { count: matchingLeads } = await supabase
+        .from('leads')
+        .select('*', { count: 'exact', head: true })
+        .eq('status', 'active');
+
+      // Count leads this broker has engaged with
+      const { count: engagedLeads } = await supabase
+        .from('sent_leads')
+        .select('*', { count: 'exact', head: true })
+        .eq('broker_id', user.id);
+
+      return {
+        matchingLeads: matchingLeads || 0,
+        engagedLeads: engagedLeads || 0,
+        acceptanceRate: 72.3, // Placeholder calculation
+        visitsArranged: 0 // Placeholder for now
+      };
+    },
+    enabled: !!user?.id
+  });
 
   const maskName = (name: string, unlocked: boolean) => {
     if (unlocked) return name;
@@ -191,7 +198,7 @@ const Dashboard = () => {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Matching Leads</p>
-              <p className="text-2xl font-bold">247</p>
+              <p className="text-2xl font-bold">{stats?.matchingLeads || 0}</p>
             </div>
           </div>
         </Card>
@@ -202,7 +209,7 @@ const Dashboard = () => {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Engaged Leads</p>
-              <p className="text-2xl font-bold">156</p>
+              <p className="text-2xl font-bold">{stats?.engagedLeads || 0}</p>
             </div>
           </div>
         </Card>
@@ -213,7 +220,7 @@ const Dashboard = () => {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Acceptance Rate</p>
-              <p className="text-2xl font-bold">72.3%</p>
+              <p className="text-2xl font-bold">{stats?.acceptanceRate || 0}%</p>
             </div>
           </div>
         </Card>
@@ -224,7 +231,7 @@ const Dashboard = () => {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Visits Arranged</p>
-              <p className="text-2xl font-bold">89</p>
+              <p className="text-2xl font-bold">{stats?.visitsArranged || 0}</p>
             </div>
           </div>
         </Card>
@@ -240,7 +247,13 @@ const Dashboard = () => {
         </div>
         
         <div className="space-y-4">
-          {potentialBuyers.map((buyer) => (
+          {isLoading ? (
+            <div className="text-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+              <p className="text-muted-foreground mt-4">Loading leads...</p>
+            </div>
+          ) : potentialBuyers.length > 0 ? (
+            potentialBuyers.map((buyer) => (
             <div
               key={buyer.id}
               className="p-4 md:p-6 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer"
@@ -413,7 +426,16 @@ const Dashboard = () => {
                 </div>
               </div>
             </div>
-          ))}
+              ))
+          ) : (
+            <div className="text-center py-12">
+              <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mx-auto mb-4">
+                <Users className="w-8 h-8 text-muted-foreground" />
+              </div>
+              <h3 className="font-medium mb-2">No Active Leads</h3>
+              <p className="text-sm text-muted-foreground">There are currently no active buyer requirements to display.</p>
+            </div>
+          )}
         </div>
       </Card>
     </div>

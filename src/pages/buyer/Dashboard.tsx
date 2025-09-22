@@ -1,83 +1,85 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Search, MessageSquare, FileText, Eye, Calendar, TrendingUp, Users, CheckCircle, Building, Home, MapPin } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const BuyerDashboard = () => {
-  // Mock data for buyer requirements
-  const requirements = [
-    {
-      id: 1,
-      title: "3 BHK Apartment in Baner",
-      type: "apartment",
-      bedrooms: "3 BHK",
-      location: "Baner, Pune",
-      budget: "₹80L - ₹1.2Cr",
-      status: "Active",
-      responses: 12,
-      views: 45,
-      datePosted: "2024-01-15",
-      priority: "High"
-    },
-    {
-      id: 2,
-      title: "2 BHK Villa in Wakad",
-      type: "villa",
-      bedrooms: "2 BHK",
-      location: "Wakad, Pune",
-      budget: "₹1.5Cr - ₹2Cr",
-      status: "Active",
-      responses: 8,
-      views: 32,
-      datePosted: "2024-01-12",
-      priority: "Medium"
-    },
-    {
-      id: 3,
-      title: "Office Space in Koregaon Park",
-      type: "office",
-      bedrooms: "N/A",
-      location: "Koregaon Park, Pune",
-      budget: "₹2Cr - ₹3Cr",
-      status: "Closed",
-      responses: 15,
-      views: 67,
-      datePosted: "2024-01-08",
-      priority: "Low"
-    }
-  ];
+  const { user } = useAuth();
 
-  // Mock data for recent activities
+  // Fetch user's requirements from database
+  const { data: requirements = [], isLoading: requirementsLoading } = useQuery({
+    queryKey: ['buyer-requirements', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('requirements')
+        .select('*')
+        .eq('buyer_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (error) throw error;
+      return data.map(req => ({
+        id: req.id,
+        title: req.title,
+        type: req.property_type,
+        bedrooms: req.bedrooms ? `${req.bedrooms} BHK` : 'N/A',
+        location: typeof req.location === 'object' && req.location && 'city' in req.location ? req.location.city as string : 'Unknown',
+        budget: req.budget_min && req.budget_max ? 
+          `₹${req.budget_min}L - ₹${req.budget_max}L` : 'Budget not specified',
+        status: req.status === 'active' ? 'Active' : 'Closed',
+        responses: 0, // Will be calculated from sent_leads
+        views: 0, // Will be added later
+        datePosted: new Date(req.created_at).toLocaleDateString(),
+        priority: req.urgency || 'Medium'
+      }));
+    },
+    enabled: !!user?.id
+  });
+
+  // Fetch stats
+  const { data: stats } = useQuery({
+    queryKey: ['buyer-stats', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return { activeRequirements: 0, totalResponses: 0, totalViews: 0, scheduledVisits: 0 };
+      
+      // Count active requirements
+      const { count: activeRequirements } = await supabase
+        .from('requirements')
+        .select('*', { count: 'exact', head: true })
+        .eq('buyer_id', user.id)
+        .eq('status', 'active');
+
+      // Count total responses (sent leads for user's requirements)
+      const { count: totalResponses } = await supabase
+        .from('sent_leads')
+        .select('*, leads!inner(*)', { count: 'exact', head: true })
+        .eq('leads.buyer_id', user.id);
+
+      return {
+        activeRequirements: activeRequirements || 0,
+        totalResponses: totalResponses || 0,
+        totalViews: 0, // Placeholder for now
+        scheduledVisits: 0 // Placeholder for now
+      };
+    },
+    enabled: !!user?.id
+  });
+
+  // Recent activities - simplified for now
   const recentActivities = [
     {
       id: 1,
       type: "response",
-      message: "New property response for 3 BHK Apartment in Baner",
-      broker: "John Realty",
-      time: "2 hours ago"
-    },
-    {
-      id: 2,
-      type: "message",
-      message: "New message from Prime Properties",
-      broker: "Prime Properties",
-      time: "5 hours ago"
-    },
-    {
-      id: 3,
-      type: "visit",
-      message: "Visit scheduled for Villa in Wakad",
-      broker: "Elite Homes",
-      time: "1 day ago"
-    },
-    {
-      id: 4,
-      type: "response",
-      message: "New property response for Office Space",
-      broker: "Commercial Hub",
-      time: "2 days ago"
+      message: "Check your requirements for new property responses",
+      broker: "System",
+      time: "Recently"
     }
   ];
 
@@ -124,7 +126,7 @@ const BuyerDashboard = () => {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Active Requirements</p>
-              <p className="text-2xl font-bold">3</p>
+              <p className="text-2xl font-bold">{stats?.activeRequirements || 0}</p>
             </div>
           </div>
         </Card>
@@ -135,7 +137,7 @@ const BuyerDashboard = () => {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Property Responses</p>
-              <p className="text-2xl font-bold">35</p>
+              <p className="text-2xl font-bold">{stats?.totalResponses || 0}</p>
             </div>
           </div>
         </Card>
@@ -146,7 +148,7 @@ const BuyerDashboard = () => {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Total Views</p>
-              <p className="text-2xl font-bold">144</p>
+              <p className="text-2xl font-bold">{stats?.totalViews || 0}</p>
             </div>
           </div>
         </Card>
@@ -157,7 +159,7 @@ const BuyerDashboard = () => {
             </div>
             <div>
               <p className="text-sm text-muted-foreground">Visits Scheduled</p>
-              <p className="text-2xl font-bold">7</p>
+              <p className="text-2xl font-bold">{stats?.scheduledVisits || 0}</p>
             </div>
           </div>
         </Card>
@@ -199,41 +201,59 @@ const BuyerDashboard = () => {
           </div>
           
           <div className="space-y-4">
-            {requirements.slice(0, 3).map((req) => (
-              <div key={req.id} className="p-4 border rounded-lg hover:shadow-sm transition-shadow">
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-2">
-                    {(() => {
-                      const PropertyIcon = getPropertyIcon(req.type);
-                      return <PropertyIcon className="w-4 h-4 text-muted-foreground" />;
-                    })()}
-                    <h3 className="font-medium text-sm">{req.title}</h3>
-                  </div>
-                  <Badge 
-                    variant={req.status === "Active" ? "default" : "secondary"}
-                    className="text-xs"
-                  >
-                    {req.status}
-                  </Badge>
-                </div>
-                
-                <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
-                  <span className="flex items-center gap-1">
-                    <MapPin className="w-3 h-3" />
-                    {req.location}
-                  </span>
-                  <span>{req.budget}</span>
-                </div>
-                
-                <div className="flex items-center justify-between text-xs">
-                  <div className="flex gap-4">
-                    <span>{req.responses} responses</span>
-                    <span>{req.views} views</span>
-                  </div>
-                  <span className="text-muted-foreground">{req.datePosted}</span>
-                </div>
+            {requirementsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="text-muted-foreground mt-2">Loading requirements...</p>
               </div>
-            ))}
+            ) : requirements.length > 0 ? (
+              requirements.map((req) => (
+                <div key={req.id} className="p-4 border rounded-lg hover:shadow-sm transition-shadow">
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-2">
+                      {(() => {
+                        const PropertyIcon = getPropertyIcon(req.type);
+                        return <PropertyIcon className="w-4 h-4 text-muted-foreground" />;
+                      })()}
+                      <h3 className="font-medium text-sm">{req.title}</h3>
+                    </div>
+                    <Badge 
+                      variant={req.status === "Active" ? "default" : "secondary"}
+                      className="text-xs"
+                    >
+                      {req.status}
+                    </Badge>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="w-3 h-3" />
+                      {req.location}
+                    </span>
+                    <span>{req.budget}</span>
+                  </div>
+                  
+                  <div className="flex items-center justify-between text-xs">
+                    <div className="flex gap-4">
+                      <span>{req.responses} responses</span>
+                      <span>{req.views} views</span>
+                    </div>
+                    <span className="text-muted-foreground">{req.datePosted}</span>
+                  </div>
+                </div>
+              ))
+            ) : (
+              <div className="text-center py-8">
+                <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mx-auto mb-4">
+                  <FileText className="w-8 h-8 text-muted-foreground" />
+                </div>
+                <h3 className="font-medium mb-2">No Requirements Yet</h3>
+                <p className="text-sm text-muted-foreground mb-4">Start by posting your first property requirement</p>
+                <Link to="/post-requirement">
+                  <Button size="sm">Post Requirement</Button>
+                </Link>
+              </div>
+            )}
           </div>
         </Card>
 

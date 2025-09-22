@@ -6,6 +6,8 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, Heart, Share, Building, Home, MapPin, Bed, Bath, Car, Maximize } from "lucide-react";
 import { EnhancedSearch } from "@/components/ui/enhanced-search";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const PropertySearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -13,69 +15,44 @@ const PropertySearch = () => {
   const [budget, setBudget] = useState("all");
   const [bhk, setBhk] = useState("all");
 
-  // Mock property data
-  const properties = [
-    {
-      id: 1,
-      title: "Luxurious 3 BHK Apartment",
-      type: "apartment",
-      price: "₹1.2 Cr",
-      location: "Baner, Pune",
-      bedrooms: 3,
-      bathrooms: 2,
-      parking: 1,
-      area: "1200 sq ft",
-      image: "/placeholder.svg",
-      broker: "John Realty",
-      featured: true,
-      amenities: ["Swimming Pool", "Gym", "Garden"]
-    },
-    {
-      id: 2,
-      title: "Modern 2 BHK Villa",
-      type: "villa",
-      price: "₹1.8 Cr",
-      location: "Wakad, Pune",
-      bedrooms: 2,
-      bathrooms: 2,
-      parking: 2,
-      area: "1500 sq ft",
-      image: "/placeholder.svg",
-      broker: "Prime Properties",
-      featured: false,
-      amenities: ["Garden", "Security", "Power Backup"]
-    },
-    {
-      id: 3,
-      title: "Spacious Office Space",
-      type: "office",
-      price: "₹2.5 Cr",
-      location: "Koregaon Park, Pune",
-      bedrooms: 0,
-      bathrooms: 4,
-      parking: 5,
-      area: "2000 sq ft",
-      image: "/placeholder.svg",
-      broker: "Commercial Hub",
-      featured: true,
-      amenities: ["Elevator", "AC", "Reception"]
-    },
-    {
-      id: 4,
-      title: "Cozy 1 BHK Apartment",
-      type: "apartment",
-      price: "₹55 L",
-      location: "Hinjewadi, Pune",
-      bedrooms: 1,
-      bathrooms: 1,
-      parking: 1,
-      area: "650 sq ft",
-      image: "/placeholder.svg",
-      broker: "Quick Homes",
-      featured: false,
-      amenities: ["Security", "Lift", "Water Supply"]
+  // Fetch available properties from database
+  const { data: properties = [], isLoading } = useQuery({
+    queryKey: ['public-properties', propertyType, bhk],
+    queryFn: async () => {
+      let query = supabase
+        .from('public_properties')
+        .select('*')
+        .eq('status', 'available');
+
+      // Apply filters
+      if (propertyType !== 'all') {
+        query = query.eq('type', propertyType as any);
+      }
+      
+      if (bhk !== 'all') {
+        query = query.eq('bedrooms', parseInt(bhk));
+      }
+
+      const { data, error } = await query.order('created_at', { ascending: false });
+      if (error) throw error;
+
+      return data.map(property => ({
+        id: property.id,
+        title: property.title || 'Untitled Property',
+        type: property.type,
+        price: `₹${property.price}`,
+        location: typeof property.location === 'object' && property.location && 'city' in property.location ? property.location.city as string : 'Location not specified',
+        bedrooms: property.bedrooms || 0,
+        bathrooms: property.bathrooms || 0,
+        parking: 1, // Default value
+        area: `${property.area} sq ft`,
+        image: property.images?.[0] || "/placeholder.svg",
+        broker: "Property Agent", // Will be fetched from profiles later
+        featured: false,
+        amenities: [] // Will be parsed from specifications
+      }));
     }
-  ];
+  });
 
   const getPropertyIcon = (type: string) => {
     switch (type) {
@@ -184,7 +161,12 @@ const PropertySearch = () => {
 
       {/* Properties Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProperties.length > 0 ? (
+        {isLoading ? (
+          <div className="col-span-full text-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground mt-4">Loading properties...</p>
+          </div>
+        ) : filteredProperties.length > 0 ? (
           filteredProperties.map((property) => (
             <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow group">
               {/* Property Image */}

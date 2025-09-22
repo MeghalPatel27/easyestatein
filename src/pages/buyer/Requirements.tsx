@@ -7,71 +7,65 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Search, Filter, Plus, Building, Home, MapPin, Eye, MessageSquare, Calendar, MoreHorizontal, FileText } from "lucide-react";
 import { Link } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
+import { useAuth } from "@/hooks/useAuth";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const Requirements = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
+  const { user } = useAuth();
 
-  // Mock data for requirements
-  const requirements = [
-    {
-      id: 1,
-      title: "3 BHK Apartment in Baner",
-      type: "apartment",
-      bedrooms: "3 BHK",
-      location: "Baner, Pune",
-      budget: "₹80L - ₹1.2Cr",
-      status: "Active",
-      responses: 12,
-      views: 45,
-      datePosted: "2024-01-15",
-      priority: "High",
-      description: "Looking for a spacious 3 BHK apartment with good amenities"
+  // Fetch user's requirements from database
+  const { data: requirements = [], isLoading } = useQuery({
+    queryKey: ['requirements', user?.id, statusFilter, sortBy],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      let query = supabase
+        .from('requirements')
+        .select('*')
+        .eq('buyer_id', user.id);
+
+      // Apply status filter
+      if (statusFilter !== 'all') {
+        query = query.eq('status', statusFilter);
+      }
+
+      // Apply sorting
+      switch (sortBy) {
+        case 'recent':
+          query = query.order('created_at', { ascending: false });
+          break;
+        case 'priority':
+          query = query.order('urgency', { ascending: false });
+          break;
+        default:
+          query = query.order('created_at', { ascending: false });
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return data.map(req => ({
+        id: req.id,
+        title: req.title,
+        type: req.property_type,
+        bedrooms: req.bedrooms ? `${req.bedrooms} BHK` : 'N/A',
+        location: typeof req.location === 'object' && req.location && 'city' in req.location ? req.location.city as string : 'Unknown',
+        budget: req.budget_min && req.budget_max ? 
+          `₹${req.budget_min}L - ₹${req.budget_max}L` : 'Budget not specified',
+        status: req.status.charAt(0).toUpperCase() + req.status.slice(1),
+        responses: 0, // Will be calculated from sent_leads later
+        views: 0, // Placeholder for now
+        datePosted: new Date(req.created_at).toLocaleDateString(),
+        priority: req.urgency ? req.urgency.charAt(0).toUpperCase() + req.urgency.slice(1) : 'Medium',
+        description: req.description || 'No description provided'
+      }));
     },
-    {
-      id: 2,
-      title: "2 BHK Villa in Wakad",
-      type: "villa",
-      bedrooms: "2 BHK",
-      location: "Wakad, Pune",
-      budget: "₹1.5Cr - ₹2Cr",
-      status: "Active",
-      responses: 8,
-      views: 32,
-      datePosted: "2024-01-12",
-      priority: "Medium",
-      description: "Independent villa with parking and garden space"
-    },
-    {
-      id: 3,
-      title: "Office Space in Koregaon Park",
-      type: "office",
-      bedrooms: "N/A",
-      location: "Koregaon Park, Pune",
-      budget: "₹2Cr - ₹3Cr",
-      status: "Closed",
-      responses: 15,
-      views: 67,
-      datePosted: "2024-01-08",
-      priority: "Low",
-      description: "Commercial office space for startup company"
-    },
-    {
-      id: 4,
-      title: "1 BHK Apartment in Hinjewadi",
-      type: "apartment",
-      bedrooms: "1 BHK",
-      location: "Hinjewadi, Pune",
-      budget: "₹40L - ₹60L",
-      status: "Active",
-      responses: 6,
-      views: 28,
-      datePosted: "2024-01-10",
-      priority: "Medium",
-      description: "Compact apartment for working professional"
-    }
-  ];
+    enabled: !!user?.id
+  });
 
   const getPropertyIcon = (type: string) => {
     switch (type) {
@@ -150,7 +144,12 @@ const Requirements = () => {
 
       {/* Requirements List */}
       <div className="space-y-4">
-        {filteredRequirements.length > 0 ? (
+        {isLoading ? (
+          <div className="text-center py-12">
+            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+            <p className="text-muted-foreground mt-4">Loading your requirements...</p>
+          </div>
+        ) : filteredRequirements.length > 0 ? (
           filteredRequirements.map((req) => (
             <Card key={req.id} className="p-6 hover:shadow-md transition-shadow">
               <div className="flex items-start justify-between mb-4">
