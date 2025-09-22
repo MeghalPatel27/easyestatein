@@ -43,20 +43,23 @@ const Auth = () => {
     const checkUserAndRedirect = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {
-        // Get user profile to determine redirect path
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('user_type')
-          .eq('user_id', session.user.id)
-          .single();
+        // Wait a bit for profile to be created if it's a new user
+        setTimeout(async () => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('user_type')
+            .eq('user_id', session.user.id)
+            .single();
 
-        if (profile?.user_type === 'buyer') {
-          navigate('/buyer/dashboard');
-        } else if (profile?.user_type === 'broker') {
-          navigate('/broker/dashboard');
-        } else {
-          navigate('/');
-        }
+          if (profile?.user_type === 'buyer') {
+            navigate('/buyer/dashboard');
+          } else if (profile?.user_type === 'broker') {
+            navigate('/broker/dashboard');
+          } else {
+            // Default to buyer dashboard if profile exists but no user_type
+            navigate('/buyer/dashboard');
+          }
+        }, 100);
       }
     };
     checkUserAndRedirect();
@@ -64,20 +67,23 @@ const Auth = () => {
     // Listen for auth state changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, session) => {
       if (session?.user && event === 'SIGNED_IN') {
-        // Get user profile to determine redirect path
-        const { data: profile } = await supabase
-          .from('profiles')
-          .select('user_type')
-          .eq('user_id', session.user.id)
-          .single();
+        // Wait a bit for profile to be created for new signups
+        setTimeout(async () => {
+          const { data: profile } = await supabase
+            .from('profiles')
+            .select('user_type')
+            .eq('user_id', session.user.id)
+            .single();
 
-        if (profile?.user_type === 'buyer') {
-          navigate('/buyer/dashboard');
-        } else if (profile?.user_type === 'broker') {
-          navigate('/broker/dashboard');
-        } else {
-          navigate('/');
-        }
+          if (profile?.user_type === 'buyer') {
+            navigate('/buyer/dashboard');
+          } else if (profile?.user_type === 'broker') {
+            navigate('/broker/dashboard');
+          } else {
+            // Default to buyer dashboard if profile exists but no user_type
+            navigate('/buyer/dashboard');
+          }
+        }, 100);
       }
     });
 
