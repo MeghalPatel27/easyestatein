@@ -123,14 +123,24 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   const signOut = async () => {
     try {
-      const { error } = await supabase.auth.signOut();
-      if (error) throw error;
+      // Check if we have a valid session before attempting to sign out
+      const { data: { session } } = await supabase.auth.getSession();
       
+      if (session) {
+        const { error } = await supabase.auth.signOut();
+        if (error) throw error;
+      }
+      
+      // Always clear local state regardless of API call success
       setUser(null);
       setSession(null);
       setProfile(null);
     } catch (error) {
       console.error('Error signing out:', error);
+      // Clear local state even if signOut API fails
+      setUser(null);
+      setSession(null);
+      setProfile(null);
       throw error;
     }
   };

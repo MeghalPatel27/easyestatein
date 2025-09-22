@@ -18,8 +18,14 @@ const BuyerLayout = () => {
       await signOut();
       toast.success("Signed out successfully");
       navigate("/");
-    } catch (error) {
-      toast.error("Error signing out");
+    } catch (error: any) {
+      // Don't show error for session missing errors - user is already signed out
+      if (error?.name !== 'AuthSessionMissingError') {
+        toast.error("Error signing out");
+      } else {
+        // Session was already missing, just navigate to home
+        navigate("/");
+      }
     }
   };
 
