@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -18,99 +19,73 @@ import {
   Wallet as WalletIcon
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const Wallet = () => {
-  const [currentBalance] = useState(250);
-  const [monthlySpent] = useState(180);
-  const [averageLeadCost] = useState(65);
+  const { user, profile } = useAuth();
 
-  // Mock transaction data
-  const transactions = [
-    {
-      id: 1,
-      type: "debit",
-      amount: 50,
-      description: "Lead unlock - Premium Buyer in BKC",
-      leadId: "L001",
-      date: "2024-01-20",
-      time: "14:30",
-      status: "completed"
+  // Fetch wallet transactions
+  const { data: transactions = [], isLoading } = useQuery({
+    queryKey: ['wallet-transactions', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('wallet_transactions')
+        .select('*')
+        .eq('user_id', user?.id!)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
     },
-    {
-      id: 2,
-      type: "credit",
-      amount: 100,
-      description: "Refund - Rejected lead submission",
-      leadId: "L002",
-      date: "2024-01-19",
-      time: "11:15",
-      status: "completed"
-    },
-    {
-      id: 3,
-      type: "credit",
-      amount: 500,
-      description: "Coins purchase - Payment ID: PAY123456",
-      paymentId: "PAY123456",
-      date: "2024-01-18",
-      time: "09:45",
-      status: "completed"
-    },
-    {
-      id: 4,
-      type: "hold",
-      amount: 75,
-      description: "Lead unlock pending verification",
-      leadId: "L003",
-      date: "2024-01-17",
-      time: "16:20",
-      status: "pending"
-    },
-    {
-      id: 5,
-      type: "debit",
-      amount: 40,
-      description: "Lead unlock - Residential buyer in Andheri",
-      leadId: "L004",
-      date: "2024-01-16",
-      time: "13:10",
-      status: "completed"
-    },
-    {
-      id: 6,
-      type: "hold",
-      amount: 120,
-      description: "Payment processing - Awaiting confirmation",
-      paymentId: "PAY123457",
-      date: "2024-01-15",
-      time: "10:30",
-      status: "pending"
-    }
-  ];
+    enabled: !!user
+  });
+
+  // Calculate stats from transactions
+  const currentBalance = profile?.coin_balance || 0;
+  const currentMonth = new Date().getMonth();
+  const currentYear = new Date().getFullYear();
+  
+  const monthlyTransactions = transactions.filter(t => {
+    const transactionDate = new Date(t.created_at);
+    return transactionDate.getMonth() === currentMonth && 
+           transactionDate.getFullYear() === currentYear;
+  });
+  
+  const monthlySpent = monthlyTransactions
+    .filter(t => t.transaction_type === 'lead_purchase')
+    .reduce((sum, t) => sum + t.amount, 0);
+  
+  const totalLeadPurchases = transactions.filter(t => t.transaction_type === 'lead_purchase').length;
+  const averageLeadCost = totalLeadPurchases > 0 
+    ? Math.round(transactions
+        .filter(t => t.transaction_type === 'lead_purchase')
+        .reduce((sum, t) => sum + t.amount, 0) / totalLeadPurchases)
+    : 0;
 
   const getTransactionIcon = (type: string) => {
     switch(type) {
-      case "credit": return ArrowDown; // Refunded credits - green down arrow
-      case "debit": return ArrowUp;   // Paid outgoing - red up arrow  
-      case "hold": return Hourglass;  // On hold - yellow hourglass
+      case "wallet_refill": return ArrowDown; // Credits - green down arrow
+      case "lead_purchase": return ArrowUp;   // Spent - red up arrow  
+      case "refund": return ArrowDown;        // Refund - green down arrow
       default: return ArrowUp;
     }
   };
 
   const getTransactionColor = (type: string) => {
     switch(type) {
-      case "credit": return "text-green-600"; // Refunded credits - green
-      case "debit": return "text-red-600";    // Paid outgoing - red
-      case "hold": return "text-yellow-600";  // On hold - yellow
+      case "wallet_refill": return "text-green-600"; // Credits - green
+      case "lead_purchase": return "text-red-600";    // Spent - red
+      case "refund": return "text-green-600";         // Refund - green
       default: return "text-red-600";
     }
   };
 
   const getBgColor = (type: string) => {
     switch(type) {
-      case "credit": return "bg-green-100"; // Refunded credits - green
-      case "debit": return "bg-red-100";    // Paid outgoing - red
-      case "hold": return "bg-yellow-100";  // On hold - yellow
+      case "wallet_refill": return "bg-green-100"; // Credits - green
+      case "lead_purchase": return "bg-red-100";    // Spent - red
+      case "refund": return "bg-green-100";         // Refund - green
       default: return "bg-red-100";
     }
   };
@@ -207,68 +182,85 @@ const Wallet = () => {
           </TabsList>
 
           <TabsContent value="all" className="mt-6">
-            <div className="space-y-4">
-              {transactions.map((transaction) => {
-                const Icon = getTransactionIcon(transaction.type);
-                const colorClass = getTransactionColor(transaction.type);
-                
-                return (
-                  <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
-                    <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.type)}`}>
-                        <Icon className={`h-5 w-5 ${colorClass}`} />
-                      </div>
-                      <div>
-                        <p className="font-medium">{transaction.description}</p>
-                        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                          <Calendar className="h-3 w-3" />
-                          <span>{transaction.date} at {transaction.time}</span>
-                          {transaction.leadId && (
-                            <>
-                              <span>•</span>
-                              <Link to={`/broker/leads/${transaction.leadId}`} className="text-primary hover:underline">
-                                {transaction.leadId}
-                              </Link>
-                            </>
-                          )}
+            {isLoading ? (
+              <div className="text-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="text-muted-foreground mt-2">Loading transactions...</p>
+              </div>
+            ) : transactions.length === 0 ? (
+              <div className="text-center p-8">
+                <WalletIcon className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Transactions Yet</h3>
+                <p className="text-muted-foreground mb-4">
+                  Your transaction history will appear here once you start using coins.
+                </p>
+                <Link to="/broker/wallet/refill">
+                  <Button className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Buy Your First Coins
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {transactions.map((transaction) => {
+                  const Icon = getTransactionIcon(transaction.transaction_type);
+                  const colorClass = getTransactionColor(transaction.transaction_type);
+                  
+                  return (
+                    <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
+                      <div className="flex items-center gap-4">
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.transaction_type)}`}>
+                          <Icon className={`h-5 w-5 ${colorClass}`} />
+                        </div>
+                        <div>
+                          <p className="font-medium">{transaction.description}</p>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Calendar className="h-3 w-3" />
+                            <span>{new Date(transaction.created_at).toLocaleString()}</span>
+                            {transaction.reference_id && (
+                              <>
+                                <span>•</span>
+                                <span className="text-primary">
+                                  ID: {transaction.reference_id.slice(0, 8)}...
+                                </span>
+                              </>
+                            )}
+                          </div>
                         </div>
                       </div>
+                      <div className="text-right">
+                        <p className={`font-semibold ${colorClass}`}>
+                          {transaction.transaction_type === "wallet_refill" || transaction.transaction_type === "refund" ? "+" : "-"}{transaction.amount} coins
+                        </p>
+                        <Badge variant="secondary" className="bg-green-100 text-green-700">
+                          {transaction.status}
+                        </Badge>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className={`font-semibold ${colorClass}`}>
-                        {transaction.type === "credit" ? "+" : "-"}{transaction.amount} coins
-                      </p>
-                      <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        {transaction.status}
-                      </Badge>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="text-center mt-6">
-              <Button variant="outline">Load More Transactions</Button>
-            </div>
+                  );
+                })}
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="credits" className="mt-6">
             <div className="space-y-4">
-              {transactions.filter(t => t.type === "credit").map((transaction) => {
-                const Icon = getTransactionIcon(transaction.type);
-                const colorClass = getTransactionColor(transaction.type);
+              {transactions.filter(t => t.transaction_type === "wallet_refill" || t.transaction_type === "refund").map((transaction) => {
+                const Icon = getTransactionIcon(transaction.transaction_type);
+                const colorClass = getTransactionColor(transaction.transaction_type);
                 
                 return (
                   <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.type)}`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.transaction_type)}`}>
                         <Icon className={`h-5 w-5 ${colorClass}`} />
                       </div>
                       <div>
                         <p className="font-medium">{transaction.description}</p>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Calendar className="h-3 w-3" />
-                          <span>{transaction.date} at {transaction.time}</span>
+                          <span>{new Date(transaction.created_at).toLocaleString()}</span>
                         </div>
                       </div>
                     </div>
@@ -288,29 +280,21 @@ const Wallet = () => {
 
           <TabsContent value="debits" className="mt-6">
             <div className="space-y-4">
-              {transactions.filter(t => t.type === "debit").map((transaction) => {
-                const Icon = getTransactionIcon(transaction.type);
-                const colorClass = getTransactionColor(transaction.type);
+              {transactions.filter(t => t.transaction_type === "lead_purchase").map((transaction) => {
+                const Icon = getTransactionIcon(transaction.transaction_type);
+                const colorClass = getTransactionColor(transaction.transaction_type);
                 
                 return (
                   <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.type)}`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.transaction_type)}`}>
                         <Icon className={`h-5 w-5 ${colorClass}`} />
                       </div>
                       <div>
                         <p className="font-medium">{transaction.description}</p>
                         <div className="flex items-center gap-2 text-sm text-muted-foreground">
                           <Calendar className="h-3 w-3" />
-                          <span>{transaction.date} at {transaction.time}</span>
-                          {transaction.leadId && (
-                            <>
-                              <span>•</span>
-                              <Link to={`/broker/leads/${transaction.leadId}`} className="text-primary hover:underline">
-                                {transaction.leadId}
-                              </Link>
-                            </>
-                          )}
+                          <span>{new Date(transaction.created_at).toLocaleString()}</span>
                         </div>
                       </div>
                     </div>

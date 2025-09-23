@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -24,122 +25,64 @@ import {
   Clock
 } from "lucide-react";
 import { Link } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 
 const LeadManager = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedLeads, setSelectedLeads] = useState<number[]>([]);
+  const [selectedLeads, setSelectedLeads] = useState<string[]>([]);
   const [filterType, setFilterType] = useState("all");
-  const [sortBy, setSortBy] = useState("rating");
+  const [sortBy, setSortBy] = useState("urgency");
+  const { user } = useAuth();
 
-  // Mock data for qualified leads
-  const qualifiedLeads = [
-    {
-      id: 1,
-      rating: 4.8,
-      type: "Residential",
-      area: "Mumbai Central",
-      budget: "₹2.5-3.5 Cr",
-      urgency: "High",
-      rejectionRate: 15,
-      leadPrice: 50,
-      verified: true,
-      trending: "up",
-      submittedAt: null,
-      status: "available"
-    },
-    {
-      id: 2,
-      rating: 4.6,
-      type: "Commercial",
-      area: "BKC",
-      budget: "₹5-8 Cr",
-      urgency: "Medium",
-      rejectionRate: 8,
-      leadPrice: 75,
-      verified: true,
-      trending: "up",
-      submittedAt: null,
-      status: "available"
-    },
-    {
-      id: 3,
-      rating: 4.4,
-      type: "Residential",
-      area: "Andheri West",
-      budget: "₹1.2-2 Cr",
-      urgency: "High",
-      rejectionRate: 12,
-      leadPrice: 40,
-      verified: false,
-      trending: "stable",
-      submittedAt: null,
-      status: "available"
-    }
-  ];
+  // Fetch available leads
+  const { data: qualifiedLeads = [], isLoading: isLoadingLeads } = useQuery({
+    queryKey: ['leads', filterType, sortBy],
+    queryFn: async () => {
+      let query = supabase
+        .from('leads')
+        .select('*')
+        .eq('status', 'active');
 
-  // Mock data for sent leads
-  const sentLeads = [
-    {
-      id: 4,
-      rating: 4.7,
-      type: "Villa",
-      area: "Lonavala",
-      budget: "₹3-5 Cr",
-      urgency: "Low",
-      rejectionRate: 20,
-      leadPrice: 60,
-      verified: true,
-      trending: "down",
-      submittedAt: "2024-01-20",
-      propertyTitle: "3 BHK Villa with Garden",
-      status: "pending",
-      response: null
-    },
-    {
-      id: 5,
-      rating: 4.5,
-      type: "Commercial",
-      area: "Lower Parel",
-      budget: "₹10-15 Cr",
-      urgency: "High",
-      rejectionRate: 5,
-      leadPrice: 100,
-      verified: true,
-      trending: "up",
-      submittedAt: "2024-01-18",
-      propertyTitle: "Premium Office Space",
-      status: "accepted",
-      response: "Interested in site visit"
-    },
-    {
-      id: 6,
-      rating: 4.3,
-      type: "Residential",
-      area: "Bandra West",
-      budget: "₹4-6 Cr",
-      urgency: "Medium",
-      rejectionRate: 18,
-      leadPrice: 65,
-      verified: true,
-      trending: "stable",
-      submittedAt: "2024-01-15",
-      propertyTitle: "4 BHK Sea View Apartment",
-      status: "rejected",
-      response: "Looking for higher floor"
-    }
-  ];
+      if (filterType !== 'all') {
+        query = query.eq('category', filterType);
+      }
 
-  const getRatingColor = (rating: number) => {
-    if (rating >= 4.5) return "border-emerald-500 bg-emerald-50";
-    if (rating >= 4.0) return "border-blue-500 bg-blue-50";
-    return "border-orange-500 bg-orange-50";
-  };
+      const { data, error } = await query
+        .order(sortBy === 'urgency' ? 'urgency' : 'created_at', 
+               { ascending: sortBy === 'urgency' ? false : false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user
+  });
+
+  // Fetch sent leads
+  const { data: sentLeads = [], isLoading: isLoadingSent } = useQuery({
+    queryKey: ['sent-leads', user?.id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from('sent_leads')
+        .select(`
+          *,
+          lead:leads(*),
+          property:properties(title)
+        `)
+        .eq('broker_id', user?.id!)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user
+  });
 
   const getUrgencyColor = (urgency: string) => {
     switch (urgency) {
-      case "High": return "bg-red-100 text-red-700 border-red-200";
-      case "Medium": return "bg-yellow-100 text-yellow-700 border-yellow-200";
-      case "Low": return "bg-green-100 text-green-700 border-green-200";
+      case "high": return "bg-green-100 text-green-700 border-green-200";
+      case "medium": return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "low": return "bg-red-100 text-red-700 border-red-200";
       default: return "bg-gray-100 text-gray-700 border-gray-200";
     }
   };
@@ -147,7 +90,7 @@ const LeadManager = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "accepted": return "bg-green-100 text-green-700 border-green-200";
-      case "pending": return "bg-yellow-100 text-yellow-700 border-yellow-200";
+      case "sent": return "bg-yellow-100 text-yellow-700 border-yellow-200";
       case "rejected": return "bg-red-100 text-red-700 border-red-200";
       default: return "bg-gray-100 text-gray-700 border-gray-200";
     }
@@ -156,21 +99,13 @@ const LeadManager = () => {
   const getStatusIcon = (status: string) => {
     switch (status) {
       case "accepted": return <CheckCircle className="h-4 w-4" />;
-      case "pending": return <Clock className="h-4 w-4" />;
+      case "sent": return <Clock className="h-4 w-4" />;
       case "rejected": return <Target className="h-4 w-4" />;
       default: return <Clock className="h-4 w-4" />;
     }
   };
 
-  const getTrendingIcon = (trend: string) => {
-    switch (trend) {
-      case "up": return <TrendingUp className="h-4 w-4 text-green-500" />;
-      case "down": return <TrendingDown className="h-4 w-4 text-red-500" />;
-      default: return null;
-    }
-  };
-
-  const handleSelectLead = (leadId: number) => {
+  const handleSelectLead = (leadId: string) => {
     setSelectedLeads(prev => 
       prev.includes(leadId) 
         ? prev.filter(id => id !== leadId)
@@ -290,7 +225,6 @@ const LeadManager = () => {
                     <SelectItem value="all">All Types</SelectItem>
                     <SelectItem value="residential">Residential</SelectItem>
                     <SelectItem value="commercial">Commercial</SelectItem>
-                    <SelectItem value="villa">Villa</SelectItem>
                   </SelectContent>
                 </Select>
                 <Select value={sortBy} onValueChange={setSortBy}>
@@ -298,10 +232,9 @@ const LeadManager = () => {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="rating">Sort by Rating</SelectItem>
-                    <SelectItem value="budget">Sort by Budget</SelectItem>
-                    <SelectItem value="urgency">Sort by Urgency</SelectItem>
-                    <SelectItem value="price">Sort by Lead Price</SelectItem>
+                    <SelectItem value="urgency">Sort by Priority</SelectItem>
+                    <SelectItem value="created_at">Sort by Date</SelectItem>
+                    <SelectItem value="budget_max">Sort by Budget</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -339,74 +272,100 @@ const LeadManager = () => {
               </div>
             </div>
 
-            <div className="space-y-4">
-              {qualifiedLeads.map((lead) => (
-                <div
-                  key={lead.id}
-                  className={`p-4 rounded-lg border-2 transition-all hover:shadow-md ${getRatingColor(lead.rating)}`}
-                >
-                  <div className="flex items-center gap-4">
-                    <Checkbox
-                      checked={selectedLeads.includes(lead.id)}
-                      onCheckedChange={() => handleSelectLead(lead.id)}
-                    />
-                    
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-4">
-                          <div className="flex items-center gap-2">
-                            <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                            <span className="font-semibold">{lead.rating}</span>
-                            {getTrendingIcon(lead.trending)}
-                            {lead.verified && (
-                              <Badge variant="secondary" className="bg-emerald-100 text-emerald-700">
-                                Verified
-                              </Badge>
-                            )}
-                          </div>
-                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                            <span className="font-medium">{lead.type}</span>
-                            <span>•</span>
-                            <MapPin className="h-3 w-3" />
-                            <span>{lead.area}</span>
-                          </div>
-                        </div>
+            {isLoadingLeads ? (
+              <div className="text-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="text-muted-foreground mt-2">Loading leads...</p>
+              </div>
+            ) : qualifiedLeads.length === 0 ? (
+              <div className="text-center p-8">
+                <Users className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Leads Available</h3>
+                <p className="text-muted-foreground">
+                  There are no qualified leads matching your criteria at the moment.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {qualifiedLeads
+                  .filter(lead => {
+                    if (!searchQuery) return true;
+                    const location = lead.location || {};
+                    const city = typeof location === 'object' && location.city ? location.city : '';
+                    const area = typeof location === 'object' && location.area ? location.area : '';
+                    return city.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           area.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                           lead.title.toLowerCase().includes(searchQuery.toLowerCase());
+                  })
+                  .map((lead) => (
+                    <div
+                      key={lead.id}
+                      className="p-4 rounded-lg border-2 transition-all hover:shadow-md bg-card"
+                    >
+                      <div className="flex items-center gap-4">
+                        <Checkbox
+                          checked={selectedLeads.includes(lead.id)}
+                          onCheckedChange={() => handleSelectLead(lead.id)}
+                        />
                         
-                        <div className="flex items-center gap-6">
-                          <div className="text-right">
-                            <p className="font-semibold text-primary">{lead.budget}</p>
-                            <Badge className={getUrgencyColor(lead.urgency)}>
-                              {lead.urgency} Priority
-                            </Badge>
-                          </div>
-                          <div className="text-right text-sm">
-                            <p className="text-muted-foreground">Rejection: {lead.rejectionRate}%</p>
-                            <div className="flex items-center gap-1 text-orange-600 font-semibold">
-                              <span>{lead.leadPrice}</span>
-                              <span>coins</span>
+                        <div className="flex-1">
+                          <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-4">
+                              <div className="flex items-center gap-2">
+                                <span className="font-semibold text-lg">{lead.title}</span>
+                                <Badge variant="secondary" className="bg-blue-100 text-blue-700">
+                                  {lead.category}
+                                </Badge>
+                              </div>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <MapPin className="h-3 w-3" />
+                        <span>
+                          {lead.location && typeof lead.location === 'object' && !Array.isArray(lead.location) && 'city' in lead.location
+                            ? `${lead.location.area || ''}, ${lead.location.city}`.trim().replace(/^,\s*/, '') 
+                            : 'Location not specified'}
+                        </span>
+                              </div>
                             </div>
-                          </div>
-                          <div className="flex gap-2">
-                            <Link to={`/broker/leads/${lead.id}`}>
-                              <Button size="sm" variant="outline" className="gap-1">
-                                <Eye className="h-3 w-3" />
-                                View
-                              </Button>
-                            </Link>
-                            <Link to={`/broker/leads/${lead.id}`}>
-                              <Button size="sm" className="gap-1">
-                                <Send className="h-3 w-3" />
-                                Submit
-                              </Button>
-                            </Link>
+                            
+                            <div className="flex items-center gap-6">
+                              <div className="text-right">
+                                <p className="font-semibold text-primary">
+                                  ₹{lead.budget_min ? (lead.budget_min / 10000000).toFixed(1) : '0'} - 
+                                  ₹{lead.budget_max ? (lead.budget_max / 10000000).toFixed(1) : '0'} Cr
+                                </p>
+                                <Badge className={getUrgencyColor(lead.urgency)}>
+                                  {lead.urgency} Priority
+                                </Badge>
+                              </div>
+                              <div className="text-right text-sm">
+                                <p className="text-muted-foreground">Lead Price</p>
+                                <div className="flex items-center gap-1 text-orange-600 font-semibold">
+                                  <span>{lead.lead_price || 50}</span>
+                                  <span>coins</span>
+                                </div>
+                              </div>
+                              <div className="flex gap-2">
+                                <Link to={`/broker/leads/${lead.id}`}>
+                                  <Button size="sm" variant="outline" className="gap-1">
+                                    <Eye className="h-3 w-3" />
+                                    View
+                                  </Button>
+                                </Link>
+                                <Link to={`/broker/leads/${lead.id}`}>
+                                  <Button size="sm" className="gap-1">
+                                    <Send className="h-3 w-3" />
+                                    Submit
+                                  </Button>
+                                </Link>
+                              </div>
+                            </div>
                           </div>
                         </div>
                       </div>
                     </div>
-                  </div>
-                </div>
-              ))}
-            </div>
+                  ))}
+              </div>
+            )}
           </Card>
         </TabsContent>
 
