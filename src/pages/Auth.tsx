@@ -37,6 +37,10 @@ const Auth = () => {
   const [accountTypeError, setAccountTypeError] = useState("");
   const [firstNameError, setFirstNameError] = useState("");
   const [lastNameError, setLastNameError] = useState("");
+  
+  // Account type detection state
+  const [detectedAccountType, setDetectedAccountType] = useState<string>("");
+  const [isCheckingAccount, setIsCheckingAccount] = useState(false);
 
   // Check if user is already authenticated and redirect to appropriate dashboard
   useEffect(() => {
@@ -116,6 +120,37 @@ const Auth = () => {
                 .replace(/javascript:/gi, '')
                 .replace(/on\w+\s*=\s*["'][^"']*["']/gi, '')
                 .trim();
+  };
+
+  // Function to check account type by mobile number
+  const checkAccountType = async (mobile: string) => {
+    if (!mobile.trim() || mobile.length < 7) {
+      setDetectedAccountType("");
+      return;
+    }
+
+    setIsCheckingAccount(true);
+    try {
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('user_type, display_name')
+        .eq('phone', mobile)
+        .maybeSingle();
+
+      if (error) {
+        console.error('Error checking account type:', error);
+        setDetectedAccountType("");
+      } else if (data) {
+        setDetectedAccountType(data.user_type === 'broker' ? 'Broker/Developer Account' : 'Buyer Account');
+      } else {
+        setDetectedAccountType("");
+      }
+    } catch (error) {
+      console.error('Error checking account type:', error);
+      setDetectedAccountType("");
+    } finally {
+      setIsCheckingAccount(false);
+    }
   };
 
   const handleSignIn = async (e: React.FormEvent) => {
@@ -354,6 +389,8 @@ const Auth = () => {
                           onChange={(e) => {
                             setSignInMobile(e.target.value);
                             if (signInMobileError) setSignInMobileError("");
+                            // Check account type with debounce
+                            setTimeout(() => checkAccountType(e.target.value), 500);
                           }}
                           className={signInMobileError ? "border-destructive" : ""}
                           disabled={isLoading}
@@ -362,6 +399,12 @@ const Auth = () => {
                         />
                         {signInMobileError && (
                           <p className="text-sm text-destructive">{signInMobileError}</p>
+                        )}
+                        {isCheckingAccount && (
+                          <p className="text-sm text-muted-foreground">Checking account...</p>
+                        )}
+                        {detectedAccountType && !isCheckingAccount && (
+                          <p className="text-sm text-primary font-medium">✓ {detectedAccountType}</p>
                         )}
                       </div>
                       
@@ -490,6 +533,8 @@ const Auth = () => {
                           onChange={(e) => {
                             setSignUpMobile(e.target.value);
                             if (signUpMobileError) setSignUpMobileError("");
+                            // Check account type with debounce
+                            setTimeout(() => checkAccountType(e.target.value), 500);
                           }}
                           className={signUpMobileError ? "border-destructive" : ""}
                           disabled={isLoading}
@@ -498,6 +543,12 @@ const Auth = () => {
                         />
                         {signUpMobileError && (
                           <p className="text-sm text-destructive">{signUpMobileError}</p>
+                        )}
+                        {isCheckingAccount && (
+                          <p className="text-sm text-muted-foreground">Checking account...</p>
+                        )}
+                        {detectedAccountType && !isCheckingAccount && (
+                          <p className="text-sm text-orange-600 font-medium">⚠️ Account already exists: {detectedAccountType}</p>
                         )}
                       </div>
 
