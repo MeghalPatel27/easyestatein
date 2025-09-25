@@ -1,33 +1,65 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, DollarSign, Home, Calendar, TrendingUp, Edit, Share } from "lucide-react";
+import { ArrowLeft, MapPin, DollarSign, Home, Calendar, TrendingUp, Edit, Share, Loader2 } from "lucide-react";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const RequirementDetails = () => {
   const navigate = useNavigate();
   const { requirementId } = useParams();
 
-  // Mock requirement data - replace with actual API calls
-  const requirementData = {
-    id: requirementId,
-    title: "3 BHK Apartment in Baner",
-    description: "Looking for a spacious 3 BHK apartment in Baner area with modern amenities and good connectivity.",
-    property_type: "apartment",
-    location: { area: "Baner", city: "Pune", state: "Maharashtra" },
-    budget_min: 5000000,
-    budget_max: 8000000,
-    area_min: 1000,
-    area_max: 1500,
-    bedrooms: 3,
-    bathrooms: 2,
-    urgency: "medium",
-    status: "active",
-    created_at: "2024-01-10",
-    responses: 12,
-    views: 45
-  };
+  // Fetch requirement data from database
+  const { data: requirementData, isLoading, error } = useQuery({
+    queryKey: ['requirement', requirementId],
+    queryFn: async () => {
+      if (!requirementId) throw new Error('No requirement ID provided');
+      
+      const { data, error } = await supabase
+        .from('requirements')
+        .select('*')
+        .eq('id', requirementId)
+        .single();
+
+      if (error) {
+        console.error('Error fetching requirement:', error);
+        throw error;
+      }
+
+      return data;
+    },
+    enabled: !!requirementId,
+  });
+
+  // Show loading state
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <Loader2 className="w-8 h-8 animate-spin mx-auto mb-4 text-primary" />
+          <p className="text-muted-foreground">Loading requirement details...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state
+  if (error || !requirementData) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-destructive mb-4">Failed to load requirement details</p>
+          <Button onClick={() => navigate('/buyer-dashboard')}>
+            <ArrowLeft className="w-4 h-4 mr-2" />
+            Back to Dashboard
+          </Button>
+        </div>
+      </div>
+    );
+  }
 
   const formatCurrency = (amount: number) => {
     return new Intl.NumberFormat('en-IN', {
@@ -99,7 +131,7 @@ const RequirementDetails = () => {
                   <TrendingUp className="w-5 h-5 text-blue-600" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-foreground">{requirementData.views}</div>
+                  <div className="text-2xl font-bold text-foreground">0</div>
                   <div className="text-muted-foreground text-sm">Views</div>
                 </div>
               </div>
@@ -110,7 +142,7 @@ const RequirementDetails = () => {
                   <Home className="w-5 h-5 text-green-600" />
                 </div>
                 <div>
-                  <div className="text-2xl font-bold text-foreground">{requirementData.responses}</div>
+                  <div className="text-2xl font-bold text-foreground">0</div>
                   <div className="text-muted-foreground text-sm">Responses</div>
                 </div>
               </div>
@@ -122,7 +154,7 @@ const RequirementDetails = () => {
                 </div>
                 <div>
                   <div className="text-2xl font-bold text-foreground">
-                    {new Date(requirementData.created_at).toLocaleDateString('en-GB', { day: 'numeric' })}
+                    {Math.ceil((new Date().getTime() - new Date(requirementData.created_at).getTime()) / (1000 * 3600 * 24))}
                   </div>
                   <div className="text-muted-foreground text-sm">Days Active</div>
                 </div>
@@ -165,7 +197,7 @@ const RequirementDetails = () => {
                 <div>
                   <div className="text-sm font-medium text-muted-foreground">Area Range</div>
                   <div className="text-foreground">
-                    {requirementData.area_min} - {requirementData.area_max} sq ft
+                    {requirementData.area_min || 'Not specified'} - {requirementData.area_max || 'Not specified'} sq ft
                   </div>
                 </div>
               </div>
@@ -181,11 +213,13 @@ const RequirementDetails = () => {
                 Budget Range
               </h3>
               <div className="text-2xl font-bold text-foreground mb-2">
-                {formatCurrency(requirementData.budget_min)} - {formatCurrency(requirementData.budget_max)}
+                {requirementData.budget_min ? formatCurrency(requirementData.budget_min) : 'Not specified'} - {requirementData.budget_max ? formatCurrency(requirementData.budget_max) : 'Not specified'}
               </div>
-              <div className="text-sm text-muted-foreground">
-                ₹{Math.round((requirementData.budget_min + requirementData.budget_max) / 2 / 100000)} Lakhs average
-              </div>
+              {requirementData.budget_min && requirementData.budget_max && (
+                <div className="text-sm text-muted-foreground">
+                  ₹{Math.round((requirementData.budget_min + requirementData.budget_max) / 2 / 100000)} Lakhs average
+                </div>
+              )}
             </Card>
 
             {/* Location */}
@@ -195,8 +229,12 @@ const RequirementDetails = () => {
                 Location
               </h3>
               <div className="space-y-2">
-                <div className="text-foreground font-medium">{requirementData.location.area}</div>
-                <div className="text-muted-foreground">{requirementData.location.city}, {requirementData.location.state}</div>
+                <div className="text-foreground font-medium">
+                  {(requirementData.location as any)?.area || 'Not specified'}
+                </div>
+                <div className="text-muted-foreground">
+                  {(requirementData.location as any)?.city || 'Not specified'}, {(requirementData.location as any)?.state || ''}
+                </div>
               </div>
             </Card>
 
