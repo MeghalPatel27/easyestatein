@@ -308,7 +308,15 @@ export type Database = {
           updated_at?: string
           urgency?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "requirements_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["user_id"]
+          },
+        ]
       }
       sent_leads: {
         Row: {
@@ -468,7 +476,14 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      get_location_area: {
+        Args: { location_data: Json }
+        Returns: string
+      }
+      get_location_city: {
+        Args: { location_data: Json }
+        Returns: string
+      }
     }
     Enums: {
       property_category: "residential" | "commercial" | "industrial" | "land"

@@ -291,8 +291,8 @@ const LeadManager = () => {
                   .filter(lead => {
                     if (!searchQuery) return true;
                     const location = lead.location || {};
-                    const city = typeof location === 'object' && location.city ? location.city : '';
-                    const area = typeof location === 'object' && location.area ? location.area : '';
+                    const city = typeof location === 'object' && location !== null && 'city' in location ? location.city as string : '';
+                    const area = typeof location === 'object' && location !== null && 'area' in location ? location.area as string : '';
                     return city.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            area.toLowerCase().includes(searchQuery.toLowerCase()) ||
                            lead.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -373,64 +373,81 @@ const LeadManager = () => {
         <TabsContent value="sent" className="mt-6 space-y-6">
           {/* Sent Leads List */}
           <Card className="p-6">
-            <div className="space-y-4">
-              {sentLeads.map((lead) => (
-                <div
-                  key={lead.id}
-                  className={`p-4 rounded-lg border-2 transition-all hover:shadow-md ${getRatingColor(lead.rating)}`}
-                >
-                  <div className="flex items-center justify-between">
-                    <div className="flex items-center gap-4">
-                      <div className="flex items-center gap-2">
-                        <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                        <span className="font-semibold">{lead.rating}</span>
-                        {getTrendingIcon(lead.trending)}
+            {isLoadingSent ? (
+              <div className="text-center p-8">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
+                <p className="text-muted-foreground mt-2">Loading sent leads...</p>
+              </div>
+            ) : sentLeads.length === 0 ? (
+              <div className="text-center p-8">
+                <Send className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-lg font-semibold mb-2">No Sent Leads</h3>
+                <p className="text-muted-foreground">
+                  You haven't sent any property proposals yet.
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-4">
+                {sentLeads.map((lead) => (
+                  <div
+                    key={lead.id}
+                    className="p-4 rounded-lg border-2 transition-all hover:shadow-md bg-card"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-4">
+                        <div className="flex flex-col">
+                          <span className="font-semibold">{lead.property?.title || 'Property'}</span>
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <span>{lead.lead?.category || 'Category'}</span>
+                            <span>•</span>
+                            <MapPin className="h-3 w-3" />
+                            <span>
+                              {lead.lead?.location && typeof lead.lead.location === 'object' && !Array.isArray(lead.lead.location) && 'city' in lead.lead.location
+                                ? `${(lead.lead.location as any).area || ''}, ${(lead.lead.location as any).city}`.trim().replace(/^,\s*/, '') 
+                                : 'Location not specified'}
+                            </span>
+                          </div>
+                        </div>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                        <span className="font-medium">{lead.type}</span>
-                        <span>•</span>
-                        <MapPin className="h-3 w-3" />
-                        <span>{lead.area}</span>
+                      
+                      <div className="flex items-center gap-6">
+                        <div className="text-center">
+                          <p className="text-sm text-muted-foreground">Lead Title</p>
+                          <p className="font-medium">{lead.lead?.title || 'Lead'}</p>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm text-muted-foreground">Submitted</p>
+                          <div className="flex items-center gap-1">
+                            <Calendar className="h-3 w-3" />
+                            <span className="text-sm">{new Date(lead.created_at).toLocaleDateString()}</span>
+                          </div>
+                        </div>
+                        <div className="text-center">
+                          <p className="text-sm text-muted-foreground">Status</p>
+                          <Badge className={getStatusColor(lead.status)} variant="outline">
+                            {getStatusIcon(lead.status)}
+                            <span className="ml-1 capitalize">{lead.status}</span>
+                          </Badge>
+                        </div>
+                        <div className="text-right">
+                          <p className="text-sm text-muted-foreground">Cost</p>
+                          <div className="flex items-center gap-1 text-orange-600 font-semibold">
+                            <span>{lead.coins_spent}</span>
+                            <span>coins</span>
+                          </div>
+                        </div>
                       </div>
                     </div>
                     
-                    <div className="flex items-center gap-6">
-                      <div className="text-center">
-                        <p className="text-sm text-muted-foreground">Property Sent</p>
-                        <p className="font-medium">{lead.propertyTitle}</p>
+                    {lead.buyer_feedback && (
+                      <div className="mt-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                        <p className="text-sm"><strong>Feedback:</strong> {lead.buyer_feedback}</p>
                       </div>
-                      <div className="text-center">
-                        <p className="text-sm text-muted-foreground">Submitted</p>
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          <span className="text-sm">{lead.submittedAt}</span>
-                        </div>
-                      </div>
-                      <div className="text-center">
-                        <p className="text-sm text-muted-foreground">Status</p>
-                        <Badge className={getStatusColor(lead.status)} variant="outline">
-                          {getStatusIcon(lead.status)}
-                          <span className="ml-1 capitalize">{lead.status}</span>
-                        </Badge>
-                      </div>
-                      <div className="text-right">
-                        <p className="text-sm text-muted-foreground">Cost</p>
-                        <div className="flex items-center gap-1 text-orange-600 font-semibold">
-                          <span>{lead.leadPrice}</span>
-                          <span>coins</span>
-                        </div>
-                      </div>
-                    </div>
+                    )}
                   </div>
-                  
-                  {lead.response && (
-                    <div className="mt-3 p-3 bg-blue-50 rounded-lg border-l-4 border-blue-400">
-                      <p className="text-sm"><strong>Response:</strong> {lead.response}</p>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </div>
+                ))}
+              </div>
+            )}
           </Card>
         </TabsContent>
       </Tabs>

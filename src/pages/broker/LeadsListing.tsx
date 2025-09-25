@@ -109,8 +109,8 @@ const LeadsListing = () => {
   const filteredLeads = allLeads.filter(lead => {
     if (!searchQuery) return true;
     const location = lead.location || {};
-    const city = typeof location === 'object' && location.city ? location.city : '';
-    const area = typeof location === 'object' && location.area ? location.area : '';
+    const city = typeof location === 'object' && location !== null && 'city' in location ? location.city as string : '';
+    const area = typeof location === 'object' && location !== null && 'area' in location ? location.area as string : '';
     return city.toLowerCase().includes(searchQuery.toLowerCase()) ||
            area.toLowerCase().includes(searchQuery.toLowerCase()) ||
            lead.title.toLowerCase().includes(searchQuery.toLowerCase());
@@ -208,7 +208,7 @@ const LeadsListing = () => {
                     <div className="flex items-center gap-3">
                       <div>
                         <div className="font-semibold text-foreground">
-                          {maskName(lead.buyer?.display_name || 'Anonymous')}
+                          {maskName('Anonymous')}
                         </div>
                         <Badge variant="outline" className="text-xs mt-1">
                           {lead.category}
@@ -224,12 +224,12 @@ const LeadsListing = () => {
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground">Location</div>
-                      <div className="text-sm font-medium text-foreground flex items-center gap-1">
-                        <MapPin className="h-3 w-3" />
-                        {typeof lead.location === 'object' && lead.location.city 
-                          ? `${lead.location.area || ''}, ${lead.location.city}`.trim().replace(/^,\s*/, '') 
-                          : 'Location not specified'}
-                      </div>
+                        <div className="text-sm font-medium text-foreground flex items-center gap-1">
+                          <MapPin className="h-3 w-3" />
+                          {typeof lead.location === 'object' && lead.location !== null && 'city' in lead.location
+                            ? `${typeof lead.location === 'object' && 'area' in lead.location ? lead.location.area as string || '' : ''}, ${lead.location.city as string}`.trim().replace(/^,\s*/, '') 
+                            : 'Location not specified'}
+                        </div>
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground">Priority</div>
@@ -276,7 +276,7 @@ const LeadsListing = () => {
                   <div className="min-w-[120px] flex-shrink-0">
                     <div className="text-xs text-muted-foreground mb-1">Buyer</div>
                     <div className="font-semibold text-foreground">
-                      {maskName(lead.buyer?.display_name || 'Anonymous')}
+                      {maskName('Anonymous')}
                     </div>
                     <Badge variant="outline" className="text-xs mt-1">
                       {lead.category}
@@ -295,8 +295,8 @@ const LeadsListing = () => {
                     <div className="flex items-center gap-1">
                       <MapPin className="h-3 w-3 text-muted-foreground" />
                       <div className="text-sm font-medium text-foreground">
-                        {typeof lead.location === 'object' && lead.location.city 
-                          ? `${lead.location.area || ''}, ${lead.location.city}`.trim().replace(/^,\s*/, '') 
+                        {typeof lead.location === 'object' && lead.location !== null && 'city' in lead.location
+                          ? `${typeof lead.location === 'object' && 'area' in lead.location ? lead.location.area as string || '' : ''}, ${lead.location.city as string}`.trim().replace(/^,\s*/, '') 
                           : 'Location not specified'}
                       </div>
                     </div>

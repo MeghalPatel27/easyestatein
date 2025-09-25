@@ -238,21 +238,22 @@ const PostRequirement = () => {
         status: 'active'
       };
 
-      // For now, insert into properties table (temporary workaround)
+      // Insert into requirements table
       const { error } = await supabase
-        .from('properties')
+        .from('requirements')
         .insert({
-          user_id: user.id,
+          buyer_id: user.id,
           title: `${formData.propertyType.join('/')} in ${formData.city}`,
           description: formData.description || `Looking for ${formData.propertyType.join(' or ')} in ${formData.city}`,
-          category: formData.category as any,
-          type: formData.propertyType[0] as any,
+          property_type: formData.propertyType[0],
           location: { city: formData.city, area: formData.localities[0] || '' },
-          price: formData.budgetRange[1] * 100000,
-          area: parseInt(formData.area) || 0,
+          budget_min: formData.budgetRange[0] * 100000,
+          budget_max: formData.budgetRange[1] * 100000,
+          area_min: parseInt(formData.area) || null,
           bedrooms: parseInt(formData.bhk[0]) || null,
           bathrooms: parseInt(formData.bathrooms) || null,
-          status: 'available'
+          urgency: 'medium',
+          status: 'active'
         });
 
       if (error) throw error;
@@ -262,7 +263,7 @@ const PostRequirement = () => {
         description: "Your requirement has been posted successfully!"
       });
 
-      navigate("/buyer-dashboard");
+      navigate("/buyer/dashboard");
     } catch (error) {
       console.error('Error posting requirement:', error);
       toast({

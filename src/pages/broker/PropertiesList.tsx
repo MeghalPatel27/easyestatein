@@ -94,8 +94,8 @@ const PropertiesList = () => {
     if (statusFilter !== "all" && property.status !== statusFilter) return false;
     if (searchQuery && !property.title.toLowerCase().includes(searchQuery.toLowerCase())) {
       const location = property.location || {};
-      const city = typeof location === 'object' && location.city ? location.city : '';
-      const area = typeof location === 'object' && location.area ? location.area : '';
+      const city = typeof location === 'object' && location !== null && 'city' in location ? location.city as string : '';
+      const area = typeof location === 'object' && location !== null && 'area' in location ? location.area as string : '';
       if (!city.toLowerCase().includes(searchQuery.toLowerCase()) && 
           !area.toLowerCase().includes(searchQuery.toLowerCase())) {
         return false;
@@ -247,9 +247,9 @@ const PropertiesList = () => {
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <MapPin className="h-3 w-3" />
                       <span>
-                        {typeof property.location === 'object' && property.location.city 
-                          ? `${property.location.area || ''}, ${property.location.city}`.trim().replace(/^,\s*/, '') 
-                          : 'Location not specified'}
+                          {typeof property.location === 'object' && property.location !== null && 'city' in property.location
+                            ? `${typeof property.location === 'object' && 'area' in property.location ? property.location.area as string || '' : ''}, ${property.location.city as string}`.trim().replace(/^,\s*/, '') 
+                            : 'Location not specified'}
                       </span>
                     </div>
 
