@@ -9,6 +9,7 @@ interface Profile {
   last_name?: string;
   mobile?: string;
   avatar_url?: string;
+  coin_balance?: number;
   created_at?: string;
   updated_at?: string;
 }

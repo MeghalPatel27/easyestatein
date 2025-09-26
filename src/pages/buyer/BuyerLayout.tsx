@@ -95,7 +95,7 @@ const BuyerLayout = () => {
               {/* Profile Info */}
               <div className="hidden sm:flex items-center gap-2 text-sm">
                 <span className="text-muted-foreground">
-                  {profile?.display_name || 'Buyer'}
+                  {profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}`.trim() : 'Buyer'}
                 </span>
               </div>
 
