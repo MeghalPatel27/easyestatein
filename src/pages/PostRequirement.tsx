@@ -206,69 +206,90 @@ const PostRequirement = () => {
         return;
       }
 
-      // Create requirement object
-      const requirement = {
-        user_id: user.id,
+      // Map property types to database enum values
+      const mapPropertyType = (type: string): 'apartment' | 'villa' | 'house' | 'plot' | 'commercial' | 'office' => {
+        const mapping: { [key: string]: 'apartment' | 'villa' | 'house' | 'plot' | 'commercial' | 'office' } = {
+          'apartment': 'apartment',
+          'villa': 'villa', 
+          'bungalow': 'house',
+          'rowhouse': 'house',
+          'duplex': 'apartment',
+          'penthouse': 'apartment',
+          'plot': 'plot',
+          'office': 'office',
+          'shop': 'commercial',
+          'showroom': 'commercial',
+          'coworking': 'office',
+          'shed': 'commercial',
+          'warehouse': 'commercial',
+          'factory': 'commercial',
+          'industrialland': 'plot',
+          'farmland': 'plot',
+          'agriplot': 'plot',
+          'greenhouse': 'commercial'
+        };
+        return mapping[type] || 'apartment';
+      };
+
+      // Get the primary property type
+      const primaryPropertyType = formData.propertyType[0] || 'apartment';
+      const mappedPropertyType = mapPropertyType(primaryPropertyType);
+
+      // Create requirement object for database
+      const requirementData = {
+        buyer_id: user.id,
+        title: `${formData.propertyType.join('/')} in ${formData.city}`,
+        description: formData.description || `Looking for ${formData.propertyType.join(' or ')} in ${formData.city}. Budget: ${formatBudget(formData.budgetRange[0])} - ${formatBudget(formData.budgetRange[1])}`,
+        property_type: mappedPropertyType,
         category: formData.category,
-        property_type: formData.propertyType.join(', '),
+        type: 'buy' as const, // Default to buy, can be extended later
         location: {
           city: formData.city,
+          area: formData.localities[0] || formData.landmark || '',
           localities: formData.localities,
           landmark: formData.landmark
         },
-        budget_min: formData.budgetRange[0] * 100000,
+        budget_min: formData.budgetRange[0] * 100000, // Convert lakhs to actual amount
         budget_max: formData.budgetRange[1] * 100000,
-        specifications: {
-          bhk: formData.bhk.join(', '),
-          bathrooms: formData.bathrooms,
-          area: formData.area,
-          area_unit: formData.areaUnit,
-          furnishing: formData.furnishing,
-          facilities: formData.facilities
-        },
-        timeline: formData.timeline,
-        financing: formData.financing,
+        area_min: parseInt(formData.area) || null,
+        area_max: null, // Can be added if needed
+        bedrooms: parseInt(formData.bhk[0]) || null,
+        bathrooms: parseInt(formData.bathrooms) || null,
         amenities: formData.amenities,
-        dislikes: formData.dislikes,
-        description: formData.description,
-        contact: {
-          phone: formData.phone,
-          email: formData.email
-        },
-        status: 'active'
+        urgency: (formData.timeline === 'immediate' ? 'urgent' : 
+                 formData.timeline === '3months' ? 'high' : 'medium') as 'urgent' | 'high' | 'medium',
+        status: 'active' as const,
+        lead_price: 100, // Default lead price
+        rejection_rate: 0
       };
 
-      // Insert into requirements table
-      const { error } = await supabase
-        .from('requirements')
-        .insert({
-          buyer_id: user.id,
-          title: `${formData.propertyType.join('/')} in ${formData.city}`,
-          description: formData.description || `Looking for ${formData.propertyType.join(' or ')} in ${formData.city}`,
-          property_type: formData.propertyType[0] as 'apartment' | 'villa' | 'house' | 'plot' | 'commercial' | 'office',
-          location: { city: formData.city, area: formData.localities[0] || '' },
-          budget_min: formData.budgetRange[0] * 100000,
-          budget_max: formData.budgetRange[1] * 100000,
-          area_min: parseInt(formData.area) || null,
-          bedrooms: parseInt(formData.bhk[0]) || null,
-          bathrooms: parseInt(formData.bathrooms) || null,
-          urgency: 'medium',
-          status: 'active'
-        });
+      console.log('Submitting requirement:', requirementData);
 
-      if (error) throw error;
+      // Insert into requirements table
+      const { data, error } = await supabase
+        .from('requirements')
+        .insert([requirementData])
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Database error:', error);
+        throw error;
+      }
+
+      console.log('Requirement created successfully:', data);
 
       toast({
-        title: "Success",
-        description: "Your requirement has been posted successfully!"
+        title: "Success!",
+        description: "Your requirement has been posted successfully! Brokers will contact you soon.",
       });
 
-      navigate("/buyer/dashboard");
-    } catch (error) {
+      navigate("/buyer/requirements");
+    } catch (error: any) {
       console.error('Error posting requirement:', error);
       toast({
         title: "Error",
-        description: "Failed to post requirement. Please try again.",
+        description: error?.message || "Failed to post requirement. Please try again.",
         variant: "destructive"
       });
     } finally {
