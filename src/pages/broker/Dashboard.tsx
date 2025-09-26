@@ -48,14 +48,13 @@ const Dashboard = () => {
         id: lead.id,
         name: 'Anonymous Buyer', // Will be populated when we properly join profiles
         rating: 4.0, // Default rating
-        category: lead.category?.charAt(0).toUpperCase() + lead.category?.slice(1) || 'Residential',
-        propertyType: lead.type?.charAt(0).toUpperCase() + lead.type?.slice(1) || 'Apartment',
-        area: typeof lead.location === 'object' && lead.location && 'city' in lead.location ? lead.location.city as string : 'Location not specified',
-        budget: lead.budget_min && lead.budget_max ? 
-          `₹${lead.budget_min}L - ₹${lead.budget_max}L` : 'Budget not specified',
-        urgency: lead.urgency?.charAt(0).toUpperCase() + lead.urgency?.slice(1) || 'Medium',
-        rejectionRate: lead.rejection_rate || 0,
-        leadPrice: lead.lead_price || 10,
+        category: 'Residential',
+        propertyType: 'Apartment',
+        area: 'Location not specified',
+        budget: 'Budget not specified',
+        urgency: 'Medium',
+        rejectionRate: 0,
+        leadPrice: 10,
         unlocked: true // For now, all leads are unlocked
       }));
     }
@@ -75,7 +74,7 @@ const Dashboard = () => {
 
       // Count leads this broker has engaged with
       const { count: engagedLeads } = await supabase
-        .from('sent_leads')
+        .from('leads')
         .select('*', { count: 'exact', head: true })
         .eq('broker_id', user.id);
 

@@ -245,7 +245,7 @@ const PostRequirement = () => {
           buyer_id: user.id,
           title: `${formData.propertyType.join('/')} in ${formData.city}`,
           description: formData.description || `Looking for ${formData.propertyType.join(' or ')} in ${formData.city}`,
-          property_type: formData.propertyType[0],
+          property_type: formData.propertyType[0] as 'apartment' | 'villa' | 'house' | 'plot' | 'commercial' | 'office',
           location: { city: formData.city, area: formData.localities[0] || '' },
           budget_min: formData.budgetRange[0] * 100000,
           budget_max: formData.budgetRange[1] * 100000,

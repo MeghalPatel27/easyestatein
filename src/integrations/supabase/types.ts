@@ -18,35 +18,35 @@ export type Database = {
         Row: {
           broker_id: string
           buyer_id: string
-          created_at: string
+          created_at: string | null
           id: string
           last_message: string | null
           last_message_at: string | null
           property_id: string | null
           requirement_id: string | null
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
           broker_id: string
           buyer_id: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           last_message?: string | null
           last_message_at?: string | null
           property_id?: string | null
           requirement_id?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
           broker_id?: string
           buyer_id?: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           last_message?: string | null
           last_message_at?: string | null
           property_id?: string | null
           requirement_id?: string | null
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -83,35 +83,35 @@ export type Database = {
         Row: {
           broker_id: string
           buyer_id: string
-          created_at: string
+          created_at: string | null
           id: string
           notes: string | null
           property_id: string | null
           requirement_id: string | null
-          status: string
-          updated_at: string
+          status: string | null
+          updated_at: string | null
         }
         Insert: {
           broker_id: string
           buyer_id: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           notes?: string | null
           property_id?: string | null
           requirement_id?: string | null
-          status?: string
-          updated_at?: string
+          status?: string | null
+          updated_at?: string | null
         }
         Update: {
           broker_id?: string
           buyer_id?: string
-          created_at?: string
+          created_at?: string | null
           id?: string
           notes?: string | null
           property_id?: string | null
           requirement_id?: string | null
-          status?: string
-          updated_at?: string
+          status?: string | null
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -149,27 +149,27 @@ export type Database = {
           attachments: string[] | null
           chat_id: string
           content: string
-          created_at: string
+          created_at: string | null
           id: string
-          message_type: string
+          message_type: string | null
           sender_id: string
         }
         Insert: {
           attachments?: string[] | null
           chat_id: string
           content: string
-          created_at?: string
+          created_at?: string | null
           id?: string
-          message_type?: string
+          message_type?: string | null
           sender_id: string
         }
         Update: {
           attachments?: string[] | null
           chat_id?: string
           content?: string
-          created_at?: string
+          created_at?: string | null
           id?: string
-          message_type?: string
+          message_type?: string | null
           sender_id?: string
         }
         Relationships: [
@@ -192,32 +192,59 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
-          created_at: string
-          first_name: string
+          business_license: string | null
+          coin_balance: number | null
+          company_name: string | null
+          created_at: string | null
+          first_name: string | null
           id: string
-          last_name: string
-          mobile: string
-          updated_at: string
+          kyc_status: string | null
+          last_name: string | null
+          mobile: string | null
+          operating_areas: Json | null
+          rating: number | null
+          subscription_expires_at: string | null
+          subscription_type: string | null
+          total_reviews: number | null
+          updated_at: string | null
           user_type: Database["public"]["Enums"]["user_type"]
         }
         Insert: {
           avatar_url?: string | null
-          created_at?: string
-          first_name: string
+          business_license?: string | null
+          coin_balance?: number | null
+          company_name?: string | null
+          created_at?: string | null
+          first_name?: string | null
           id: string
-          last_name: string
-          mobile: string
-          updated_at?: string
+          kyc_status?: string | null
+          last_name?: string | null
+          mobile?: string | null
+          operating_areas?: Json | null
+          rating?: number | null
+          subscription_expires_at?: string | null
+          subscription_type?: string | null
+          total_reviews?: number | null
+          updated_at?: string | null
           user_type: Database["public"]["Enums"]["user_type"]
         }
         Update: {
           avatar_url?: string | null
-          created_at?: string
-          first_name?: string
+          business_license?: string | null
+          coin_balance?: number | null
+          company_name?: string | null
+          created_at?: string | null
+          first_name?: string | null
           id?: string
-          last_name?: string
-          mobile?: string
-          updated_at?: string
+          kyc_status?: string | null
+          last_name?: string | null
+          mobile?: string | null
+          operating_areas?: Json | null
+          rating?: number | null
+          subscription_expires_at?: string | null
+          subscription_type?: string | null
+          total_reviews?: number | null
+          updated_at?: string | null
           user_type?: Database["public"]["Enums"]["user_type"]
         }
         Relationships: []
@@ -229,16 +256,17 @@ export type Database = {
           bathrooms: number | null
           bedrooms: number | null
           broker_id: string
-          created_at: string
+          category: string | null
+          created_at: string | null
           description: string | null
           id: string
           images: string[] | null
-          location: Json
+          location: Json | null
           price: number
           property_type: Database["public"]["Enums"]["property_type"]
-          status: Database["public"]["Enums"]["property_status"]
+          status: Database["public"]["Enums"]["property_status"] | null
           title: string
-          updated_at: string
+          updated_at: string | null
         }
         Insert: {
           amenities?: string[] | null
@@ -246,16 +274,17 @@ export type Database = {
           bathrooms?: number | null
           bedrooms?: number | null
           broker_id: string
-          created_at?: string
+          category?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
           images?: string[] | null
-          location: Json
+          location?: Json | null
           price: number
           property_type: Database["public"]["Enums"]["property_type"]
-          status?: Database["public"]["Enums"]["property_status"]
+          status?: Database["public"]["Enums"]["property_status"] | null
           title: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Update: {
           amenities?: string[] | null
@@ -263,16 +292,17 @@ export type Database = {
           bathrooms?: number | null
           bedrooms?: number | null
           broker_id?: string
-          created_at?: string
+          category?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
           images?: string[] | null
-          location?: Json
+          location?: Json | null
           price?: number
           property_type?: Database["public"]["Enums"]["property_type"]
-          status?: Database["public"]["Enums"]["property_status"]
+          status?: Database["public"]["Enums"]["property_status"] | null
           title?: string
-          updated_at?: string
+          updated_at?: string | null
         }
         Relationships: [
           {
@@ -294,15 +324,19 @@ export type Database = {
           budget_max: number | null
           budget_min: number | null
           buyer_id: string
-          created_at: string
+          category: string | null
+          created_at: string | null
           description: string | null
           id: string
-          location: Json
+          lead_price: number | null
+          location: Json | null
           property_type: Database["public"]["Enums"]["property_type"]
-          status: Database["public"]["Enums"]["requirement_status"]
+          rejection_rate: number | null
+          status: Database["public"]["Enums"]["requirement_status"] | null
           title: string
-          updated_at: string
-          urgency: Database["public"]["Enums"]["urgency_level"]
+          type: string | null
+          updated_at: string | null
+          urgency: Database["public"]["Enums"]["urgency_level"] | null
         }
         Insert: {
           amenities?: string[] | null
@@ -313,15 +347,19 @@ export type Database = {
           budget_max?: number | null
           budget_min?: number | null
           buyer_id: string
-          created_at?: string
+          category?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
-          location: Json
+          lead_price?: number | null
+          location?: Json | null
           property_type: Database["public"]["Enums"]["property_type"]
-          status?: Database["public"]["Enums"]["requirement_status"]
+          rejection_rate?: number | null
+          status?: Database["public"]["Enums"]["requirement_status"] | null
           title: string
-          updated_at?: string
-          urgency?: Database["public"]["Enums"]["urgency_level"]
+          type?: string | null
+          updated_at?: string | null
+          urgency?: Database["public"]["Enums"]["urgency_level"] | null
         }
         Update: {
           amenities?: string[] | null
@@ -332,15 +370,19 @@ export type Database = {
           budget_max?: number | null
           budget_min?: number | null
           buyer_id?: string
-          created_at?: string
+          category?: string | null
+          created_at?: string | null
           description?: string | null
           id?: string
-          location?: Json
+          lead_price?: number | null
+          location?: Json | null
           property_type?: Database["public"]["Enums"]["property_type"]
-          status?: Database["public"]["Enums"]["requirement_status"]
+          rejection_rate?: number | null
+          status?: Database["public"]["Enums"]["requirement_status"] | null
           title?: string
-          updated_at?: string
-          urgency?: Database["public"]["Enums"]["urgency_level"]
+          type?: string | null
+          updated_at?: string | null
+          urgency?: Database["public"]["Enums"]["urgency_level"] | null
         }
         Relationships: [
           {
@@ -355,29 +397,29 @@ export type Database = {
       wallet_transactions: {
         Row: {
           amount: number
-          created_at: string
+          created_at: string | null
           description: string | null
           id: string
           reference_id: string | null
-          transaction_type: Database["public"]["Enums"]["transaction_type"]
+          type: Database["public"]["Enums"]["transaction_type"]
           user_id: string
         }
         Insert: {
           amount: number
-          created_at?: string
+          created_at?: string | null
           description?: string | null
           id?: string
           reference_id?: string | null
-          transaction_type: Database["public"]["Enums"]["transaction_type"]
+          type: Database["public"]["Enums"]["transaction_type"]
           user_id: string
         }
         Update: {
           amount?: number
-          created_at?: string
+          created_at?: string | null
           description?: string | null
           id?: string
           reference_id?: string | null
-          transaction_type?: Database["public"]["Enums"]["transaction_type"]
+          type?: Database["public"]["Enums"]["transaction_type"]
           user_id?: string
         }
         Relationships: [
@@ -392,13 +434,67 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      sent_leads: {
+        Row: {
+          broker_id: string | null
+          budget_max: number | null
+          budget_min: number | null
+          buyer_id: string | null
+          category: string | null
+          created_at: string | null
+          id: string | null
+          lead_price: number | null
+          location: Json | null
+          notes: string | null
+          property_id: string | null
+          property_type: Database["public"]["Enums"]["property_type"] | null
+          rejection_rate: number | null
+          requirement_id: string | null
+          requirement_status:
+            | Database["public"]["Enums"]["requirement_status"]
+            | null
+          status: string | null
+          type: string | null
+          updated_at: string | null
+          urgency: Database["public"]["Enums"]["urgency_level"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "leads_broker_id_fkey"
+            columns: ["broker_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_buyer_id_fkey"
+            columns: ["buyer_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_property_id_fkey"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "leads_requirement_id_fkey"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "requirements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       [_ in never]: never
     }
     Enums: {
-      property_status: "active" | "sold" | "rented" | "inactive"
+      property_status: "active" | "sold" | "inactive"
       property_type:
         | "apartment"
         | "villa"
@@ -406,8 +502,8 @@ export type Database = {
         | "plot"
         | "commercial"
         | "office"
-      requirement_status: "active" | "fulfilled" | "paused" | "expired"
-      transaction_type: "credit" | "debit"
+      requirement_status: "active" | "matched" | "closed"
+      transaction_type: "debit" | "credit" | "refund"
       urgency_level: "low" | "medium" | "high" | "urgent"
       user_type: "buyer" | "broker"
     }
@@ -537,7 +633,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
-      property_status: ["active", "sold", "rented", "inactive"],
+      property_status: ["active", "sold", "inactive"],
       property_type: [
         "apartment",
         "villa",
@@ -546,8 +642,8 @@ export const Constants = {
         "commercial",
         "office",
       ],
-      requirement_status: ["active", "fulfilled", "paused", "expired"],
-      transaction_type: ["credit", "debit"],
+      requirement_status: ["active", "matched", "closed"],
+      transaction_type: ["debit", "credit", "refund"],
       urgency_level: ["low", "medium", "high", "urgent"],
       user_type: ["buyer", "broker"],
     },
