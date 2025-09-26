@@ -6,8 +6,6 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, Heart, Share, Building, Home, MapPin, Bed, Bath, Car, Maximize } from "lucide-react";
 import { EnhancedSearch } from "@/components/ui/enhanced-search";
-import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
 
 const PropertySearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
@@ -15,44 +13,39 @@ const PropertySearch = () => {
   const [budget, setBudget] = useState("all");
   const [bhk, setBhk] = useState("all");
 
-  // Fetch available properties from database
-  const { data: properties = [], isLoading } = useQuery({
-    queryKey: ['public-properties', propertyType, bhk],
-    queryFn: async () => {
-      let query = supabase
-        .from('public_properties')
-        .select('*')
-        .eq('status', 'available');
-
-      // Apply filters
-      if (propertyType !== 'all') {
-        query = query.eq('type', propertyType as any);
-      }
-      
-      if (bhk !== 'all') {
-        query = query.eq('bedrooms', parseInt(bhk));
-      }
-
-      const { data, error } = await query.order('created_at', { ascending: false });
-      if (error) throw error;
-
-      return data.map(property => ({
-        id: property.id,
-        title: property.title || 'Untitled Property',
-        type: property.type,
-        price: `₹${property.price}`,
-        location: typeof property.location === 'object' && property.location && 'city' in property.location ? property.location.city as string : 'Location not specified',
-        bedrooms: property.bedrooms || 0,
-        bathrooms: property.bathrooms || 0,
-        parking: 1, // Default value
-        area: `${property.area} sq ft`,
-        image: property.images?.[0] || "/placeholder.svg",
-        broker: "Property Agent", // Will be fetched from profiles later
-        featured: false,
-        amenities: [] // Will be parsed from specifications
-      }));
+  // Mock properties data for now
+  const mockProperties = [
+    {
+      id: "1",
+      title: "Luxury Apartment in City Center",
+      type: "apartment",
+      price: "₹1.2 Cr",
+      location: "Bandra, Mumbai",
+      bedrooms: 3,
+      bathrooms: 2,
+      parking: 1,
+      area: "1200 sq ft",
+      image: "/placeholder.svg",
+      broker: "Property Expert",
+      featured: true,
+      amenities: ["Gym", "Pool", "Security"]
+    },
+    {
+      id: "2",
+      title: "Modern Villa with Garden",
+      type: "villa",
+      price: "₹2.5 Cr",
+      location: "Powai, Mumbai",
+      bedrooms: 4,
+      bathrooms: 3,
+      parking: 2,
+      area: "2500 sq ft",
+      image: "/placeholder.svg",
+      broker: "Villa Specialist",
+      featured: false,
+      amenities: ["Garden", "Swimming Pool", "Parking"]
     }
-  });
+  ];
 
   const getPropertyIcon = (type: string) => {
     switch (type) {
@@ -67,7 +60,7 @@ const PropertySearch = () => {
     }
   };
 
-  const filteredProperties = properties.filter(property => {
+  const filteredProperties = mockProperties.filter(property => {
     const matchesSearch = property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          property.location.toLowerCase().includes(searchQuery.toLowerCase());
     const matchesType = propertyType === "all" || property.type === propertyType;
@@ -143,7 +136,7 @@ const PropertySearch = () => {
       {/* Results Count */}
       <div className="flex items-center justify-between">
         <p className="text-muted-foreground">
-          Showing {filteredProperties.length} of {properties.length} properties
+          Showing {filteredProperties.length} of {mockProperties.length} properties
         </p>
         <Select defaultValue="relevance">
           <SelectTrigger className="w-40">
@@ -161,12 +154,7 @@ const PropertySearch = () => {
 
       {/* Properties Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {isLoading ? (
-          <div className="col-span-full text-center py-12">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-            <p className="text-muted-foreground mt-4">Loading properties...</p>
-          </div>
-        ) : filteredProperties.length > 0 ? (
+        {filteredProperties.length > 0 ? (
           filteredProperties.map((property) => (
             <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow group">
               {/* Property Image */}

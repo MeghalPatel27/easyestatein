@@ -1,10 +1,7 @@
 import { useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnhancedSearch } from "@/components/ui/enhanced-search";
 import { 
@@ -31,73 +28,86 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/hooks/useAuth";
 
 const PropertiesList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
-  const { user } = useAuth();
   
-  // Fetch user's properties
-  const { data: properties = [], isLoading } = useQuery({
-    queryKey: ['properties', user?.id, statusFilter],
-    queryFn: async () => {
-      let query = supabase
-        .from('properties')
-        .select('*')
-        .eq('user_id', user?.id!);
-
-      if (statusFilter !== 'all') {
-        query = query.eq('status', statusFilter as any);
-      }
-
-      const { data, error } = await query
-        .order('created_at', { ascending: false });
-
-      if (error) throw error;
-      return data || [];
+  // Mock properties data for now
+  const mockProperties = [
+    {
+      id: "1",
+      title: "Luxury Apartment in City Center",
+      category: "residential",
+      property_type: "apartment",
+      price: 12000000,
+      area: 1200,
+      bedrooms: 3,
+      bathrooms: 2,
+      status: "active" as const,
+      location: { city: "Mumbai", area: "Bandra" },
+      images: ["/placeholder.svg"],
+      created_at: "2025-01-15T10:00:00Z",
+      description: "Beautiful apartment with modern amenities"
     },
-    enabled: !!user
-  });
+    {
+      id: "2",
+      title: "Modern Villa with Garden",
+      category: "residential",
+      property_type: "villa",
+      price: 25000000,
+      area: 2500,
+      bedrooms: 4,
+      bathrooms: 3,
+      status: "sold" as const,
+      location: { city: "Mumbai", area: "Powai" },
+      images: ["/placeholder.svg"],
+      created_at: "2025-01-10T10:00:00Z",
+      description: "Spacious villa with private garden"
+    }
+  ];
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case "available": return "bg-green-100 text-green-700 border-green-200";
+      case "active": return "bg-green-100 text-green-700 border-green-200";
       case "sold": return "bg-blue-100 text-blue-700 border-blue-200";
-      case "rented": return "bg-purple-100 text-purple-700 border-purple-200";
+      case "inactive": return "bg-gray-100 text-gray-700 border-gray-200";
       default: return "bg-gray-100 text-gray-700 border-gray-200";
     }
   };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
-      case "available": return <CheckCircle className="h-4 w-4" />;
+      case "active": return <CheckCircle className="h-4 w-4" />;
       case "sold": return <Archive className="h-4 w-4" />;
-      case "rented": return <Clock className="h-4 w-4" />;
+      case "inactive": return <Clock className="h-4 w-4" />;
       default: return <Building className="h-4 w-4" />;
     }
   };
 
   const getStatusCounts = () => {
     return {
-      all: properties.length,
-      available: properties.filter(p => p.status === "available").length,
-      sold: properties.filter(p => p.status === "sold").length,
-      rented: properties.filter(p => p.status === "rented").length,
+      all: mockProperties.length,
+      active: mockProperties.filter(p => p.status === "active").length,
+      sold: mockProperties.filter(p => p.status === "sold").length,
+      inactive: 0, // No inactive properties in mock data
     };
   };
 
   const counts = getStatusCounts();
 
-  const filteredProperties = properties.filter(property => {
+  const filteredProperties = mockProperties.filter(property => {
     if (statusFilter !== "all" && property.status !== statusFilter) return false;
     if (searchQuery && !property.title.toLowerCase().includes(searchQuery.toLowerCase())) {
-      const location = property.location || {};
-      const city = typeof location === 'object' && location !== null && 'city' in location ? location.city as string : '';
-      const area = typeof location === 'object' && location !== null && 'area' in location ? location.area as string : '';
-      if (!city.toLowerCase().includes(searchQuery.toLowerCase()) && 
-          !area.toLowerCase().includes(searchQuery.toLowerCase())) {
+      const location = property.location;
+      if (location && typeof location === 'object') {
+        const city = ('city' in location) ? location.city as string : '';
+        const area = ('area' in location) ? location.area as string : '';
+        if (!city.toLowerCase().includes(searchQuery.toLowerCase()) && 
+            !area.toLowerCase().includes(searchQuery.toLowerCase())) {
+          return false;
+        }
+      } else {
         return false;
       }
     }
@@ -144,27 +154,22 @@ const PropertiesList = () => {
             <List className="h-3 w-3" />
             All ({counts.all})
           </TabsTrigger>
-          <TabsTrigger value="available" className="gap-2">
+          <TabsTrigger value="active" className="gap-2">
             <CheckCircle className="h-3 w-3" />
-            Available ({counts.available})
+            Active ({counts.active})
           </TabsTrigger>
           <TabsTrigger value="sold" className="gap-2">
             <Archive className="h-3 w-3" />
             Sold ({counts.sold})
           </TabsTrigger>
-          <TabsTrigger value="rented" className="gap-2">
+          <TabsTrigger value="inactive" className="gap-2">
             <Clock className="h-3 w-3" />
-            Rented ({counts.rented})
+            Inactive ({counts.inactive})
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value={statusFilter} className="mt-6">
-          {isLoading ? (
-            <div className="text-center p-8">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-muted-foreground mt-2">Loading properties...</p>
-            </div>
-          ) : filteredProperties.length === 0 ? (
+          {filteredProperties.length === 0 ? (
             <Card className="p-8 text-center">
               <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-lg font-semibold mb-2">No Properties Found</h3>
@@ -240,16 +245,16 @@ const PropertiesList = () => {
                       <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                         <span>{property.category}</span>
                         <span>•</span>
-                        <span>{property.type}</span>
+                        <span>{property.property_type}</span>
                       </div>
                     </div>
 
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <MapPin className="h-3 w-3" />
                       <span>
-                          {typeof property.location === 'object' && property.location !== null && 'city' in property.location
-                            ? `${typeof property.location === 'object' && 'area' in property.location ? property.location.area as string || '' : ''}, ${property.location.city as string}`.trim().replace(/^,\s*/, '') 
-                            : 'Location not specified'}
+                        {property.location?.area && property.location?.city
+                          ? `${property.location.area}, ${property.location.city}`
+                          : 'Location not specified'}
                       </span>
                     </div>
 

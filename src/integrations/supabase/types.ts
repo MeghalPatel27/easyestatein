@@ -196,6 +196,7 @@ export type Database = {
           coin_balance: number | null
           company_name: string | null
           created_at: string | null
+          email: string | null
           first_name: string | null
           id: string
           kyc_status: string | null
@@ -215,6 +216,7 @@ export type Database = {
           coin_balance?: number | null
           company_name?: string | null
           created_at?: string | null
+          email?: string | null
           first_name?: string | null
           id: string
           kyc_status?: string | null
@@ -234,6 +236,7 @@ export type Database = {
           coin_balance?: number | null
           company_name?: string | null
           created_at?: string | null
+          email?: string | null
           first_name?: string | null
           id?: string
           kyc_status?: string | null

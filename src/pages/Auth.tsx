@@ -19,18 +19,20 @@ const Auth = () => {
   const [error, setError] = useState<string | null>(null);
   
   // Sign In Form State with validation
-  const [signInMobile, setSignInMobile] = useState("");
+  const [signInEmail, setSignInEmail] = useState("");
   const [signInPassword, setSignInPassword] = useState("");
-  const [signInMobileError, setSignInMobileError] = useState("");
+  const [signInEmailError, setSignInEmailError] = useState("");
   const [signInPasswordError, setSignInPasswordError] = useState("");
   
   // Sign Up Form State with validation
+  const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpMobile, setSignUpMobile] = useState("");
   const [signUpPassword, setSignUpPassword] = useState("");
   const [signUpConfirmPassword, setSignUpConfirmPassword] = useState("");
   const [accountType, setAccountType] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
+  const [signUpEmailError, setSignUpEmailError] = useState("");
   const [signUpMobileError, setSignUpMobileError] = useState("");
   const [signUpPasswordError, setSignUpPasswordError] = useState("");
   const [signUpConfirmPasswordError, setSignUpConfirmPasswordError] = useState("");
@@ -95,6 +97,14 @@ const Auth = () => {
   }, [navigate]);
 
   // Input validation functions
+  const validateEmail = (email: string): string => {
+    if (!email.trim()) return "Email is required";
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(email)) return "Please enter a valid email address";
+    if (email.length > 255) return "Email is too long";
+    return "";
+  };
+
   const validateMobile = (mobile: string): string => {
     if (!mobile.trim()) return "Mobile number is required";
     const mobileRegex = /^[+]?[1-9][\d\s\-\(\)]{7,15}$/;
@@ -122,9 +132,9 @@ const Auth = () => {
                 .trim();
   };
 
-  // Function to check account type by mobile number
-  const checkAccountType = async (mobile: string) => {
-    if (!mobile.trim() || mobile.length < 7) {
+  // Function to check account type by email
+  const checkAccountType = async (email: string) => {
+    if (!email.trim() || !email.includes('@')) {
       setDetectedAccountType("");
       return;
     }
@@ -134,7 +144,7 @@ const Auth = () => {
       const { data, error } = await supabase
         .from('profiles')
         .select('user_type, first_name, last_name')
-        .eq('mobile', mobile)
+        .eq('email', email)
         .maybeSingle();
 
       if (error) {
@@ -158,35 +168,33 @@ const Auth = () => {
     setError(null);
     
     // Sanitize inputs
-    const cleanMobile = sanitizeInput(signInMobile);
+    const cleanEmail = sanitizeInput(signInEmail);
     const cleanPassword = sanitizeInput(signInPassword);
     
     // Validate inputs
-    const mobileError = validateMobile(cleanMobile);
+    const emailError = validateEmail(cleanEmail);
     const passwordError = validatePassword(cleanPassword);
     
-    setSignInMobileError(mobileError);
+    setSignInEmailError(emailError);
     setSignInPasswordError(passwordError);
     
-    if (mobileError || passwordError) {
+    if (emailError || passwordError) {
       return;
     }
 
     setIsLoading(true);
     
     try {
-      // Note: For now using mobile as email for Supabase auth
-      // In production, you'd implement phone auth or convert mobile to email format
       const { error } = await supabase.auth.signInWithPassword({
-        email: `${cleanMobile}@mobile.app`,
+        email: cleanEmail,
         password: cleanPassword,
       });
 
       if (error) {
         if (error.message.includes('Invalid login credentials')) {
-          setError("Invalid mobile number or password. Please check your credentials and try again.");
+          setError("Invalid email or password. Please check your credentials and try again.");
         } else if (error.message.includes('Email not confirmed')) {
-          setError("Please verify your mobile number before signing in.");
+          setError("Please verify your email address before signing in.");
         } else if (error.message.includes('Too many requests')) {
           setError("Too many login attempts. Please wait a few minutes before trying again.");
         } else {
@@ -207,6 +215,7 @@ const Auth = () => {
     setError(null);
     
     // Sanitize inputs
+    const cleanEmail = sanitizeInput(signUpEmail);
     const cleanMobile = sanitizeInput(signUpMobile);
     const cleanPassword = sanitizeInput(signUpPassword);
     const cleanConfirmPassword = sanitizeInput(signUpConfirmPassword);
@@ -214,6 +223,7 @@ const Auth = () => {
     const cleanLastName = sanitizeInput(lastName);
     
     // Validate inputs
+    const emailError = validateEmail(cleanEmail);
     const mobileError = validateMobile(cleanMobile);
     const passwordError = validatePassword(cleanPassword);
     
@@ -239,6 +249,7 @@ const Auth = () => {
       lastNameValidationError = "Last name is required";
     }
     
+    setSignUpEmailError(emailError);
     setSignUpMobileError(mobileError);
     setSignUpPasswordError(passwordError);
     setSignUpConfirmPasswordError(confirmPasswordError);
@@ -246,7 +257,7 @@ const Auth = () => {
     setFirstNameError(firstNameValidationError);
     setLastNameError(lastNameValidationError);
     
-    if (mobileError || passwordError || confirmPasswordError || accountTypeValidationError || firstNameValidationError || lastNameValidationError) {
+    if (emailError || mobileError || passwordError || confirmPasswordError || accountTypeValidationError || firstNameValidationError || lastNameValidationError) {
       return;
     }
 
@@ -255,16 +266,14 @@ const Auth = () => {
     try {
       const redirectUrl = `${window.location.origin}/`;
       
-      // Note: For now using mobile as email for Supabase auth
-      // In production, you'd implement phone auth or convert mobile to email format
       const { error } = await supabase.auth.signUp({
-        email: `${cleanMobile}@mobile.app`,
+        email: cleanEmail,
         password: cleanPassword,
         options: {
           emailRedirectTo: redirectUrl,
           data: {
-            mobile_number: cleanMobile,
-            account_type: accountType,
+            mobile: cleanMobile,
+            user_type: accountType,
             first_name: cleanFirstName,
             last_name: cleanLastName
           }
@@ -273,7 +282,7 @@ const Auth = () => {
 
       if (error) {
         if (error.message.includes('already registered')) {
-          setError("An account with this mobile number already exists. Please sign in instead.");
+          setError("An account with this email already exists. Please sign in instead.");
         } else if (error.message.includes('Password should be')) {
           setError("Password does not meet security requirements. Please choose a stronger password.");
         } else if (error.message.includes('Signup is disabled')) {
@@ -380,25 +389,25 @@ const Auth = () => {
 
                     <form onSubmit={handleSignIn} className="space-y-4">
                       <div className="space-y-2">
-                        <Label htmlFor="signin-mobile">Mobile Number</Label>
+                        <Label htmlFor="signin-email">Email Address</Label>
                         <Input
-                          id="signin-mobile"
-                          type="tel"
-                          placeholder="Enter your mobile number"
-                          value={signInMobile}
+                          id="signin-email"
+                          type="email"
+                          placeholder="Enter your email address"
+                          value={signInEmail}
                           onChange={(e) => {
-                            setSignInMobile(e.target.value);
-                            if (signInMobileError) setSignInMobileError("");
+                            setSignInEmail(e.target.value);
+                            if (signInEmailError) setSignInEmailError("");
                             // Check account type with debounce
                             setTimeout(() => checkAccountType(e.target.value), 500);
                           }}
-                          className={signInMobileError ? "border-destructive" : ""}
+                          className={signInEmailError ? "border-destructive" : ""}
                           disabled={isLoading}
-                          maxLength={20}
+                          maxLength={255}
                           required
                         />
-                        {signInMobileError && (
-                          <p className="text-sm text-destructive">{signInMobileError}</p>
+                        {signInEmailError && (
+                          <p className="text-sm text-destructive">{signInEmailError}</p>
                         )}
                         {isCheckingAccount && (
                           <p className="text-sm text-muted-foreground">Checking account...</p>
@@ -524,6 +533,35 @@ const Auth = () => {
                       </div>
 
                       <div className="space-y-2">
+                        <Label htmlFor="signup-email">Email Address</Label>
+                        <Input
+                          id="signup-email"
+                          type="email"
+                          placeholder="Enter your email address"
+                          value={signUpEmail}
+                          onChange={(e) => {
+                            setSignUpEmail(e.target.value);
+                            if (signUpEmailError) setSignUpEmailError("");
+                            // Check account type with debounce
+                            setTimeout(() => checkAccountType(e.target.value), 500);
+                          }}
+                          className={signUpEmailError ? "border-destructive" : ""}
+                          disabled={isLoading}
+                          maxLength={255}
+                          required
+                        />
+                        {signUpEmailError && (
+                          <p className="text-sm text-destructive">{signUpEmailError}</p>
+                        )}
+                        {isCheckingAccount && (
+                          <p className="text-sm text-muted-foreground">Checking account...</p>
+                        )}
+                        {detectedAccountType && !isCheckingAccount && (
+                          <p className="text-sm text-orange-600 font-medium">⚠️ Account already exists: {detectedAccountType}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-2">
                         <Label htmlFor="signup-mobile">Mobile Number</Label>
                         <Input
                           id="signup-mobile"
@@ -533,8 +571,6 @@ const Auth = () => {
                           onChange={(e) => {
                             setSignUpMobile(e.target.value);
                             if (signUpMobileError) setSignUpMobileError("");
-                            // Check account type with debounce
-                            setTimeout(() => checkAccountType(e.target.value), 500);
                           }}
                           className={signUpMobileError ? "border-destructive" : ""}
                           disabled={isLoading}
@@ -543,12 +579,6 @@ const Auth = () => {
                         />
                         {signUpMobileError && (
                           <p className="text-sm text-destructive">{signUpMobileError}</p>
-                        )}
-                        {isCheckingAccount && (
-                          <p className="text-sm text-muted-foreground">Checking account...</p>
-                        )}
-                        {detectedAccountType && !isCheckingAccount && (
-                          <p className="text-sm text-orange-600 font-medium">⚠️ Account already exists: {detectedAccountType}</p>
                         )}
                       </div>
 
@@ -630,16 +660,16 @@ const Auth = () => {
                         )}
                        </div>
                        
-                       <div className="flex items-start space-x-2">
-                         <Checkbox id="terms-signup" className="mt-1" />
-                         <Label htmlFor="terms-signup" className="text-sm text-muted-foreground leading-relaxed">
-                           I agree that my mobile number will be forever associated with the account type{" "}
-                           <span className="font-medium text-foreground">
-                             {accountType ? accountType.charAt(0).toUpperCase() + accountType.slice(1) : "[Selected Account Type]"}
-                           </span>
-                           . It will not be changed until the company approves.
-                         </Label>
-                       </div>
+                        <div className="flex items-start space-x-2">
+                          <Checkbox id="terms-signup" className="mt-1" />
+                          <Label htmlFor="terms-signup" className="text-sm text-muted-foreground leading-relaxed">
+                            I agree that my email and mobile number will be associated with the account type{" "}
+                            <span className="font-medium text-foreground">
+                              {accountType ? accountType.charAt(0).toUpperCase() + accountType.slice(1) : "[Selected Account Type]"}
+                            </span>
+                            .
+                          </Label>
+                        </div>
                        
                        <Button 
                          type="submit" 

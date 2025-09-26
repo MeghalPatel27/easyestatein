@@ -53,39 +53,39 @@ const Wallet = () => {
   });
   
   const monthlySpent = monthlyTransactions
-    .filter(t => t.transaction_type === 'lead_purchase')
+    .filter(t => t.type === 'debit')
     .reduce((sum, t) => sum + t.amount, 0);
   
-  const totalLeadPurchases = transactions.filter(t => t.transaction_type === 'lead_purchase').length;
+  const totalLeadPurchases = transactions.filter(t => t.type === 'debit').length;
   const averageLeadCost = totalLeadPurchases > 0 
     ? Math.round(transactions
-        .filter(t => t.transaction_type === 'lead_purchase')
+        .filter(t => t.type === 'debit')
         .reduce((sum, t) => sum + t.amount, 0) / totalLeadPurchases)
     : 0;
 
   const getTransactionIcon = (type: string) => {
     switch(type) {
-      case "wallet_refill": return ArrowDown; // Credits - green down arrow
-      case "lead_purchase": return ArrowUp;   // Spent - red up arrow  
-      case "refund": return ArrowDown;        // Refund - green down arrow
+      case "credit": return ArrowDown; // Credits - green down arrow
+      case "debit": return ArrowUp;    // Spent - red up arrow  
+      case "refund": return ArrowDown; // Refund - green down arrow
       default: return ArrowUp;
     }
   };
 
   const getTransactionColor = (type: string) => {
     switch(type) {
-      case "wallet_refill": return "text-green-600"; // Credits - green
-      case "lead_purchase": return "text-red-600";    // Spent - red
-      case "refund": return "text-green-600";         // Refund - green
+      case "credit": return "text-green-600"; // Credits - green
+      case "debit": return "text-red-600";    // Spent - red
+      case "refund": return "text-green-600"; // Refund - green
       default: return "text-red-600";
     }
   };
 
   const getBgColor = (type: string) => {
     switch(type) {
-      case "wallet_refill": return "bg-green-100"; // Credits - green
-      case "lead_purchase": return "bg-red-100";    // Spent - red
-      case "refund": return "bg-green-100";         // Refund - green
+      case "credit": return "bg-green-100"; // Credits - green
+      case "debit": return "bg-red-100";    // Spent - red
+      case "refund": return "bg-green-100"; // Refund - green
       default: return "bg-red-100";
     }
   };
@@ -204,13 +204,13 @@ const Wallet = () => {
             ) : (
               <div className="space-y-4">
                 {transactions.map((transaction) => {
-                  const Icon = getTransactionIcon(transaction.transaction_type);
-                  const colorClass = getTransactionColor(transaction.transaction_type);
+                  const Icon = getTransactionIcon(transaction.type);
+                  const colorClass = getTransactionColor(transaction.type);
                   
                   return (
                     <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                       <div className="flex items-center gap-4">
-                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.transaction_type)}`}>
+                        <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.type)}`}>
                           <Icon className={`h-5 w-5 ${colorClass}`} />
                         </div>
                         <div>
@@ -231,10 +231,10 @@ const Wallet = () => {
                       </div>
                       <div className="text-right">
                         <p className={`font-semibold ${colorClass}`}>
-                          {transaction.transaction_type === "wallet_refill" || transaction.transaction_type === "refund" ? "+" : "-"}{transaction.amount} coins
+                          {transaction.type === "credit" || transaction.type === "refund" ? "+" : "-"}{transaction.amount} coins
                         </p>
                         <Badge variant="secondary" className="bg-green-100 text-green-700">
-                          {transaction.status}
+                          Completed
                         </Badge>
                       </div>
                     </div>
@@ -246,14 +246,14 @@ const Wallet = () => {
 
           <TabsContent value="credits" className="mt-6">
             <div className="space-y-4">
-              {transactions.filter(t => t.transaction_type === "wallet_refill" || t.transaction_type === "refund").map((transaction) => {
-                const Icon = getTransactionIcon(transaction.transaction_type);
-                const colorClass = getTransactionColor(transaction.transaction_type);
+              {transactions.filter(t => t.type === "credit" || t.type === "refund").map((transaction) => {
+                const Icon = getTransactionIcon(transaction.type);
+                const colorClass = getTransactionColor(transaction.type);
                 
                 return (
                   <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.transaction_type)}`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.type)}`}>
                         <Icon className={`h-5 w-5 ${colorClass}`} />
                       </div>
                       <div>
@@ -269,7 +269,7 @@ const Wallet = () => {
                         +{transaction.amount} coins
                       </p>
                       <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        {transaction.status}
+                        Completed
                       </Badge>
                     </div>
                   </div>
@@ -280,14 +280,14 @@ const Wallet = () => {
 
           <TabsContent value="debits" className="mt-6">
             <div className="space-y-4">
-              {transactions.filter(t => t.transaction_type === "lead_purchase").map((transaction) => {
-                const Icon = getTransactionIcon(transaction.transaction_type);
-                const colorClass = getTransactionColor(transaction.transaction_type);
+              {transactions.filter(t => t.type === "debit").map((transaction) => {
+                const Icon = getTransactionIcon(transaction.type);
+                const colorClass = getTransactionColor(transaction.type);
                 
                 return (
                   <div key={transaction.id} className="flex items-center justify-between p-4 border rounded-lg hover:bg-accent/50 transition-colors">
                     <div className="flex items-center gap-4">
-                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.transaction_type)}`}>
+                      <div className={`w-10 h-10 rounded-full flex items-center justify-center ${getBgColor(transaction.type)}`}>
                         <Icon className={`h-5 w-5 ${colorClass}`} />
                       </div>
                       <div>
@@ -303,7 +303,7 @@ const Wallet = () => {
                         -{transaction.amount} coins
                       </p>
                       <Badge variant="secondary" className="bg-green-100 text-green-700">
-                        {transaction.status}
+                        Completed
                       </Badge>
                     </div>
                   </div>
