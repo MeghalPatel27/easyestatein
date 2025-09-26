@@ -415,6 +415,12 @@ const Auth = () => {
                         {detectedAccountType && !isCheckingAccount && (
                           <p className="text-sm text-primary font-medium">✓ {detectedAccountType}</p>
                         )}
+                        {isCheckingAccount && (
+                          <p className="text-sm text-muted-foreground">Checking account...</p>
+                        )}
+                        {detectedAccountType && !isCheckingAccount && (
+                          <p className="text-sm text-primary font-medium">✓ {detectedAccountType}</p>
+                        )}
                       </div>
                       
                       <div className="space-y-2">
