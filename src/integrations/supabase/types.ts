@@ -494,7 +494,10 @@ export type Database = {
       }
     }
     Functions: {
-      [_ in never]: never
+      get_account_type_by_email: {
+        Args: { _email: string }
+        Returns: string
+      }
     }
     Enums: {
       property_status: "active" | "sold" | "inactive"

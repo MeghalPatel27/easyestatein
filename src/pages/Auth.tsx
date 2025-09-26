@@ -132,27 +132,31 @@ const Auth = () => {
                 .trim();
   };
 
-  // Function to check account type by email (uses secure RPC to bypass RLS safely)
+  // Function to check account type by email
   const checkAccountType = async (email: string) => {
     if (!email.trim() || !email.includes('@')) {
-      // Do not clear immediately so UI doesn't flicker
-      return;
+      return; // Don't clear on invalid input to prevent flickering
     }
 
     setIsCheckingAccount(true);
     try {
-      const { data, error } = await supabase.rpc('get_account_type_by_email', { _email: email });
+      const { data, error } = await supabase
+        .from('profiles')
+        .select('user_type')
+        .eq('email', email)
+        .maybeSingle();
 
       if (error) {
         console.error('Error checking account type:', error);
-        // Keep previous value on error to avoid disappearing UI
+        // Keep previous state on error
       } else if (data) {
-        setDetectedAccountType(data === 'broker' ? 'Broker/Developer Account' : 'Buyer Account');
+        setDetectedAccountType(data.user_type === 'broker' ? 'Broker/Developer Account' : 'Buyer Account');
       } else {
-        setDetectedAccountType('');
+        setDetectedAccountType(''); // Clear only when no account found
       }
     } catch (error) {
       console.error('Error checking account type:', error);
+      // Keep previous state on error
     } finally {
       setIsCheckingAccount(false);
     }
