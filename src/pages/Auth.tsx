@@ -472,10 +472,10 @@ const Auth = () => {
                     </form>
                   </TabsContent>
                   
-                  <TabsContent value="signup" className="space-y-6 flex-1 absolute inset-0 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-left-4 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0 data-[state=inactive]:slide-out-to-right-4 duration-700 ease-in-out overflow-y-auto">
-                    <div className="text-center space-y-2">
-                      <h1 className="text-3xl font-bold text-foreground">Create an Account</h1>
-                      <p className="text-muted-foreground">
+                  <TabsContent value="signup" className="space-y-4 flex-1 absolute inset-0 data-[state=active]:animate-in data-[state=active]:fade-in-0 data-[state=active]:slide-in-from-left-4 data-[state=inactive]:animate-out data-[state=inactive]:fade-out-0 data-[state=inactive]:slide-out-to-right-4 duration-700 ease-in-out">
+                    <div className="text-center space-y-1">
+                      <h1 className="text-2xl font-bold text-foreground">Create an Account</h1>
+                      <p className="text-muted-foreground text-sm">
                         Already have an account? 
                         <button 
                           type="button"
@@ -490,9 +490,9 @@ const Auth = () => {
                       </p>
                     </div>
 
-                    <form onSubmit={handleSignUp} className="space-y-4">
-                      <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-2">
+                    <form onSubmit={handleSignUp} className="space-y-3">
+                      <div className="grid grid-cols-2 gap-3">
+                        <div className="space-y-1">
                           <Label htmlFor="first-name">First Name</Label>
                           <Input
                             id="first-name"
@@ -508,10 +508,10 @@ const Auth = () => {
                             required
                           />
                           {firstNameError && (
-                            <p className="text-sm text-destructive">{firstNameError}</p>
+                            <p className="text-xs text-destructive">{firstNameError}</p>
                           )}
                         </div>
-                        <div className="space-y-2">
+                        <div className="space-y-1">
                           <Label htmlFor="last-name">Last Name</Label>
                           <Input
                             id="last-name"
@@ -527,12 +527,12 @@ const Auth = () => {
                             required
                           />
                           {lastNameError && (
-                            <p className="text-sm text-destructive">{lastNameError}</p>
+                            <p className="text-xs text-destructive">{lastNameError}</p>
                           )}
                         </div>
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-1">
                         <Label htmlFor="signup-email">Email Address</Label>
                         <Input
                           id="signup-email"
@@ -551,17 +551,17 @@ const Auth = () => {
                           required
                         />
                         {signUpEmailError && (
-                          <p className="text-sm text-destructive">{signUpEmailError}</p>
+                          <p className="text-xs text-destructive">{signUpEmailError}</p>
                         )}
                         {isCheckingAccount && (
-                          <p className="text-sm text-muted-foreground">Checking account...</p>
+                          <p className="text-xs text-muted-foreground">Checking account...</p>
                         )}
                         {detectedAccountType && !isCheckingAccount && (
-                          <p className="text-sm text-orange-600 font-medium">⚠️ Account already exists: {detectedAccountType}</p>
+                          <p className="text-xs text-orange-600 font-medium">⚠️ Account already exists: {detectedAccountType}</p>
                         )}
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-1">
                         <Label htmlFor="signup-mobile">Mobile Number</Label>
                         <Input
                           id="signup-mobile"
@@ -578,11 +578,11 @@ const Auth = () => {
                           required
                         />
                         {signUpMobileError && (
-                          <p className="text-sm text-destructive">{signUpMobileError}</p>
+                          <p className="text-xs text-destructive">{signUpMobileError}</p>
                         )}
                       </div>
 
-                      <div className="space-y-2">
+                      <div className="space-y-1">
                         <Label htmlFor="account-type">Type of Account</Label>
                         <Select value={accountType} onValueChange={(value) => {
                           setAccountType(value);
@@ -598,11 +598,11 @@ const Auth = () => {
                           </SelectContent>
                         </Select>
                         {accountTypeError && (
-                          <p className="text-sm text-destructive">{accountTypeError}</p>
+                          <p className="text-xs text-destructive">{accountTypeError}</p>
                         )}
                       </div>
                       
-                      <div className="space-y-2">
+                      <div className="space-y-1">
                         <Label htmlFor="signup-password">Password</Label>
                         <div className="relative">
                           <Input
@@ -635,11 +635,11 @@ const Auth = () => {
                           </Button>
                         </div>
                         {signUpPasswordError && (
-                          <p className="text-sm text-destructive">{signUpPasswordError}</p>
+                          <p className="text-xs text-destructive">{signUpPasswordError}</p>
                         )}
                       </div>
                       
-                      <div className="space-y-2 animate-in fade-in-0 slide-in-from-bottom-4 duration-700 delay-200">
+                      <div className="space-y-1">
                         <Label htmlFor="signup-confirm-password">Confirm Password</Label>
                         <Input
                           id="signup-confirm-password"
@@ -656,13 +656,13 @@ const Auth = () => {
                           required
                         />
                         {signUpConfirmPasswordError && (
-                          <p className="text-sm text-destructive animate-in fade-in-0 slide-in-from-bottom-2 duration-300">{signUpConfirmPasswordError}</p>
+                          <p className="text-xs text-destructive">{signUpConfirmPasswordError}</p>
                         )}
                        </div>
                        
                         <div className="flex items-start space-x-2">
                           <Checkbox id="terms-signup" className="mt-1" />
-                          <Label htmlFor="terms-signup" className="text-sm text-muted-foreground leading-relaxed">
+                          <Label htmlFor="terms-signup" className="text-xs text-muted-foreground leading-relaxed">
                             I agree that my email and mobile number will be associated with the account type{" "}
                             <span className="font-medium text-foreground">
                               {accountType ? accountType.charAt(0).toUpperCase() + accountType.slice(1) : "[Selected Account Type]"}
@@ -671,13 +671,13 @@ const Auth = () => {
                           </Label>
                         </div>
                        
-                       <Button 
-                         type="submit" 
-                         className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-12 rounded-full font-medium" 
-                         disabled={isLoading}
-                       >
-                         {isLoading ? "Creating Account..." : "Create Account"}
-                       </Button>
+                        <Button 
+                          type="submit" 
+                          className="w-full bg-primary hover:bg-primary/90 text-primary-foreground h-11 rounded-full font-medium mt-4" 
+                          disabled={isLoading}
+                        >
+                          {isLoading ? "Creating Account..." : "Create Account"}
+                        </Button>
                     </form>
                   </TabsContent>
                 </div>
