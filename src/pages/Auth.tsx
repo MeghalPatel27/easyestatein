@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -132,37 +132,31 @@ const Auth = () => {
                 .trim();
   };
 
-  // Function to check account type by email
+  // Function to check account type by email (uses secure RPC to bypass RLS safely)
   const checkAccountType = async (email: string) => {
     if (!email.trim() || !email.includes('@')) {
-      setDetectedAccountType("");
+      // Do not clear immediately so UI doesn't flicker
       return;
     }
 
     setIsCheckingAccount(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('user_type, first_name, last_name')
-        .eq('email', email)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('get_account_type_by_email', { _email: email });
 
       if (error) {
         console.error('Error checking account type:', error);
-        setDetectedAccountType("");
+        // Keep previous value on error to avoid disappearing UI
       } else if (data) {
-        setDetectedAccountType(data.user_type === 'broker' ? 'Broker/Developer Account' : 'Buyer Account');
+        setDetectedAccountType(data === 'broker' ? 'Broker/Developer Account' : 'Buyer Account');
       } else {
-        setDetectedAccountType("");
+        setDetectedAccountType('');
       }
     } catch (error) {
       console.error('Error checking account type:', error);
-      setDetectedAccountType("");
     } finally {
       setIsCheckingAccount(false);
     }
   };
-
   const handleSignIn = async (e: React.FormEvent) => {
     e.preventDefault();
     setError(null);
