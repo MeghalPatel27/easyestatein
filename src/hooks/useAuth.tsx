@@ -3,19 +3,14 @@ import { User, Session } from '@supabase/supabase-js';
 import { supabase } from '@/integrations/supabase/client';
 
 interface Profile {
-  user_id: string;
+  id: string;
   user_type: string;
-  display_name?: string;
-  phone?: string;
-  coin_balance?: number;
-  company_name?: string;
-  business_license?: string;
-  kyc_status?: string;
-  operating_areas?: any;
-  rating?: number;
-  total_reviews?: number;
-  subscription_type?: string;
-  subscription_expires_at?: string;
+  first_name?: string;
+  last_name?: string;
+  mobile?: string;
+  avatar_url?: string;
+  created_at?: string;
+  updated_at?: string;
 }
 
 interface AuthContextType {
@@ -51,7 +46,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('user_id', userId)
+        .eq('id', userId)
         .single();
 
       if (error && error.code !== 'PGRST116') {

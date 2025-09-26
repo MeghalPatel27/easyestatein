@@ -108,7 +108,7 @@ const BrokerLayout = () => {
               {/* Coin Balance */}
               <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
                 <Coins className="h-4 w-4" />
-                <span>{profile?.coin_balance || 0}</span>
+                <span>0</span>
               </div>
 
               {/* Notifications */}
@@ -120,7 +120,7 @@ const BrokerLayout = () => {
               {/* Profile Info */}
               <div className="hidden sm:flex items-center gap-2 text-sm">
                 <span className="text-muted-foreground">
-                  {profile?.display_name || 'Broker'}
+                  {profile?.first_name ? `${profile.first_name} ${profile.last_name || ''}`.trim() : 'Broker'}
                 </span>
               </div>
 

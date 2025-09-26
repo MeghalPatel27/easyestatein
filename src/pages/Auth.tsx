@@ -52,7 +52,7 @@ const Auth = () => {
           const { data: profile } = await supabase
             .from('profiles')
             .select('user_type')
-            .eq('user_id', session.user.id)
+            .eq('id', session.user.id)
             .single();
 
           if (profile?.user_type === 'buyer') {
@@ -76,7 +76,7 @@ const Auth = () => {
           const { data: profile } = await supabase
             .from('profiles')
             .select('user_type')
-            .eq('user_id', session.user.id)
+            .eq('id', session.user.id)
             .single();
 
           if (profile?.user_type === 'buyer') {
@@ -133,8 +133,8 @@ const Auth = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('user_type, display_name')
-        .eq('phone', mobile)
+        .select('user_type, first_name, last_name')
+        .eq('mobile', mobile)
         .maybeSingle();
 
       if (error) {
