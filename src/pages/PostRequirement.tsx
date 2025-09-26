@@ -195,11 +195,30 @@ const PostRequirement = () => {
     setLoading(true);
 
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
+      // Check both user and session to ensure proper authentication
+      const { data: { user }, error: userError } = await supabase.auth.getUser();
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      
+      if (userError || sessionError || !user || !session) {
+        console.error('Auth error:', userError || sessionError);
         toast({
           title: "Error",
           description: "Please login to post a requirement",
+          variant: "destructive"
+        });
+        navigate("/auth");
+        return;
+      }
+
+      console.log('User authenticated:', user.id, 'Session valid:', !!session);
+
+      // Refresh session to ensure it's current
+      const { data: refreshedSession, error: refreshError } = await supabase.auth.refreshSession();
+      if (refreshError) {
+        console.error('Session refresh error:', refreshError);
+        toast({
+          title: "Session Error", 
+          description: "Please login again to continue.",
           variant: "destructive"
         });
         navigate("/auth");
@@ -265,7 +284,7 @@ const PostRequirement = () => {
 
       console.log('Submitting requirement:', requirementData);
 
-      // Insert into requirements table
+      // Insert into requirements table - ensure we're properly authenticated
       const { data, error } = await supabase
         .from('requirements')
         .insert([requirementData])
@@ -273,7 +292,24 @@ const PostRequirement = () => {
         .single();
 
       if (error) {
-        console.error('Database error:', error);
+        console.error('Database error details:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code
+        });
+        
+        // Check if it's an RLS permission error
+        if (error.message.includes('permission denied') || error.code === '42501') {
+          toast({
+            title: "Authentication Error",
+            description: "Please logout and login again to continue.",
+            variant: "destructive"
+          });
+          navigate("/auth");
+          return;
+        }
+        
         throw error;
       }
 
