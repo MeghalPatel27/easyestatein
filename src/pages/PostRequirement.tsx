@@ -40,6 +40,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/components/ui/use-toast";
 import { CompassSelector } from "@/components/ui/compass-selector";
+import { useAuth } from "@/hooks/useAuth";
 
 // Property categories and types
 const PROPERTY_CATEGORIES = [
@@ -110,6 +111,7 @@ const FINANCING_OPTIONS = [
 const PostRequirement = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { user, profile, loading: authLoading } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
   const [loading, setLoading] = useState(false);
 
@@ -195,14 +197,10 @@ const PostRequirement = () => {
     setLoading(true);
 
     try {
-      // Check both user and session to ensure proper authentication
-      const { data: { user }, error: userError } = await supabase.auth.getUser();
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      
-      if (userError || sessionError || !user || !session) {
-        console.error('Auth error:', userError || sessionError);
+      // Check authentication using useAuth hook
+      if (!user || !profile) {
         toast({
-          title: "Error",
+          title: "Authentication Required",
           description: "Please login to post a requirement",
           variant: "destructive"
         });
@@ -210,20 +208,18 @@ const PostRequirement = () => {
         return;
       }
 
-      console.log('User authenticated:', user.id, 'Session valid:', !!session);
-
-      // Refresh session to ensure it's current
-      const { data: refreshedSession, error: refreshError } = await supabase.auth.refreshSession();
-      if (refreshError) {
-        console.error('Session refresh error:', refreshError);
+      // Ensure the user is a buyer
+      if (profile.user_type !== 'buyer') {
         toast({
-          title: "Session Error", 
-          description: "Please login again to continue.",
+          title: "Access Denied",
+          description: "Only buyers can post requirements",
           variant: "destructive"
         });
-        navigate("/auth");
+        navigate("/");
         return;
       }
+
+      console.log('User authenticated:', user.id, 'Profile:', profile.user_type);
 
       // Map property types to database enum values
       const mapPropertyType = (type: string): 'apartment' | 'villa' | 'house' | 'plot' | 'commercial' | 'office' => {
@@ -284,10 +280,10 @@ const PostRequirement = () => {
 
       console.log('Submitting requirement:', requirementData);
 
-      // Insert into requirements table - ensure we're properly authenticated
+      // Insert into requirements table
       const { data, error } = await supabase
         .from('requirements')
-        .insert([requirementData])
+        .insert(requirementData)
         .select()
         .single();
 
@@ -298,17 +294,6 @@ const PostRequirement = () => {
           hint: error.hint,
           code: error.code
         });
-        
-        // Check if it's an RLS permission error
-        if (error.message.includes('permission denied') || error.code === '42501') {
-          toast({
-            title: "Authentication Error",
-            description: "Please logout and login again to continue.",
-            variant: "destructive"
-          });
-          navigate("/auth");
-          return;
-        }
         
         throw error;
       }
