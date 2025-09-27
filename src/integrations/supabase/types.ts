@@ -317,6 +317,78 @@ export type Database = {
           },
         ]
       }
+      property_approvals: {
+        Row: {
+          admin_notes: string | null
+          amenities: string[] | null
+          approved_at: string | null
+          approved_by: string | null
+          area: number | null
+          bathrooms: number | null
+          bedrooms: number | null
+          broker_id: string
+          category: string | null
+          created_at: string
+          description: string | null
+          documents: string[] | null
+          id: string
+          images: string[] | null
+          location: Json | null
+          price: number
+          property_type: Database["public"]["Enums"]["property_type"]
+          status: string | null
+          submitted_at: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amenities?: string[] | null
+          approved_at?: string | null
+          approved_by?: string | null
+          area?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          broker_id: string
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          documents?: string[] | null
+          id?: string
+          images?: string[] | null
+          location?: Json | null
+          price: number
+          property_type: Database["public"]["Enums"]["property_type"]
+          status?: string | null
+          submitted_at?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amenities?: string[] | null
+          approved_at?: string | null
+          approved_by?: string | null
+          area?: number | null
+          bathrooms?: number | null
+          bedrooms?: number | null
+          broker_id?: string
+          category?: string | null
+          created_at?: string
+          description?: string | null
+          documents?: string[] | null
+          id?: string
+          images?: string[] | null
+          location?: Json | null
+          price?: number
+          property_type?: Database["public"]["Enums"]["property_type"]
+          status?: string | null
+          submitted_at?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       requirements: {
         Row: {
           amenities: string[] | null
@@ -494,6 +566,10 @@ export type Database = {
       }
     }
     Functions: {
+      approve_property: {
+        Args: { _admin_id: string; _approval_id: string }
+        Returns: string
+      }
       get_account_type_by_email: {
         Args: { _email: string }
         Returns: string
