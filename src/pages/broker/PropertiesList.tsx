@@ -40,7 +40,7 @@ const PropertiesList = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   
   // Fetch properties for the current broker
-  const { data: properties = [], isLoading, refetch } = useQuery({
+  const { data: properties = [], isLoading, refetch, error } = useQuery({
     queryKey: ['properties', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -66,19 +66,12 @@ const PropertiesList = () => {
       
       console.log('Properties data:', data);
       console.log('User ID:', user.id);
+      console.log('Total properties found:', data?.length || 0);
       
-      // Also check approved properties that might not be in properties table yet
-      const { data: approvedData } = await supabase
-        .from('property_approvals')
-        .select('*')
-        .eq('broker_id', user.id)
-        .eq('status', 'approved');
-        
-      console.log('Approved properties data:', approvedData);
-      
-      return data;
+      return data || [];
     },
     enabled: !!user?.id,
+    retry: 3,
   });
 
   const updatePropertyStatus = async (propertyId: string, newStatus: 'active' | 'sold' | 'inactive') => {
@@ -243,24 +236,45 @@ const PropertiesList = () => {
         </TabsList>
 
         <TabsContent value={statusFilter} className="mt-6">
-          {filteredProperties.length === 0 ? (
+          {error && (
+            <Card className="p-8 text-center border-red-200 bg-red-50">
+              <h3 className="text-lg font-semibold mb-2 text-red-700">Error Loading Properties</h3>
+              <p className="text-red-600 mb-4">
+                {error.message || 'Unable to load properties. Please try again.'}
+              </p>
+              <Button onClick={() => refetch()} variant="outline">
+                Retry
+              </Button>
+            </Card>
+          )}
+          
+          {!error && filteredProperties.length === 0 && !isLoading ? (
             <Card className="p-8 text-center">
               <Building className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-lg font-semibold mb-2">No Properties Found</h3>
+              <h3 className="text-lg font-semibold mb-2">
+                {properties.length === 0 ? 'No Properties Found' : `No ${statusFilter === 'all' ? '' : statusFilter} Properties`}
+              </h3>
               <p className="text-muted-foreground mb-4">
-                {statusFilter === "all" 
+                {properties.length === 0 
                   ? "You haven't added any properties yet." 
-                  : `No properties found with status "${statusFilter}".`
+                  : `No properties found with status "${statusFilter}". Total properties: ${properties.length}`
                 }
               </p>
-              <Link to="/broker/properties/new">
-                <Button className="gap-2">
-                  <Plus className="h-4 w-4" />
-                  Add Your First Property
+              {properties.length === 0 && (
+                <Link to="/broker/properties/new">
+                  <Button className="gap-2">
+                    <Plus className="h-4 w-4" />
+                    Add Your First Property
+                  </Button>
+                </Link>
+              )}
+              {properties.length > 0 && (
+                <Button onClick={() => setStatusFilter("all")} variant="outline">
+                  View All Properties
                 </Button>
-              </Link>
+              )}
             </Card>
-          ) : (
+          ) : !error && (
             /* Properties Grid */
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {filteredProperties.map((property) => (
