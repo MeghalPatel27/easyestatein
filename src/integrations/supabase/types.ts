@@ -498,6 +498,15 @@ export type Database = {
         Args: { _email: string }
         Returns: string
       }
+      get_or_create_chat: {
+        Args: {
+          _broker_id: string
+          _buyer_id: string
+          _property_id?: string
+          _requirement_id?: string
+        }
+        Returns: string
+      }
       get_user_profile: {
         Args: { _user_id: string }
         Returns: {
@@ -514,6 +523,17 @@ export type Database = {
           rating: number
           total_reviews: number
           user_type: Database["public"]["Enums"]["user_type"]
+        }[]
+      }
+      match_properties_to_requirement: {
+        Args: { _requirement_id: string }
+        Returns: {
+          broker_id: string
+          location: Json
+          match_score: number
+          price: number
+          property_id: string
+          title: string
         }[]
       }
       update_user_coin_balance: {
