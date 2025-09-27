@@ -47,7 +47,15 @@ const PropertiesList = () => {
       
       const { data, error } = await supabase
         .from('properties')
-        .select('*')
+        .select(`
+          *,
+          property_approvals (
+            id,
+            status,
+            approved_at,
+            approved_by
+          )
+        `)
         .eq('broker_id', user.id)
         .order('created_at', { ascending: false });
       
@@ -58,6 +66,16 @@ const PropertiesList = () => {
       
       console.log('Properties data:', data);
       console.log('User ID:', user.id);
+      
+      // Also check approved properties that might not be in properties table yet
+      const { data: approvedData } = await supabase
+        .from('property_approvals')
+        .select('*')
+        .eq('broker_id', user.id)
+        .eq('status', 'approved');
+        
+      console.log('Approved properties data:', approvedData);
+      
       return data;
     },
     enabled: !!user?.id,

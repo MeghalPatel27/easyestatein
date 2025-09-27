@@ -255,6 +255,7 @@ export type Database = {
       properties: {
         Row: {
           amenities: string[] | null
+          approval_id: string | null
           area: number | null
           bathrooms: number | null
           bedrooms: number | null
@@ -274,6 +275,7 @@ export type Database = {
         }
         Insert: {
           amenities?: string[] | null
+          approval_id?: string | null
           area?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
@@ -293,6 +295,7 @@ export type Database = {
         }
         Update: {
           amenities?: string[] | null
+          approval_id?: string | null
           area?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
@@ -311,6 +314,13 @@ export type Database = {
           user_status?: Database["public"]["Enums"]["user_property_status"]
         }
         Relationships: [
+          {
+            foreignKeyName: "properties_approval_id_fkey"
+            columns: ["approval_id"]
+            isOneToOne: false
+            referencedRelation: "property_approvals"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "properties_broker_id_fkey"
             columns: ["broker_id"]
