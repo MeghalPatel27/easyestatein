@@ -47,15 +47,7 @@ const PropertiesList = () => {
       
       const { data, error } = await supabase
         .from('properties')
-        .select(`
-          *,
-          property_approvals (
-            id,
-            status,
-            approved_at,
-            approved_by
-          )
-        `)
+        .select('*')
         .eq('broker_id', user.id)
         .order('created_at', { ascending: false });
       
