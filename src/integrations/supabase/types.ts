@@ -270,6 +270,7 @@ export type Database = {
           status: Database["public"]["Enums"]["property_status"] | null
           title: string
           updated_at: string | null
+          user_status: Database["public"]["Enums"]["user_property_status"]
         }
         Insert: {
           amenities?: string[] | null
@@ -288,6 +289,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["property_status"] | null
           title: string
           updated_at?: string | null
+          user_status?: Database["public"]["Enums"]["user_property_status"]
         }
         Update: {
           amenities?: string[] | null
@@ -306,6 +308,7 @@ export type Database = {
           status?: Database["public"]["Enums"]["property_status"] | null
           title?: string
           updated_at?: string | null
+          user_status?: Database["public"]["Enums"]["user_property_status"]
         }
         Relationships: [
           {
@@ -640,6 +643,7 @@ export type Database = {
       requirement_status: "active" | "matched" | "closed"
       transaction_type: "debit" | "credit" | "refund"
       urgency_level: "low" | "medium" | "high" | "urgent"
+      user_property_status: "active" | "sold" | "inactive"
       user_type: "buyer" | "broker"
     }
     CompositeTypes: {
@@ -781,6 +785,7 @@ export const Constants = {
       requirement_status: ["active", "matched", "closed"],
       transaction_type: ["debit", "credit", "refund"],
       urgency_level: ["low", "medium", "high", "urgent"],
+      user_property_status: ["active", "sold", "inactive"],
       user_type: ["buyer", "broker"],
     },
   },

@@ -40,7 +40,7 @@ const PropertiesList = () => {
   const [statusFilter, setStatusFilter] = useState("all");
   
   // Fetch properties for the current broker
-  const { data: properties = [], isLoading } = useQuery({
+  const { data: properties = [], isLoading, refetch } = useQuery({
     queryKey: ['properties', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
@@ -56,6 +56,23 @@ const PropertiesList = () => {
     },
     enabled: !!user?.id,
   });
+
+  const updatePropertyStatus = async (propertyId: string, newStatus: 'active' | 'sold' | 'inactive') => {
+    try {
+      const { error } = await supabase
+        .from('properties')
+        .update({ user_status: newStatus })
+        .eq('id', propertyId)
+        .eq('broker_id', user?.id);
+
+      if (error) throw error;
+      
+      // Refetch properties to update the UI
+      refetch();
+    } catch (error) {
+      console.error('Error updating property status:', error);
+    }
+  };
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -78,16 +95,16 @@ const PropertiesList = () => {
   const getStatusCounts = () => {
     return {
       all: properties.length,
-      active: properties.filter(p => p.status === "active").length,
-      sold: properties.filter(p => p.status === "sold").length,
-      inactive: properties.filter(p => p.status === "inactive").length,
+      active: properties.filter(p => p.user_status === "active").length,
+      sold: properties.filter(p => p.user_status === "sold").length,
+      inactive: properties.filter(p => p.user_status === "inactive").length,
     };
   };
 
   const counts = getStatusCounts();
 
   const filteredProperties = properties.filter(property => {
-    if (statusFilter !== "all" && property.status !== statusFilter) return false;
+    if (statusFilter !== "all" && property.user_status !== statusFilter) return false;
     if (searchQuery && !property.title.toLowerCase().includes(searchQuery.toLowerCase())) {
       const location = property.location;
       if (location && typeof location === 'object') {
@@ -238,9 +255,9 @@ const PropertiesList = () => {
                       </div>
                     )}
                     <div className="absolute top-3 left-3">
-                      <Badge className={getStatusColor(property.status)} variant="outline">
-                        {getStatusIcon(property.status)}
-                        <span className="ml-1 capitalize">{property.status}</span>
+                      <Badge className={getStatusColor(property.user_status)} variant="outline">
+                        {getStatusIcon(property.user_status)}
+                        <span className="ml-1 capitalize">{property.user_status}</span>
                       </Badge>
                     </div>
                     <div className="absolute top-3 right-3">
@@ -262,6 +279,27 @@ const PropertiesList = () => {
                           <DropdownMenuItem>
                             <Copy className="h-4 w-4 mr-2" />
                             Duplicate
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => updatePropertyStatus(property.id, 'active')}
+                            className={property.user_status === 'active' ? 'bg-green-50' : ''}
+                          >
+                            <CheckCircle className="h-4 w-4 mr-2" />
+                            Mark as Active
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => updatePropertyStatus(property.id, 'sold')}
+                            className={property.user_status === 'sold' ? 'bg-blue-50' : ''}
+                          >
+                            <Archive className="h-4 w-4 mr-2" />
+                            Mark as Sold
+                          </DropdownMenuItem>
+                          <DropdownMenuItem 
+                            onClick={() => updatePropertyStatus(property.id, 'inactive')}
+                            className={property.user_status === 'inactive' ? 'bg-gray-50' : ''}
+                          >
+                            <Clock className="h-4 w-4 mr-2" />
+                            Mark as Inactive
                           </DropdownMenuItem>
                         </DropdownMenuContent>
                       </DropdownMenu>
