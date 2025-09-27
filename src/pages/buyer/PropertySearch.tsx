@@ -4,48 +4,104 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Heart, Share, Building, Home, MapPin, Bed, Bath, Car, Maximize } from "lucide-react";
+import { Search, Filter, Heart, Share, Building, Home, MapPin, Bed, Bath, Car, Maximize, Plus } from "lucide-react";
 import { EnhancedSearch } from "@/components/ui/enhanced-search";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useNavigate } from "react-router-dom";
+
+interface Property {
+  id: string;
+  title: string;
+  property_type: string;
+  price: number;
+  location: any;
+  bedrooms: number;
+  bathrooms: number;
+  area: number;
+  images: string[];
+  amenities: string[];
+  broker_id: string;
+  status: string;
+  match_score?: number;
+}
 
 const PropertySearch = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [propertyType, setPropertyType] = useState("all");
   const [budget, setBudget] = useState("all");
   const [bhk, setBhk] = useState("all");
+  const { user } = useAuth();
+  const navigate = useNavigate();
 
-  // Mock properties data for now
-  const mockProperties = [
-    {
-      id: "1",
-      title: "Luxury Apartment in City Center",
-      type: "apartment",
-      price: "₹1.2 Cr",
-      location: "Bandra, Mumbai",
-      bedrooms: 3,
-      bathrooms: 2,
-      parking: 1,
-      area: "1200 sq ft",
-      image: "/placeholder.svg",
-      broker: "Property Expert",
-      featured: true,
-      amenities: ["Gym", "Pool", "Security"]
+  // Fetch buyer's requirements
+  const { data: requirements = [], isLoading: requirementsLoading } = useQuery({
+    queryKey: ['buyer-requirements', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('requirements')
+        .select('*')
+        .eq('buyer_id', user.id)
+        .eq('status', 'active')
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data || [];
     },
-    {
-      id: "2",
-      title: "Modern Villa with Garden",
-      type: "villa",
-      price: "₹2.5 Cr",
-      location: "Powai, Mumbai",
-      bedrooms: 4,
-      bathrooms: 3,
-      parking: 2,
-      area: "2500 sq ft",
-      image: "/placeholder.svg",
-      broker: "Villa Specialist",
-      featured: false,
-      amenities: ["Garden", "Swimming Pool", "Parking"]
-    }
-  ];
+    enabled: !!user?.id
+  });
+
+  // Fetch matching properties for all requirements
+  const { data: matchingProperties = [], isLoading: propertiesLoading } = useQuery({
+    queryKey: ['matching-properties', requirements],
+    queryFn: async () => {
+      if (!requirements || requirements.length === 0) return [];
+      
+      // Get matches for all requirements and combine them
+      const allMatches = await Promise.all(
+        requirements.map(async (req) => {
+          const { data: matches, error } = await supabase.rpc('match_properties_to_requirement', {
+            _requirement_id: req.id
+          });
+          
+          if (error) throw error;
+          
+          // Get full property details for matched properties
+          if (matches && matches.length > 0) {
+            const propertyIds = matches.map((match: any) => match.property_id);
+            const { data: properties, error: propError } = await supabase
+              .from('properties')
+              .select('*')
+              .in('id', propertyIds)
+              .eq('status', 'active');
+            
+            if (propError) throw propError;
+            
+            // Add match scores to properties
+            return properties?.map(property => ({
+              ...property,
+              match_score: matches.find((m: any) => m.property_id === property.id)?.match_score || 0
+            })) || [];
+          }
+          
+          return [];
+        })
+      );
+      
+      // Flatten and deduplicate properties
+      const flatMatches = allMatches.flat();
+      const uniqueProperties = flatMatches.filter((property, index, self) => 
+        index === self.findIndex(p => p.id === property.id)
+      );
+      
+      // Sort by match score
+      return uniqueProperties.sort((a, b) => (b.match_score || 0) - (a.match_score || 0));
+    },
+    enabled: requirements.length > 0
+  });
 
   const getPropertyIcon = (type: string) => {
     switch (type) {
@@ -60,13 +116,42 @@ const PropertySearch = () => {
     }
   };
 
-  const filteredProperties = mockProperties.filter(property => {
-    const matchesSearch = property.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                         property.location.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesType = propertyType === "all" || property.type === propertyType;
-    const matchesBhk = bhk === "all" || property.bedrooms.toString() === bhk;
+  const filteredProperties = matchingProperties.filter((property: Property) => {
+    const matchesSearch = property.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         property.location?.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         property.location?.area?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = propertyType === "all" || property.property_type === propertyType;
+    const matchesBhk = bhk === "all" || property.bedrooms?.toString() === bhk;
     return matchesSearch && matchesType && matchesBhk;
   });
+
+  const isLoading = requirementsLoading || propertiesLoading;
+
+  // If no requirements posted, show message to post requirements
+  if (!isLoading && requirements.length === 0) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold text-foreground">Property Search</h1>
+          <p className="text-muted-foreground">Discover properties that match your requirements</p>
+        </div>
+
+        <Card className="p-12 text-center">
+          <div className="w-24 h-24 mx-auto mb-6 bg-muted rounded-lg flex items-center justify-center">
+            <Search className="w-12 h-12 text-muted-foreground" />
+          </div>
+          <h2 className="text-xl font-semibold text-foreground mb-2">No Requirements Posted</h2>
+          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
+            Please post your first requirement to see matching properties. Our system will automatically find properties that match your preferences.
+          </p>
+          <Button onClick={() => navigate('/buyer/requirements/new')} className="gap-2">
+            <Plus className="h-4 w-4" />
+            Post Your First Requirement
+          </Button>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -136,7 +221,7 @@ const PropertySearch = () => {
       {/* Results Count */}
       <div className="flex items-center justify-between">
         <p className="text-muted-foreground">
-          Showing {filteredProperties.length} of {mockProperties.length} properties
+          {isLoading ? "Loading..." : `Showing ${filteredProperties.length} matching properties`}
         </p>
         <Select defaultValue="relevance">
           <SelectTrigger className="w-40">
@@ -154,18 +239,30 @@ const PropertySearch = () => {
 
       {/* Properties Grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredProperties.length > 0 ? (
-          filteredProperties.map((property) => (
+        {isLoading ? (
+          // Loading skeleton
+          Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="overflow-hidden">
+              <div className="h-48 bg-muted animate-pulse" />
+              <div className="p-4 space-y-3">
+                <div className="h-4 bg-muted animate-pulse rounded" />
+                <div className="h-4 bg-muted animate-pulse rounded w-2/3" />
+                <div className="h-4 bg-muted animate-pulse rounded w-1/2" />
+              </div>
+            </Card>
+          ))
+        ) : filteredProperties.length > 0 ? (
+          filteredProperties.map((property: Property) => (
             <Card key={property.id} className="overflow-hidden hover:shadow-lg transition-shadow group">
               {/* Property Image */}
               <div className="relative h-48 bg-muted">
                 <img 
-                  src={property.image} 
+                  src={property.images?.[0] || "/placeholder.svg"} 
                   alt={property.title}
                   className="w-full h-full object-cover"
                 />
-                {property.featured && (
-                  <Badge className="absolute top-3 left-3 bg-primary">Featured</Badge>
+                {property.match_score && property.match_score > 70 && (
+                  <Badge className="absolute top-3 left-3 bg-primary">High Match</Badge>
                 )}
                 <div className="absolute top-3 right-3 flex gap-2">
                   <Button size="sm" variant="secondary" className="opacity-0 group-hover:opacity-100 transition-opacity">
@@ -182,59 +279,79 @@ const PropertySearch = () => {
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center gap-2">
                     {(() => {
-                      const PropertyIcon = getPropertyIcon(property.type);
+                      const PropertyIcon = getPropertyIcon(property.property_type);
                       return <PropertyIcon className="w-4 h-4 text-muted-foreground" />;
                     })()}
                     <h3 className="font-semibold text-foreground">{property.title}</h3>
                   </div>
-                  <p className="text-lg font-bold text-primary">{property.price}</p>
+                  <p className="text-lg font-bold text-primary">₹{(property.price / 10000000).toFixed(1)}Cr</p>
                 </div>
 
                 <p className="text-sm text-muted-foreground mb-3 flex items-center gap-1">
                   <MapPin className="w-3 h-3" />
-                  {property.location}
+                  {property.location?.city || property.location?.area || "Location not specified"}
                 </p>
 
                 {/* Property Specs */}
                 <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
-                  {property.bedrooms > 0 && (
+                  {property.bedrooms && (
                     <span className="flex items-center gap-1">
                       <Bed className="w-3 h-3" />
                       {property.bedrooms} BHK
                     </span>
                   )}
-                  <span className="flex items-center gap-1">
-                    <Bath className="w-3 h-3" />
-                    {property.bathrooms}
-                  </span>
+                  {property.bathrooms && (
+                    <span className="flex items-center gap-1">
+                      <Bath className="w-3 h-3" />
+                      {property.bathrooms}
+                    </span>
+                  )}
                   <span className="flex items-center gap-1">
                     <Car className="w-3 h-3" />
-                    {property.parking}
+                    1
                   </span>
-                  <span className="flex items-center gap-1">
-                    <Maximize className="w-3 h-3" />
-                    {property.area}
-                  </span>
+                  {property.area && (
+                    <span className="flex items-center gap-1">
+                      <Maximize className="w-3 h-3" />
+                      {property.area} sq ft
+                    </span>
+                  )}
                 </div>
 
                 {/* Amenities */}
                 <div className="flex flex-wrap gap-1 mb-4">
-                  {property.amenities.slice(0, 3).map((amenity, index) => (
+                  {property.amenities?.slice(0, 3).map((amenity, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
                       {amenity}
                     </Badge>
                   ))}
-                  {property.amenities.length > 3 && (
+                  {property.amenities && property.amenities.length > 3 && (
                     <Badge variant="outline" className="text-xs">
                       +{property.amenities.length - 3} more
                     </Badge>
                   )}
                 </div>
 
-                {/* Broker Info */}
+                {/* Match Score */}
+                {property.match_score && (
+                  <div className="mb-3">
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <span>Match Score:</span>
+                      <div className="flex-1 bg-muted rounded-full h-2">
+                        <div 
+                          className="bg-primary h-2 rounded-full transition-all" 
+                          style={{ width: `${property.match_score}%` }}
+                        />
+                      </div>
+                      <span className="font-medium">{property.match_score}%</span>
+                    </div>
+                  </div>
+                )}
+
+                {/* Actions */}
                 <div className="flex items-center justify-between">
                   <p className="text-xs text-muted-foreground">
-                    Listed by {property.broker}
+                    Listed by broker
                   </p>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline">Contact</Button>
@@ -250,18 +367,24 @@ const PropertySearch = () => {
               <div className="w-24 h-24 mx-auto mb-6 bg-muted rounded-lg flex items-center justify-center">
                 <Search className="w-12 h-12 text-muted-foreground" />
               </div>
-              <h2 className="text-xl font-semibold text-foreground mb-2">No properties found</h2>
+              <h2 className="text-xl font-semibold text-foreground mb-2">No matching properties found</h2>
               <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-                Try adjusting your search criteria or filters to find properties that match your requirements.
+                No properties match your current requirements and filters. Try adjusting your search criteria or posting a new requirement.
               </p>
-              <Button variant="outline" onClick={() => {
-                setSearchQuery("");
-                setPropertyType("all");
-                setBudget("all");
-                setBhk("all");
-              }}>
-                Clear Filters
-              </Button>
+              <div className="flex gap-3 justify-center">
+                <Button variant="outline" onClick={() => {
+                  setSearchQuery("");
+                  setPropertyType("all");
+                  setBudget("all");
+                  setBhk("all");
+                }}>
+                  Clear Filters
+                </Button>
+                <Button onClick={() => navigate('/buyer/requirements/new')} className="gap-2">
+                  <Plus className="h-4 w-4" />
+                  Post New Requirement
+                </Button>
+              </div>
             </Card>
           </div>
         )}
