@@ -498,6 +498,34 @@ export type Database = {
         Args: { _email: string }
         Returns: string
       }
+      get_user_profile: {
+        Args: { _user_id: string }
+        Returns: {
+          avatar_url: string
+          coin_balance: number
+          company_name: string
+          created_at: string
+          email: string
+          first_name: string
+          id: string
+          kyc_status: string
+          last_name: string
+          mobile: string
+          rating: number
+          total_reviews: number
+          user_type: Database["public"]["Enums"]["user_type"]
+        }[]
+      }
+      update_user_coin_balance: {
+        Args: {
+          _amount: number
+          _description?: string
+          _reference_id?: string
+          _transaction_type: Database["public"]["Enums"]["transaction_type"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
       property_status: "active" | "sold" | "inactive"
