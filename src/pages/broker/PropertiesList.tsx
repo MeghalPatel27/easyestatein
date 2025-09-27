@@ -51,7 +51,13 @@ const PropertiesList = () => {
         .eq('broker_id', user.id)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
+      if (error) {
+        console.error('Properties query error:', error);
+        throw error;
+      }
+      
+      console.log('Properties data:', data);
+      console.log('User ID:', user.id);
       return data;
     },
     enabled: !!user?.id,
