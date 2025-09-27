@@ -336,7 +336,7 @@ export type Database = {
           location: Json | null
           price: number
           property_type: Database["public"]["Enums"]["property_type"]
-          status: string | null
+          status: Database["public"]["Enums"]["approval_status"] | null
           submitted_at: string
           title: string
           updated_at: string
@@ -359,7 +359,7 @@ export type Database = {
           location?: Json | null
           price: number
           property_type: Database["public"]["Enums"]["property_type"]
-          status?: string | null
+          status?: Database["public"]["Enums"]["approval_status"] | null
           submitted_at?: string
           title: string
           updated_at?: string
@@ -382,7 +382,7 @@ export type Database = {
           location?: Json | null
           price?: number
           property_type?: Database["public"]["Enums"]["property_type"]
-          status?: string | null
+          status?: Database["public"]["Enums"]["approval_status"] | null
           submitted_at?: string
           title?: string
           updated_at?: string
@@ -612,6 +612,10 @@ export type Database = {
           title: string
         }[]
       }
+      reject_property: {
+        Args: { _admin_id: string; _admin_notes?: string; _approval_id: string }
+        Returns: boolean
+      }
       update_user_coin_balance: {
         Args: {
           _amount: number
@@ -624,6 +628,7 @@ export type Database = {
       }
     }
     Enums: {
+      approval_status: "pending" | "approved" | "rejected"
       property_status: "active" | "sold" | "inactive"
       property_type:
         | "apartment"
@@ -763,6 +768,7 @@ export type CompositeTypes<
 export const Constants = {
   public: {
     Enums: {
+      approval_status: ["pending", "approved", "rejected"],
       property_status: ["active", "sold", "inactive"],
       property_type: [
         "apartment",

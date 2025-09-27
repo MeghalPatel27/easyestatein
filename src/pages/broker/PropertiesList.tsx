@@ -8,6 +8,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
+import PropertyApprovalNotifications from "@/components/PropertyApprovalNotifications";
 import { 
   Search, 
   Filter, 
@@ -155,6 +156,9 @@ const PropertiesList = () => {
           </Button>
         </Link>
       </div>
+
+      {/* Property Approval Notifications */}
+      <PropertyApprovalNotifications />
 
       {/* Search and Filters */}
       <Card className="p-6">
