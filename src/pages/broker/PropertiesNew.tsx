@@ -20,10 +20,15 @@ import {
   X
 } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { toast } from "sonner";
 
 const PropertiesNew = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [currentStep, setCurrentStep] = useState(1);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({
     category: "",
     type: "",
@@ -101,10 +106,58 @@ const PropertiesNew = () => {
     }
   };
 
-  const handleSubmit = () => {
-    // Submit form data
-    console.log("Submitting property:", formData);
-    navigate("/broker/properties");
+  const handleSubmit = async () => {
+    if (!user?.id) {
+      toast.error("Please log in to submit property");
+      return;
+    }
+
+    setIsSubmitting(true);
+    
+    try {
+      // Prepare the location object
+      const location = {
+        address: formData.location.address,
+        city: formData.location.city,
+        state: formData.location.state,
+        pincode: formData.location.pincode,
+        area: formData.location.address // Also store full address as area for compatibility
+      };
+
+      // Submit to property_approvals table
+      const { error } = await supabase
+        .from('property_approvals')
+        .insert([{
+          broker_id: user.id,
+          title: formData.title,
+          description: formData.description,
+          category: formData.category,
+          property_type: formData.type,
+          price: parseFloat(formData.price) || 0,
+          area: parseFloat(formData.area) || 0,
+          bedrooms: parseInt(formData.bedrooms) || null,
+          bathrooms: parseInt(formData.bathrooms) || null,
+          location: location,
+          amenities: formData.amenities,
+          images: formData.images,
+          documents: formData.documents,
+          status: 'pending'
+        }] as any);
+
+      if (error) {
+        console.error('Error submitting property:', error);
+        toast.error("Failed to submit property. Please try again.");
+        return;
+      }
+
+      toast.success("Property submitted for approval! You'll be notified once it's reviewed.");
+      navigate("/broker/properties");
+    } catch (error) {
+      console.error('Error submitting property:', error);
+      toast.error("An error occurred. Please try again.");
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   const renderStepContent = () => {
@@ -499,8 +552,8 @@ const PropertiesNew = () => {
         </Button>
         
         {currentStep === steps.length ? (
-          <Button onClick={handleSubmit} className="gap-2">
-            Submit for Approval
+          <Button onClick={handleSubmit} disabled={isSubmitting} className="gap-2">
+            {isSubmitting ? "Submitting..." : "Submit for Approval"}
             <Check className="h-4 w-4" />
           </Button>
         ) : (
