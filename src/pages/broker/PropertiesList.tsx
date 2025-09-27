@@ -4,6 +4,10 @@ import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { EnhancedSearch } from "@/components/ui/enhanced-search";
+import { Skeleton } from "@/components/ui/skeleton";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
 import { 
   Search, 
   Filter, 
@@ -30,42 +34,27 @@ import {
 } from "@/components/ui/dropdown-menu";
 
 const PropertiesList = () => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   
-  // Mock properties data for now
-  const mockProperties = [
-    {
-      id: "1",
-      title: "Luxury Apartment in City Center",
-      category: "residential",
-      property_type: "apartment",
-      price: 12000000,
-      area: 1200,
-      bedrooms: 3,
-      bathrooms: 2,
-      status: "active" as const,
-      location: { city: "Mumbai", area: "Bandra" },
-      images: ["/placeholder.svg"],
-      created_at: "2025-01-15T10:00:00Z",
-      description: "Beautiful apartment with modern amenities"
+  // Fetch properties for the current broker
+  const { data: properties = [], isLoading } = useQuery({
+    queryKey: ['properties', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('properties')
+        .select('*')
+        .eq('broker_id', user.id)
+        .order('created_at', { ascending: false });
+      
+      if (error) throw error;
+      return data;
     },
-    {
-      id: "2",
-      title: "Modern Villa with Garden",
-      category: "residential",
-      property_type: "villa",
-      price: 25000000,
-      area: 2500,
-      bedrooms: 4,
-      bathrooms: 3,
-      status: "sold" as const,
-      location: { city: "Mumbai", area: "Powai" },
-      images: ["/placeholder.svg"],
-      created_at: "2025-01-10T10:00:00Z",
-      description: "Spacious villa with private garden"
-    }
-  ];
+    enabled: !!user?.id,
+  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
@@ -87,16 +76,16 @@ const PropertiesList = () => {
 
   const getStatusCounts = () => {
     return {
-      all: mockProperties.length,
-      active: mockProperties.filter(p => p.status === "active").length,
-      sold: mockProperties.filter(p => p.status === "sold").length,
-      inactive: 0, // No inactive properties in mock data
+      all: properties.length,
+      active: properties.filter(p => p.status === "active").length,
+      sold: properties.filter(p => p.status === "sold").length,
+      inactive: properties.filter(p => p.status === "inactive").length,
     };
   };
 
   const counts = getStatusCounts();
 
-  const filteredProperties = mockProperties.filter(property => {
+  const filteredProperties = properties.filter(property => {
     if (statusFilter !== "all" && property.status !== statusFilter) return false;
     if (searchQuery && !property.title.toLowerCase().includes(searchQuery.toLowerCase())) {
       const location = property.location;
@@ -113,6 +102,46 @@ const PropertiesList = () => {
     }
     return true;
   });
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-foreground">Property Management</h1>
+          <Link to="/broker/properties/new">
+            <Button className="gap-2">
+              <Plus className="h-4 w-4" />
+              Add New Property
+            </Button>
+          </Link>
+        </div>
+        
+        <Card className="p-6">
+          <div className="flex flex-col md:flex-row gap-4">
+            <Skeleton className="h-10 flex-1" />
+            <Skeleton className="h-10 w-24" />
+          </div>
+        </Card>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {Array.from({ length: 6 }).map((_, i) => (
+            <Card key={i} className="overflow-hidden">
+              <Skeleton className="h-48 w-full" />
+              <div className="p-4 space-y-3">
+                <Skeleton className="h-6 w-3/4" />
+                <Skeleton className="h-4 w-1/2" />
+                <Skeleton className="h-4 w-full" />
+                <div className="flex gap-2 pt-2">
+                  <Skeleton className="h-9 flex-1" />
+                  <Skeleton className="h-9 w-16" />
+                </div>
+              </div>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -252,8 +281,9 @@ const PropertiesList = () => {
                     <div className="flex items-center gap-1 text-sm text-muted-foreground">
                       <MapPin className="h-3 w-3" />
                       <span>
-                        {property.location?.area && property.location?.city
-                          ? `${property.location.area}, ${property.location.city}`
+                        {property.location && typeof property.location === 'object' && 
+                         'area' in property.location && 'city' in property.location
+                          ? `${(property.location as any).area}, ${(property.location as any).city}`
                           : 'Location not specified'}
                       </span>
                     </div>
