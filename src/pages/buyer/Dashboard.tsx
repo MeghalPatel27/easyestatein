@@ -169,7 +169,7 @@ const BuyerDashboard = () => {
       <Card className="p-6">
         <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          <Link to="/buyer/requirements/new">
+          <Link to="/post-requirement">
             <Button className="w-full h-20 flex flex-col gap-2" variant="outline">
               <FileText className="h-6 w-6" />
               Post New Requirement
