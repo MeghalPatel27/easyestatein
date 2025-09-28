@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -50,6 +50,16 @@ const PropertiesNew = () => {
     documents: [],
     completionDate: ""
   });
+
+  // Valid property types from the database enum
+  const validPropertyTypes = ['apartment', 'villa', 'house', 'plot', 'commercial', 'office'];
+
+  // Reset form data if invalid property type is cached
+  useEffect(() => {
+    if (formData.type && !validPropertyTypes.includes(formData.type)) {
+      setFormData(prev => ({ ...prev, type: "" }));
+    }
+  }, [formData.type]);
 
   const steps = [
     { number: 1, title: "Category & Type", icon: Building },
@@ -114,9 +124,17 @@ const PropertiesNew = () => {
       return;
     }
 
+    // Validate property type before submission
+    if (!formData.type || !validPropertyTypes.includes(formData.type)) {
+      toast.error("Please select a valid property type");
+      return;
+    }
+
     setIsSubmitting(true);
     
     try {
+      console.log('Submitting property with type:', formData.type);
+      
       // Prepare the location object
       const location = {
         address: formData.location.address,
