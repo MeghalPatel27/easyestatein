@@ -71,15 +71,16 @@ const PropertiesNew = () => {
   const residentialTypes = [
     { value: "apartment", label: "Apartment" },
     { value: "villa", label: "Villa" },
-    { value: "penthouse", label: "Penthouse" },
-    { value: "studio", label: "Studio" }
+    { value: "house", label: "House" }
   ];
 
   const commercialTypes = [
     { value: "office", label: "Office Space" },
-    { value: "retail", label: "Retail Shop" },
-    { value: "warehouse", label: "Warehouse" },
-    { value: "showroom", label: "Showroom" }
+    { value: "commercial", label: "Commercial Building" }
+  ];
+
+  const landTypes = [
+    { value: "plot", label: "Plot/Land" }
   ];
 
   const amenitiesList = [
@@ -91,6 +92,7 @@ const PropertiesNew = () => {
   const getTypeOptions = () => {
     if (formData.category === "residential") return residentialTypes;
     if (formData.category === "commercial") return commercialTypes;
+    if (formData.category === "land") return landTypes;
     return [];
   };
 
