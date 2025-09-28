@@ -115,6 +115,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_leads_property_id"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_leads_requirement_id"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "requirements"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "leads_broker_id_fkey"
             columns: ["broker_id"]
             isOneToOne: false
@@ -315,6 +329,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_properties_approval_id"
+            columns: ["approval_id"]
+            isOneToOne: false
+            referencedRelation: "property_approvals"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "properties_approval_id_fkey"
             columns: ["approval_id"]
             isOneToOne: false
@@ -439,7 +460,22 @@ export type Database = {
           requirement_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "fk_property_matches_property_id"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_property_matches_requirement_id"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "requirements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       requirements: {
         Row: {
@@ -586,6 +622,20 @@ export type Database = {
           urgency: Database["public"]["Enums"]["urgency_level"] | null
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_leads_property_id"
+            columns: ["property_id"]
+            isOneToOne: false
+            referencedRelation: "properties"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "fk_leads_requirement_id"
+            columns: ["requirement_id"]
+            isOneToOne: false
+            referencedRelation: "requirements"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "leads_broker_id_fkey"
             columns: ["broker_id"]
