@@ -332,23 +332,29 @@ const Dashboard = () => {
               {/* Mobile Layout */}
               <div className="block md:hidden">
                 <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center gap-3">
-                    <RadialProgress 
-                      value={Math.round(buyer.rating * 20)} 
-                      size={48} 
-                      className="text-primary"
-                    />
-                    <div>
-                      <div className="font-semibold text-foreground">
-                        {maskName(buyer.name, buyer.unlocked)}
-                      </div>
-                      {!buyer.unlocked && (
-                        <Badge variant="outline" className="text-xs mt-1">
-                          Locked
-                        </Badge>
-                      )}
-                    </div>
-                  </div>
+                        <div className="flex items-center gap-3">
+                          <div className="flex items-center gap-2">
+                            <div className="text-xs text-muted-foreground">Match Score</div>
+                            <RadialProgress 
+                              value={Math.round(buyer.rating * 20)} 
+                              size={48} 
+                              className="text-primary"
+                            />
+                          </div>
+                          <div>
+                            <div className="font-semibold text-foreground">
+                              {maskName(buyer.name, buyer.unlocked)}
+                            </div>
+                            <div className="text-xs text-primary font-medium">
+                              Matched with: {buyer.propertyTitle || 'Your Property'}
+                            </div>
+                            {!buyer.unlocked && (
+                              <Badge variant="outline" className="text-xs mt-1">
+                                Details Locked
+                              </Badge>
+                            )}
+                          </div>
+                        </div>
                   <div className="flex flex-col items-center gap-1">
                     <RadialProgress 
                       value={100 - buyer.rejectionRate} 
@@ -397,7 +403,7 @@ const Dashboard = () => {
                     </div>
                     <Button 
                       size="sm" 
-                      className="bg-primary hover:bg-primary/90 text-xs"
+                      className="bg-primary hover:bg-primary/90"
                       onClick={() => purchaseLead(buyer.matchId, buyer.leadPrice)}
                     >
                       Purchase Lead
@@ -408,9 +414,8 @@ const Dashboard = () => {
 
               {/* Desktop Layout */}
               <div className="hidden md:flex items-center gap-4 lg:gap-6 overflow-x-auto">
-                {/* Overall Score */}
                 <div className="flex flex-col items-center gap-1 flex-shrink-0">
-                  <span className="text-xs text-muted-foreground mb-1">Score</span>
+                  <span className="text-xs text-muted-foreground mb-1">Match Score</span>
                   <RadialProgress 
                     value={Math.round(buyer.rating * 20)} 
                     size={56} 
@@ -418,15 +423,18 @@ const Dashboard = () => {
                   />
                 </div>
 
-                {/* Name */}
-                <div className="min-w-[120px] flex-shrink-0">
-                  <div className="text-xs text-muted-foreground mb-1">Name</div>
+                {/* Name & Matched Property */}
+                <div className="min-w-[140px] flex-shrink-0">
+                  <div className="text-xs text-muted-foreground mb-1">Buyer & Match</div>
                   <div className="font-semibold text-foreground">
                     {maskName(buyer.name, buyer.unlocked)}
                   </div>
+                  <div className="text-xs text-primary font-medium">
+                    Matched: {buyer.propertyTitle || 'Your Property'}
+                  </div>
                   {!buyer.unlocked && (
                     <Badge variant="outline" className="text-xs mt-1">
-                      Locked
+                      Details Locked
                     </Badge>
                   )}
                 </div>
