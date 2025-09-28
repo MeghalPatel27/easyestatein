@@ -35,72 +35,19 @@ const PropertySearch = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
 
-  // Fetch buyer's requirements
-  const { data: requirements = [], isLoading: requirementsLoading } = useQuery({
-    queryKey: ['buyer-requirements', user?.id],
+  // Fetch all approved properties from the properties table
+  const { data: allProperties = [], isLoading: propertiesLoading } = useQuery({
+    queryKey: ['approved-properties'],
     queryFn: async () => {
-      if (!user?.id) return [];
-      
       const { data, error } = await supabase
-        .from('requirements')
+        .from('properties')
         .select('*')
-        .eq('buyer_id', user.id)
         .eq('status', 'active')
         .order('created_at', { ascending: false });
       
       if (error) throw error;
       return data || [];
-    },
-    enabled: !!user?.id
-  });
-
-  // Fetch matching properties for all requirements
-  const { data: matchingProperties = [], isLoading: propertiesLoading } = useQuery({
-    queryKey: ['matching-properties', requirements],
-    queryFn: async () => {
-      if (!requirements || requirements.length === 0) return [];
-      
-      // Get matches for all requirements and combine them
-      const allMatches = await Promise.all(
-        requirements.map(async (req) => {
-          const { data: matches, error } = await supabase.rpc('match_properties_to_requirement', {
-            _requirement_id: req.id
-          });
-          
-          if (error) throw error;
-          
-          // Get full property details for matched properties
-          if (matches && matches.length > 0) {
-            const propertyIds = matches.map((match: any) => match.property_id);
-            const { data: properties, error: propError } = await supabase
-              .from('properties')
-              .select('*')
-              .in('id', propertyIds)
-              .eq('status', 'active');
-            
-            if (propError) throw propError;
-            
-            // Add match scores to properties
-            return properties?.map(property => ({
-              ...property,
-              match_score: matches.find((m: any) => m.property_id === property.id)?.match_score || 0
-            })) || [];
-          }
-          
-          return [];
-        })
-      );
-      
-      // Flatten and deduplicate properties
-      const flatMatches = allMatches.flat();
-      const uniqueProperties = flatMatches.filter((property, index, self) => 
-        index === self.findIndex(p => p.id === property.id)
-      );
-      
-      // Sort by match score
-      return uniqueProperties.sort((a, b) => (b.match_score || 0) - (a.match_score || 0));
-    },
-    enabled: requirements.length > 0
+    }
   });
 
   const getPropertyIcon = (type: string) => {
@@ -116,7 +63,7 @@ const PropertySearch = () => {
     }
   };
 
-  const filteredProperties = matchingProperties.filter((property: Property) => {
+  const filteredProperties = allProperties.filter((property: Property) => {
     const matchesSearch = property.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          property.location?.city?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          property.location?.area?.toLowerCase().includes(searchQuery.toLowerCase());
@@ -125,33 +72,7 @@ const PropertySearch = () => {
     return matchesSearch && matchesType && matchesBhk;
   });
 
-  const isLoading = requirementsLoading || propertiesLoading;
-
-  // If no requirements posted, show message to post requirements
-  if (!isLoading && requirements.length === 0) {
-    return (
-      <div className="space-y-6">
-        <div>
-          <h1 className="text-3xl font-bold text-foreground">Property Search</h1>
-          <p className="text-muted-foreground">Discover properties that match your requirements</p>
-        </div>
-
-        <Card className="p-12 text-center">
-          <div className="w-24 h-24 mx-auto mb-6 bg-muted rounded-lg flex items-center justify-center">
-            <Search className="w-12 h-12 text-muted-foreground" />
-          </div>
-          <h2 className="text-xl font-semibold text-foreground mb-2">No Requirements Posted</h2>
-          <p className="text-muted-foreground mb-6 max-w-md mx-auto">
-            Please post your first requirement to see matching properties. Our system will automatically find properties that match your preferences.
-          </p>
-          <Button onClick={() => navigate('/buyer/requirements/new')} className="gap-2">
-            <Plus className="h-4 w-4" />
-            Post Your First Requirement
-          </Button>
-        </Card>
-      </div>
-    );
-  }
+  const isLoading = propertiesLoading;
 
   return (
     <div className="space-y-6">
@@ -261,9 +182,6 @@ const PropertySearch = () => {
                   alt={property.title}
                   className="w-full h-full object-cover"
                 />
-                {property.match_score && property.match_score > 70 && (
-                  <Badge className="absolute top-3 left-3 bg-primary">High Match</Badge>
-                )}
                 <div className="absolute top-3 right-3 flex gap-2">
                   <Button size="sm" variant="secondary" className="opacity-0 group-hover:opacity-100 transition-opacity">
                     <Heart className="h-4 w-4" />
@@ -332,21 +250,6 @@ const PropertySearch = () => {
                   )}
                 </div>
 
-                {/* Match Score */}
-                {property.match_score && (
-                  <div className="mb-3">
-                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                      <span>Match Score:</span>
-                      <div className="flex-1 bg-muted rounded-full h-2">
-                        <div 
-                          className="bg-primary h-2 rounded-full transition-all" 
-                          style={{ width: `${property.match_score}%` }}
-                        />
-                      </div>
-                      <span className="font-medium">{property.match_score}%</span>
-                    </div>
-                  </div>
-                )}
 
                 {/* Actions */}
                 <div className="flex items-center justify-between">
