@@ -402,6 +402,45 @@ export type Database = {
         }
         Relationships: []
       }
+      property_matches: {
+        Row: {
+          broker_id: string
+          buyer_id: string
+          created_at: string
+          id: string
+          is_lead_purchased: boolean
+          match_score: number
+          property_id: string
+          purchased_at: string | null
+          requirement_id: string
+          updated_at: string
+        }
+        Insert: {
+          broker_id: string
+          buyer_id: string
+          created_at?: string
+          id?: string
+          is_lead_purchased?: boolean
+          match_score?: number
+          property_id: string
+          purchased_at?: string | null
+          requirement_id: string
+          updated_at?: string
+        }
+        Update: {
+          broker_id?: string
+          buyer_id?: string
+          created_at?: string
+          id?: string
+          is_lead_purchased?: boolean
+          match_score?: number
+          property_id?: string
+          purchased_at?: string | null
+          requirement_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       requirements: {
         Row: {
           amenities: string[] | null
@@ -583,6 +622,10 @@ export type Database = {
         Args: { _admin_id: string; _approval_id: string }
         Returns: string
       }
+      calculate_property_match_score: {
+        Args: { _property_id: string; _requirement_id: string }
+        Returns: number
+      }
       get_account_type_by_email: {
         Args: { _email: string }
         Returns: string
@@ -624,6 +667,14 @@ export type Database = {
           property_id: string
           title: string
         }[]
+      }
+      purchase_lead: {
+        Args: { _broker_id: string; _match_id: string }
+        Returns: Json
+      }
+      refresh_broker_property_matches: {
+        Args: { _broker_id: string }
+        Returns: number
       }
       reject_property: {
         Args: { _admin_id: string; _admin_notes?: string; _approval_id: string }
