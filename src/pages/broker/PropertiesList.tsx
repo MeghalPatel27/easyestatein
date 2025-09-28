@@ -39,7 +39,7 @@ const PropertiesList = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   
-  // Fetch properties for the current broker
+  // Fetch approved properties for the current broker
   const { data: properties = [], isLoading, refetch, error } = useQuery({
     queryKey: ['properties', user?.id],
     queryFn: async () => {
@@ -47,8 +47,15 @@ const PropertiesList = () => {
       
       const { data, error } = await supabase
         .from('properties')
-        .select('*')
+        .select(`
+          *,
+          property_approvals!inner(
+            id,
+            status
+          )
+        `)
         .eq('broker_id', user.id)
+        .eq('property_approvals.status', 'approved')
         .order('created_at', { ascending: false });
       
       if (error) {
@@ -56,9 +63,9 @@ const PropertiesList = () => {
         throw error;
       }
       
-      console.log('Properties data:', data);
+      console.log('Approved properties data:', data);
       console.log('User ID:', user.id);
-      console.log('Total properties found:', data?.length || 0);
+      console.log('Total approved properties found:', data?.length || 0);
       
       return data || [];
     },
