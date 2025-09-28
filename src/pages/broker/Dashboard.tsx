@@ -14,75 +14,139 @@ import { useQuery } from "@tanstack/react-query";
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
-  const [sortBy, setSortBy] = useState("rating");
+  const [sortBy, setSortBy] = useState("score");
   const { user } = useAuth();
 
-  // Fetch active leads (buyer requirements) that brokers can see
+  // Fetch property matches for this broker
   const { data: potentialBuyers = [], isLoading } = useQuery({
-    queryKey: ['active-leads', sortBy],
+    queryKey: ['broker-property-matches', user?.id, sortBy],
     queryFn: async () => {
-      let query = supabase
-        .from('leads')
+      if (!user?.id) return [];
+      
+      // First get the matches
+      const { data: matches, error: matchError } = await supabase
+        .from('property_matches')
         .select('*')
-        .eq('status', 'active');
+        .eq('broker_id', user.id)
+        .eq('is_lead_purchased', false)
+        .gte('match_score', 40)
+        .limit(10);
 
-      // Apply sorting
-      switch (sortBy) {
-        case 'budget':
-          query = query.order('budget_max', { ascending: false });
-          break;
-        case 'urgency':
-          query = query.order('urgency', { ascending: false });
-          break;
-        case 'price':
-          query = query.order('lead_price', { ascending: false });
-          break;
-        default:
-          query = query.order('created_at', { ascending: false });
-      }
+      if (matchError) throw matchError;
+      if (!matches || matches.length === 0) return [];
 
-      const { data, error } = await query.limit(10);
-      if (error) throw error;
+      // Get requirement IDs
+      const requirementIds = matches.map(m => m.requirement_id);
+      const propertyIds = matches.map(m => m.property_id);
+      const buyerIds = matches.map(m => m.buyer_id);
 
-      return data.map(lead => ({
-        id: lead.id,
-        name: 'Anonymous Buyer', // Will be populated when we properly join profiles
-        rating: 4.0, // Default rating
-        category: 'Residential',
-        propertyType: 'Apartment',
-        area: 'Location not specified',
-        budget: 'Budget not specified',
-        urgency: 'Medium',
-        rejectionRate: 0,
-        leadPrice: 10,
-        unlocked: true // For now, all leads are unlocked
-      }));
-    }
+      // Fetch requirements with buyer profiles
+      const { data: requirements } = await supabase
+        .from('requirements')
+        .select('*')
+        .in('id', requirementIds);
+
+      // Fetch properties
+      const { data: properties } = await supabase
+        .from('properties')
+        .select('title, price, property_type, id')
+        .in('id', propertyIds);
+
+      // Fetch buyer profiles
+      const { data: buyers } = await supabase
+        .from('profiles')
+        .select('id, first_name, last_name, mobile')
+        .in('id', buyerIds);
+
+      // Combine data
+      return matches.map(match => {
+        const requirement = requirements?.find(r => r.id === match.requirement_id);
+        const property = properties?.find(p => p.id === match.property_id);
+        const buyer = buyers?.find(b => b.id === match.buyer_id);
+
+        return {
+          id: match.id,
+          name: `${buyer?.first_name || 'Anonymous'} ${buyer?.last_name || 'Buyer'}`,
+          rating: Math.min(5, match.match_score / 20), // Convert score to 1-5 rating
+          category: requirement?.category || 'Residential',
+          propertyType: requirement?.property_type || 'Unknown',
+          area: (requirement?.location as any)?.city || 'Location not specified',
+          budget: `₹${(requirement?.budget_min || 0).toLocaleString()} - ₹${(requirement?.budget_max || 0).toLocaleString()}`,
+          urgency: requirement?.urgency || 'medium',
+          rejectionRate: requirement?.rejection_rate || 0,
+          leadPrice: requirement?.lead_price || 100,
+          unlocked: false, // Leads need to be purchased to unlock details
+          score: match.match_score,
+          mobile: buyer?.mobile || 'N/A',
+          propertyTitle: property?.title,
+          requirementTitle: requirement?.title,
+          matchId: match.id,
+          requirementId: match.requirement_id,
+          propertyId: match.property_id
+        };
+      });
+    },
+    enabled: !!user?.id
   });
 
-  // Fetch broker stats
+  // Function to purchase a lead
+  const purchaseLead = async (matchId: string, leadPrice: number) => {
+    if (!user?.id) return;
+    
+    try {
+      const { data, error } = await supabase.rpc('purchase_lead', {
+        _match_id: matchId,
+        _broker_id: user.id
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; error?: string; lead_id?: string; cost?: number; remaining_balance?: number };
+      
+      if (result?.success) {
+        // Refresh the matches data
+        window.location.reload();
+        console.log('Lead purchased successfully!');
+      } else {
+        console.error('Failed to purchase lead:', result?.error);
+      }
+    } catch (error) {
+      console.error('Error purchasing lead:', error);
+    }
+  };
+
+  // Fetch broker stats based on property matches
   const { data: stats } = useQuery({
     queryKey: ['broker-stats', user?.id],
     queryFn: async () => {
       if (!user?.id) return { matchingLeads: 0, engagedLeads: 0, acceptanceRate: 0, visitsArranged: 0 };
       
-      // Count total active leads
+      // Count available matches for this broker
       const { count: matchingLeads } = await supabase
-        .from('leads')
+        .from('property_matches')
         .select('*', { count: 'exact', head: true })
-        .eq('status', 'active');
+        .eq('broker_id', user.id)
+        .eq('is_lead_purchased', false)
+        .gte('match_score', 40);
 
-      // Count leads this broker has engaged with
+      // Count purchased leads (engaged leads)
       const { count: engagedLeads } = await supabase
-        .from('leads')
+        .from('property_matches')
+        .select('*', { count: 'exact', head: true })
+        .eq('broker_id', user.id)
+        .eq('is_lead_purchased', true);
+
+      // Count active chats for visits arranged
+      const { count: visitsArranged } = await supabase
+        .from('chats')
         .select('*', { count: 'exact', head: true })
         .eq('broker_id', user.id);
 
       return {
         matchingLeads: matchingLeads || 0,
         engagedLeads: engagedLeads || 0,
-        acceptanceRate: 72.3, // Placeholder calculation
-        visitsArranged: 0 // Placeholder for now
+        acceptanceRate: engagedLeads && matchingLeads ? Math.round((engagedLeads / (matchingLeads + engagedLeads)) * 100) : 0,
+        visitsArranged: visitsArranged || 0
       };
     },
     enabled: !!user?.id
@@ -178,7 +242,7 @@ const Dashboard = () => {
                 <SelectValue />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="rating">Sort by Rating</SelectItem>
+                <SelectItem value="score">Sort by Match Score</SelectItem>
                 <SelectItem value="budget">Sort by Budget</SelectItem>
                 <SelectItem value="urgency">Sort by Urgency</SelectItem>
                 <SelectItem value="price">Sort by Lead Price</SelectItem>
@@ -239,7 +303,7 @@ const Dashboard = () => {
       {/* 10 Most Potential Buyers */}
       <Card className="p-6">
         <div className="flex items-center justify-between mb-6">
-          <h2 className="text-xl font-semibold">10 Most Potential Buyers</h2>
+          <h2 className="text-xl font-semibold">Matched Buyer Requirements</h2>
           <Link to="/broker/leads">
             <Button variant="outline">View All Leads</Button>
           </Link>
@@ -306,10 +370,10 @@ const Dashboard = () => {
                   <div>
                     <div className="text-xs text-muted-foreground">Priority</div>
                     <Badge 
-                      variant={buyer.urgency === "High" ? "destructive" : buyer.urgency === "Medium" ? "secondary" : "outline"}
+                      variant={buyer.urgency === "urgent" ? "destructive" : buyer.urgency === "medium" ? "secondary" : "outline"}
                       className="text-xs"
                     >
-                      {buyer.urgency}
+                      {buyer.urgency.charAt(0).toUpperCase() + buyer.urgency.slice(1)}
                     </Badge>
                   </div>
                 </div>
@@ -323,11 +387,13 @@ const Dashboard = () => {
                     <div className="flex justify-center mb-2">
                       <Coin value={buyer.leadPrice} size="sm" />
                     </div>
-                    <Link to={`/broker/leads/${buyer.id}`}>
-                      <Button size="sm" className="bg-primary hover:bg-primary/90 text-xs">
-                        Submit Property
-                      </Button>
-                    </Link>
+                    <Button 
+                      size="sm" 
+                      className="bg-primary hover:bg-primary/90 text-xs"
+                      onClick={() => purchaseLead(buyer.matchId, buyer.leadPrice)}
+                    >
+                      Purchase Lead
+                    </Button>
                   </div>
                 </div>
               </div>
@@ -388,16 +454,16 @@ const Dashboard = () => {
                 <div className="min-w-[80px] flex-shrink-0">
                   <div className="text-xs text-muted-foreground mb-1">Priority</div>
                   <Badge 
-                    variant={buyer.urgency === "High" ? "default" : "outline"}
+                    variant={buyer.urgency === "urgent" ? "default" : "outline"}
                     className={`text-xs ${
-                      buyer.urgency === "High" 
+                      buyer.urgency === "urgent" 
                         ? "bg-green-500 text-white hover:bg-green-600" 
-                        : buyer.urgency === "Medium" 
+                        : buyer.urgency === "medium" 
                         ? "bg-yellow-500 text-white hover:bg-yellow-600 border-yellow-500" 
                         : "bg-red-500 text-white hover:bg-red-600 border-red-500"
                     }`}
                   >
-                    {buyer.urgency}
+                    {buyer.urgency.charAt(0).toUpperCase() + buyer.urgency.slice(1)}
                   </Badge>
                 </div>
 
@@ -417,11 +483,13 @@ const Dashboard = () => {
                     <span className="text-xs text-muted-foreground">Cost</span>
                     <Coin value={buyer.leadPrice} size="sm" />
                   </div>
-                  <Link to={`/broker/leads/${buyer.id}`}>
-                    <Button size="sm" className="bg-primary hover:bg-primary/90">
-                      Submit Property
-                    </Button>
-                  </Link>
+                  <Button 
+                    size="sm" 
+                    className="bg-primary hover:bg-primary/90"
+                    onClick={() => purchaseLead(buyer.matchId, buyer.leadPrice)}
+                  >
+                    Purchase Lead
+                  </Button>
                 </div>
               </div>
             </div>
@@ -431,8 +499,8 @@ const Dashboard = () => {
               <div className="w-16 h-16 bg-muted rounded-lg flex items-center justify-center mx-auto mb-4">
                 <Users className="w-8 h-8 text-muted-foreground" />
               </div>
-              <h3 className="font-medium mb-2">No Active Leads</h3>
-              <p className="text-sm text-muted-foreground">There are currently no active buyer requirements to display.</p>
+              <h3 className="font-medium mb-2">No Property Matches Found</h3>
+              <p className="text-sm text-muted-foreground">No buyer requirements match your properties yet. Add more properties to increase matches.</p>
             </div>
           )}
         </div>
