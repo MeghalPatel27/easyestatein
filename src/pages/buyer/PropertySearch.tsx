@@ -43,6 +43,7 @@ const PropertySearch = () => {
         .from('properties')
         .select('*')
         .eq('status', 'active')
+        .not('approval_id', 'is', null)
         .order('created_at', { ascending: false });
       
       if (error) throw error;
