@@ -17,7 +17,7 @@ const Dashboard = () => {
   const [sortBy, setSortBy] = useState("score");
   const { user } = useAuth();
 
-  // Fetch property matches for this broker
+  // Fetch property matches for this broker (real-time data only)
   const { data: potentialBuyers = [], isLoading } = useQuery({
     queryKey: ['broker-property-matches', user?.id, sortBy],
     queryFn: async () => {
@@ -32,7 +32,11 @@ const Dashboard = () => {
         .gte('match_score', 40)
         .limit(10);
 
-      if (matchError) throw matchError;
+      if (matchError) {
+        console.error('Error fetching matches:', matchError);
+        throw matchError;
+      }
+      
       if (!matches || matches.length === 0) return [];
 
       // Get requirement IDs
@@ -67,7 +71,7 @@ const Dashboard = () => {
         return {
           id: match.id,
           name: `${buyer?.first_name || 'Anonymous'} ${buyer?.last_name || 'Buyer'}`,
-          rating: Math.min(5, match.match_score / 20), // Convert score to 1-5 rating
+          rating: Math.min(5, match.match_score / 20),
           category: requirement?.category || 'Residential',
           propertyType: requirement?.property_type || 'Unknown',
           area: (requirement?.location as any)?.city || 'Location not specified',
@@ -86,7 +90,9 @@ const Dashboard = () => {
         };
       });
     },
-    enabled: !!user?.id
+    enabled: !!user?.id,
+    retry: 1,
+    refetchOnWindowFocus: false
   });
 
   // Function to purchase a lead
@@ -106,12 +112,14 @@ const Dashboard = () => {
       if (result?.success) {
         // Refresh the matches data
         window.location.reload();
-        console.log('Lead purchased successfully!');
+        console.log('Lead purchased successfully! Lead ID:', result.lead_id);
       } else {
         console.error('Failed to purchase lead:', result?.error);
+        alert(`Failed to purchase lead: ${result?.error || 'Unknown error'}`);
       }
     } catch (error) {
       console.error('Error purchasing lead:', error);
+      alert('Error purchasing lead. Please try again.');
     }
   };
 
@@ -310,13 +318,13 @@ const Dashboard = () => {
         </div>
         
         <div className="space-y-4">
-          {isLoading ? (
-            <div className="text-center py-12">
-              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto"></div>
-              <p className="text-muted-foreground mt-4">Loading leads...</p>
-            </div>
-          ) : potentialBuyers.length > 0 ? (
-            potentialBuyers.map((buyer) => (
+            {isLoading ? (
+              <div className="text-center py-12">
+                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
+                <p className="text-muted-foreground">Loading property matches...</p>
+              </div>
+            ) : potentialBuyers.length > 0 ? (
+              potentialBuyers.map((buyer) => (
             <div
               key={buyer.id}
               className="p-4 md:p-6 rounded-lg border bg-card hover:shadow-md transition-all cursor-pointer"
