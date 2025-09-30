@@ -34,6 +34,7 @@ import BuyerDashboard from "./pages/buyer/Dashboard";
 import Requirements from "./pages/buyer/Requirements";
 import BuyerChats from "./pages/buyer/BuyerChats";
 import PropertySearch from "./pages/buyer/PropertySearch";
+import PropertyDetails from "./pages/buyer/PropertyDetails";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +81,7 @@ const App = () => (
               <Route path="requirements" element={<Requirements />} />
               <Route path="chats" element={<BuyerChats />} />
               <Route path="search" element={<PropertySearch />} />
+              <Route path="property/:propertyId" element={<PropertyDetails />} />
             </Route>
             
             {/* Legacy Seller/Broker Route */}

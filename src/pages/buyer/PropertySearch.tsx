@@ -259,7 +259,7 @@ const PropertySearch = () => {
                   </p>
                   <div className="flex gap-2">
                     <Button size="sm" variant="outline">Contact</Button>
-                    <Button size="sm">View Details</Button>
+                    <Button size="sm" onClick={() => navigate(`/buyer/property/${property.id}`)}>View Details</Button>
                   </div>
                 </div>
               </div>
