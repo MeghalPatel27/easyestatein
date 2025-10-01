@@ -49,7 +49,7 @@ const PropertiesList = () => {
         .from('properties')
         .select(`
           *,
-          property_approvals!inner(
+          property_approvals!fk_properties_approval_id!inner(
             id,
             status
           )
