@@ -106,10 +106,12 @@ const BrokerLayout = () => {
             {/* Right Section */}
             <div className="flex items-center gap-4">
               {/* Coin Balance */}
-              <div className="flex items-center gap-1.5 text-muted-foreground text-sm">
-                <Coins className="h-4 w-4" />
-                <span>0</span>
-              </div>
+              <Link to="/broker/wallet">
+                <div className="flex items-center gap-1.5 text-primary hover:text-primary/80 transition-colors cursor-pointer text-sm font-medium">
+                  <Coins className="h-4 w-4" />
+                  <span>{profile?.coin_balance || 0}</span>
+                </div>
+              </Link>
 
               {/* Notifications */}
               <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">

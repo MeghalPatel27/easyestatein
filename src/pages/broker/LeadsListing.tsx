@@ -5,9 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { Search, MapPin, Home, ChevronLeft, ChevronRight } from "lucide-react";
 import { toast } from "sonner";
+import { useNavigate } from "react-router-dom";
 
 // Radial progress component for score display
 const RadialProgress = ({ score }: { score: number }) => {
@@ -55,7 +56,9 @@ const maskName = (name: string, isUnlocked: boolean) => {
 };
 
 const LeadsListing = () => {
-  const { user } = useAuth();
+  const { user, profile } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
 
   const { data: leads = [], isLoading, refetch } = useQuery({
@@ -143,29 +146,61 @@ const LeadsListing = () => {
     };
   }, [user?.id, refetch]);
 
-  const purchaseLead = async (matchId: string, leadPrice: number) => {
-    if (!user?.id) return;
-    
-    try {
+  // Purchase lead mutation
+  const purchaseLeadMutation = useMutation({
+    mutationFn: async ({ matchId, buyerId, requirementId }: { matchId: string; buyerId: string; requirementId: string }) => {
       const { data, error } = await supabase.rpc('purchase_lead', {
         _match_id: matchId,
-        _broker_id: user.id
+        _broker_id: user?.id
       });
 
       if (error) throw error;
-
-      const result = data as { success: boolean; error?: string; lead_id?: string };
       
-      if (result?.success) {
-        toast.success('Lead purchased successfully!');
-        refetch();
+      const result = data as { success: boolean; error?: string; lead_id?: string; cost?: number; remaining_balance?: number };
+      if (!result?.success) throw new Error(result?.error || 'Failed to purchase lead');
+
+      return { result, buyerId, requirementId };
+    },
+    onSuccess: async ({ result, buyerId, requirementId }) => {
+      toast.success(`Lead purchased! ${result.cost} coins deducted. Balance: ${result.remaining_balance}`);
+      
+      // Invalidate queries to refresh data
+      await queryClient.invalidateQueries({ queryKey: ['leads-listing'] });
+      await queryClient.invalidateQueries({ queryKey: ['broker-profile'] });
+      
+      // Create or get chat with buyer
+      const { data: chatId, error: chatError } = await supabase.rpc('get_or_create_chat', {
+        _buyer_id: buyerId,
+        _broker_id: user?.id,
+        _requirement_id: requirementId
+      });
+
+      if (chatError) {
+        console.error('Error creating chat:', chatError);
+        toast.error('Lead purchased but chat creation failed');
       } else {
-        toast.error(`Failed to purchase lead: ${result?.error || 'Unknown error'}`);
+        toast.success('Chat activated! Redirecting...');
+        setTimeout(() => {
+          navigate(`/chat/${chatId}`);
+        }, 1500);
       }
-    } catch (error) {
-      console.error('Error purchasing lead:', error);
-      toast.error('Error purchasing lead. Please try again.');
+    },
+    onError: (error: any) => {
+      console.error('Purchase error:', error);
+      toast.error(error.message || 'Failed to purchase lead');
     }
+  });
+
+  const purchaseLead = (matchId: string, leadPrice: number, buyerId: string, requirementId: string) => {
+    // Check if broker has enough balance
+    const currentBalance = profile?.coin_balance || 0;
+    if (currentBalance < leadPrice) {
+      toast.error('Insufficient coin balance. Please refill your wallet.');
+      setTimeout(() => navigate('/broker/wallet/refill'), 1500);
+      return;
+    }
+
+    purchaseLeadMutation.mutate({ matchId, buyerId, requirementId });
   };
 
   const filteredLeads = leads.filter((lead: any) => {
@@ -298,9 +333,10 @@ const LeadsListing = () => {
                 <div className="flex-shrink-0 ml-auto">
                   <Button 
                     className="bg-pink-500 hover:bg-pink-600 text-white font-medium"
-                    onClick={() => purchaseLead(lead.matchId, lead.lead_price)}
+                    onClick={() => purchaseLead(lead.matchId, lead.lead_price, lead.buyerId, lead.requirementId)}
+                    disabled={purchaseLeadMutation.isPending}
                   >
-                    Purchase Lead
+                    {purchaseLeadMutation.isPending ? 'Processing...' : 'Purchase Lead'}
                   </Button>
                 </div>
 
