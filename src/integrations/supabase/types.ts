@@ -680,15 +680,6 @@ export type Database = {
         Args: { _email: string }
         Returns: string
       }
-      get_or_create_chat: {
-        Args: {
-          _broker_id: string
-          _buyer_id: string
-          _property_id?: string
-          _requirement_id?: string
-        }
-        Returns: string
-      }
       get_user_profile: {
         Args: { _user_id: string }
         Returns: {
@@ -719,7 +710,14 @@ export type Database = {
         }[]
       }
       purchase_lead: {
-        Args: { _broker_id: string; _match_id: string }
+        Args:
+          | { _broker_id: string; _match_id: string }
+          | {
+              p_buyer_id: string
+              p_lead_price: number
+              p_match_id: string
+              p_requirement_id: string
+            }
         Returns: Json
       }
       refresh_broker_property_matches: {
