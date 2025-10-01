@@ -1,64 +1,91 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, Search, MessageSquare, History, Building, Home, MapPin, Clock, CheckCircle, Calendar, Send } from "lucide-react";
+import { MessageSquare, History, Building, Home, MapPin, Clock, CheckCircle } from "lucide-react";
 import { EnhancedSearch } from "@/components/ui/enhanced-search";
+import { supabase } from "@/integrations/supabase/client";
+import { useAuth } from "@/hooks/useAuth";
+import { useQuery } from "@tanstack/react-query";
 
 const ChatsListing = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
+  const { profile } = useAuth();
 
-  // Mock chat data - replace with actual API calls
-  const mockChats = [
-    {
-      id: "1",
-      participantName: "John Realty",
-      participantType: "broker",
-      propertyType: "apartment",
-      bedrooms: "3 BHK",
-      location: "Baner",
-      clientStage: "Visit Scheduled",
-      unreadCount: 2,
-      status: "active",
-      history: [
-        { date: "2024-01-15", event: "Lead Accepted", icon: CheckCircle },
-        { date: "2024-01-16", event: "Details Sent", icon: Send },
-        { date: "2024-01-17", event: "Visit Scheduled", icon: Calendar },
-      ]
+  // Fetch chats with real data
+  const { data: chats = [], isLoading } = useQuery({
+    queryKey: ['chats', profile?.id],
+    queryFn: async () => {
+      if (!profile?.id) return [];
+
+      const { data, error } = await supabase
+        .from('chats')
+        .select(`
+          id,
+          broker_id,
+          buyer_id,
+          property_id,
+          requirement_id,
+          last_message,
+          last_message_at,
+          created_at,
+          properties (
+            title,
+            property_type,
+            bedrooms,
+            location
+          ),
+          requirements (
+            title,
+            property_type,
+            bedrooms,
+            location,
+            urgency
+          )
+        `)
+        .or(`broker_id.eq.${profile.id},buyer_id.eq.${profile.id}`)
+        .order('last_message_at', { ascending: false, nullsFirst: false });
+
+      if (error) throw error;
+
+      // Fetch participant names
+      const chatsWithParticipants = await Promise.all(
+        data.map(async (chat: any) => {
+          const participantId = profile.user_type === 'broker' ? chat.buyer_id : chat.broker_id;
+          
+          const { data: participantProfile } = await supabase
+            .from('profiles')
+            .select('first_name, last_name, company_name')
+            .eq('id', participantId)
+            .single();
+
+          const participantName = participantProfile?.company_name || 
+            `${participantProfile?.first_name || ''} ${participantProfile?.last_name || ''}`.trim() ||
+            'Unknown User';
+
+          return {
+            id: chat.id,
+            participantName,
+            participantType: profile.user_type === 'broker' ? 'buyer' : 'broker',
+            propertyType: chat.properties?.property_type || chat.requirements?.property_type || 'apartment',
+            bedrooms: chat.properties?.bedrooms || chat.requirements?.bedrooms || 0,
+            location: (chat.properties?.location || chat.requirements?.location)?.city || 'Unknown',
+            lastMessage: chat.last_message || 'No messages yet',
+            lastMessageTime: chat.last_message_at ? new Date(chat.last_message_at).toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' }) : '',
+            unreadCount: 0,
+            status: 'active',
+            urgency: chat.requirements?.urgency || 'medium'
+          };
+        })
+      );
+
+      return chatsWithParticipants;
     },
-    {
-      id: "2",
-      participantName: "Prime Properties", 
-      participantType: "broker",
-      propertyType: "villa",
-      bedrooms: "2 BHK",
-      location: "Wakad",
-      clientStage: "Details Sent",
-      unreadCount: 0,
-      status: "active",
-      history: [
-        { date: "2024-01-14", event: "Lead Accepted", icon: CheckCircle },
-        { date: "2024-01-15", event: "Details Sent", icon: Send },
-      ]
-    },
-    {
-      id: "3",
-      participantName: "Elite Homes",
-      participantType: "broker", 
-      propertyType: "apartment",
-      bedrooms: "4 BHK",
-      location: "Koregaon Park",
-      clientStage: "Inquiry Received",
-      unreadCount: 1,
-      status: "active",
-      history: [
-        { date: "2024-01-12", event: "Lead Accepted", icon: CheckCircle },
-      ]
-    }
-  ];
+    enabled: !!profile?.id
+  });
 
   const getPropertyIcon = (type: string) => {
     switch (type) {
@@ -71,10 +98,39 @@ const ChatsListing = () => {
     }
   };
 
-  const filteredChats = mockChats.filter(chat =>
+  const filteredChats = chats.filter((chat: any) =>
     chat.participantName.toLowerCase().includes(searchTerm.toLowerCase()) ||
     chat.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // Listen for new messages in real-time
+  useEffect(() => {
+    if (!profile?.id) return;
+
+    const channel = supabase
+      .channel('chats-updates')
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'chats',
+        filter: `broker_id=eq.${profile.id}`
+      }, () => {
+        // Refetch chats when there's a change
+      })
+      .on('postgres_changes', {
+        event: '*',
+        schema: 'public',
+        table: 'chats',
+        filter: `buyer_id=eq.${profile.id}`
+      }, () => {
+        // Refetch chats when there's a change
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [profile?.id]);
 
   const handleChatClick = (chatId: string) => {
     navigate(`/chat/${chatId}`);
@@ -101,7 +157,11 @@ const ChatsListing = () => {
 
         {/* Chats List */}
         <div className="space-y-4">
-          {filteredChats.length > 0 ? (
+          {isLoading ? (
+            <Card className="p-8 text-center">
+              <p className="text-muted-foreground">Loading chats...</p>
+            </Card>
+          ) : filteredChats.length > 0 ? (
             filteredChats.map((chat) => (
               <Card 
                 key={chat.id} 
@@ -131,10 +191,15 @@ const ChatsListing = () => {
                          <span className="text-sm text-muted-foreground">{chat.location}</span>
                        </div>
                        
-                       {/* Client stage instead of last message */}
-                       <p className="text-sm font-medium text-foreground">
-                         {chat.clientStage}
+                       {/* Last message */}
+                       <p className="text-sm text-muted-foreground truncate">
+                         {chat.lastMessage}
                        </p>
+                       {chat.lastMessageTime && (
+                         <p className="text-xs text-muted-foreground">
+                           {chat.lastMessageTime}
+                         </p>
+                       )}
                      </div>
                   </div>
                    <div className="flex items-center space-x-2">
@@ -143,35 +208,6 @@ const ChatsListing = () => {
                          {chat.unreadCount}
                        </div>
                      )}
-                     
-                     {/* History popup */}
-                     <Dialog>
-                       <DialogTrigger asChild>
-                         <Button 
-                           size="sm" 
-                           variant="outline"
-                           onClick={(e) => e.stopPropagation()}
-                         >
-                           <History className="w-4 h-4" />
-                         </Button>
-                       </DialogTrigger>
-                       <DialogContent>
-                         <DialogHeader>
-                           <DialogTitle>Client History - {chat.participantName}</DialogTitle>
-                         </DialogHeader>
-                         <div className="space-y-4">
-                           {chat.history.map((event, index) => (
-                             <div key={index} className="flex items-center space-x-3 p-3 bg-muted/50 rounded-lg">
-                               <event.icon className="w-5 h-5 text-primary" />
-                               <div className="flex-1">
-                                 <p className="font-medium text-foreground">{event.event}</p>
-                                 <p className="text-sm text-muted-foreground">{event.date}</p>
-                               </div>
-                             </div>
-                           ))}
-                         </div>
-                       </DialogContent>
-                     </Dialog>
                      
                      <Button size="sm" variant="outline">
                        <MessageSquare className="w-4 h-4" />

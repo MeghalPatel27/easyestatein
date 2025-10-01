@@ -148,42 +148,34 @@ const LeadsListing = () => {
 
   // Purchase lead mutation
   const purchaseLeadMutation = useMutation({
-    mutationFn: async ({ matchId, buyerId, requirementId }: { matchId: string; buyerId: string; requirementId: string }) => {
+    mutationFn: async ({ matchId, buyerId, requirementId, leadPrice }: { matchId: string; buyerId: string; requirementId: string; leadPrice: number }) => {
       const { data, error } = await supabase.rpc('purchase_lead', {
-        _match_id: matchId,
-        _broker_id: user?.id
+        p_match_id: matchId,
+        p_lead_price: leadPrice,
+        p_buyer_id: buyerId,
+        p_requirement_id: requirementId
       });
 
       if (error) throw error;
       
-      const result = data as { success: boolean; error?: string; lead_id?: string; cost?: number; remaining_balance?: number };
+      const result = data as { success: boolean; error?: string; chat_id?: string; new_balance?: number };
       if (!result?.success) throw new Error(result?.error || 'Failed to purchase lead');
 
-      return { result, buyerId, requirementId };
+      return result;
     },
-    onSuccess: async ({ result, buyerId, requirementId }) => {
-      toast.success(`Lead purchased! ${result.cost} coins deducted. Balance: ${result.remaining_balance}`);
+    onSuccess: async (result) => {
+      toast.success(`Lead purchased! Balance: ${result.new_balance} coins`);
       
       // Invalidate queries to refresh data
       await queryClient.invalidateQueries({ queryKey: ['leads-listing'] });
       await queryClient.invalidateQueries({ queryKey: ['broker-profile'] });
+      await queryClient.invalidateQueries({ queryKey: ['chats'] });
       
-      // Create or get chat with buyer
-      const { data: chatId, error: chatError } = await supabase.rpc('get_or_create_chat', {
-        _buyer_id: buyerId,
-        _broker_id: user?.id,
-        _requirement_id: requirementId
-      });
-
-      if (chatError) {
-        console.error('Error creating chat:', chatError);
-        toast.error('Lead purchased but chat creation failed');
-      } else {
-        toast.success('Chat activated! Redirecting...');
-        setTimeout(() => {
-          navigate(`/chat/${chatId}`);
-        }, 1500);
-      }
+      // Navigate to chat
+      toast.success('Chat activated! Redirecting...');
+      setTimeout(() => {
+        navigate(`/chat/${result.chat_id}`);
+      }, 1500);
     },
     onError: (error: any) => {
       console.error('Purchase error:', error);
@@ -200,7 +192,7 @@ const LeadsListing = () => {
       return;
     }
 
-    purchaseLeadMutation.mutate({ matchId, buyerId, requirementId });
+    purchaseLeadMutation.mutate({ matchId, buyerId, requirementId, leadPrice });
   };
 
   const filteredLeads = leads.filter((lead: any) => {
