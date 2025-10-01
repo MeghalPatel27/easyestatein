@@ -23,14 +23,15 @@ const Dashboard = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      // First get the matches
+      // First get the matches (top 5 with score > 70)
       const { data: matches, error: matchError } = await supabase
         .from('property_matches')
         .select('*')
         .eq('broker_id', user.id)
         .eq('is_lead_purchased', false)
-        .gte('match_score', 40)
-        .limit(10);
+        .gt('match_score', 70)
+        .order('match_score', { ascending: false })
+        .limit(5);
 
       if (matchError) {
         console.error('Error fetching matches:', matchError);
@@ -129,13 +130,13 @@ const Dashboard = () => {
     queryFn: async () => {
       if (!user?.id) return { matchingLeads: 0, engagedLeads: 0, acceptanceRate: 0, visitsArranged: 0 };
       
-      // Count available matches for this broker
+      // Count available matches for this broker (score > 70)
       const { count: matchingLeads } = await supabase
         .from('property_matches')
         .select('*', { count: 'exact', head: true })
         .eq('broker_id', user.id)
         .eq('is_lead_purchased', false)
-        .gte('match_score', 40);
+        .gt('match_score', 70);
 
       // Count purchased leads (engaged leads)
       const { count: engagedLeads } = await supabase
