@@ -213,8 +213,8 @@ const LeadsListing = () => {
           </Card>
         ) : (
           filteredLeads.map((lead: any) => (
-            <Card key={lead.id} className="overflow-hidden hover:shadow-lg transition-shadow">
-              <div className="flex items-center gap-6 p-6">
+            <Card key={lead.id} className="overflow-x-auto hover:shadow-lg transition-shadow">
+              <div className="flex items-center gap-6 p-6 min-w-max">
                 {/* Left: Score */}
                 <div className="flex-shrink-0">
                   <div className="flex flex-col items-center gap-1">
