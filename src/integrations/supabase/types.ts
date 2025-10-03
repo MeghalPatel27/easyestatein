@@ -746,6 +746,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      user_has_chat_access: {
+        Args: { _chat_id: string; _user_id: string }
+        Returns: boolean
+      }
     }
     Enums: {
       approval_status: "pending" | "approved" | "rejected"
