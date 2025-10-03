@@ -49,7 +49,7 @@ const ChatBox = () => {
         location: ((data.properties?.location || data.requirements?.location) as any)?.city || 'Unknown'
       };
     },
-    enabled: !!chatId && !!profile
+    enabled: !!chatId && !!profile?.id
   });
 
   // Fetch messages
@@ -65,7 +65,7 @@ const ChatBox = () => {
       if (error) throw error;
       return data;
     },
-    enabled: !!chatId
+    enabled: !!chatId && !!profile?.id
   });
 
   // Send message mutation
