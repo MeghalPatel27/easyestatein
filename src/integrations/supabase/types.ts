@@ -680,6 +680,14 @@ export type Database = {
         Args: { _email: string }
         Returns: string
       }
+      get_profile_public: {
+        Args: { target_user_id: string }
+        Returns: {
+          company_name: string
+          first_name: string
+          last_name: string
+        }[]
+      }
       get_user_profile: {
         Args: { _user_id: string }
         Returns: {

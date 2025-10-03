@@ -33,12 +33,10 @@ const ChatBox = () => {
 
       if (error) throw error;
 
-      // Fetch other participant's info
+      // Fetch other participant's info using the safe RPC function
       const participantId = profile?.user_type === 'broker' ? data.buyer_id : data.broker_id;
       const { data: participantProfile } = await supabase
-        .from('profiles')
-        .select('first_name, last_name, company_name')
-        .eq('id', participantId)
+        .rpc('get_profile_public', { target_user_id: participantId })
         .single();
 
       return {

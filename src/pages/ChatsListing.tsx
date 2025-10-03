@@ -51,15 +51,13 @@ const ChatsListing = () => {
 
       if (error) throw error;
 
-      // Fetch participant names
+      // Fetch participant names using the safe RPC function
       const chatsWithParticipants = await Promise.all(
         data.map(async (chat: any) => {
           const participantId = profile.user_type === 'broker' ? chat.buyer_id : chat.broker_id;
           
           const { data: participantProfile } = await supabase
-            .from('profiles')
-            .select('first_name, last_name, company_name')
-            .eq('id', participantId)
+            .rpc('get_profile_public', { target_user_id: participantId })
             .single();
 
           const participantName = participantProfile?.company_name || 
