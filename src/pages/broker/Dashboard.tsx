@@ -145,11 +145,10 @@ const Dashboard = () => {
         .eq('broker_id', user.id)
         .eq('is_lead_purchased', true);
 
-      // Count active chats for visits arranged
-      const { count: visitsArranged } = await supabase
-        .from('chats')
-        .select('*', { count: 'exact', head: true })
-        .eq('broker_id', user.id);
+      // Count active chats for visits arranged using security definer function
+      const { data: userChats } = await supabase
+        .rpc('get_user_chats', { _user_id: user.id });
+      const visitsArranged = userChats?.length || 0;
 
       return {
         matchingLeads: matchingLeads || 0,
