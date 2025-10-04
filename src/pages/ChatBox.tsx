@@ -52,15 +52,14 @@ const ChatBox = () => {
     enabled: !!chatId && !!profile?.id
   });
 
-  // Fetch messages
+  // Fetch messages using security definer function
   const { data: messages = [] } = useQuery({
     queryKey: ['messages', chatId],
     queryFn: async () => {
+      if (!chatId) return [];
+      
       const { data, error } = await supabase
-        .from('messages')
-        .select('*')
-        .eq('chat_id', chatId)
-        .order('created_at', { ascending: true });
+        .rpc('get_chat_messages', { _chat_id: chatId });
 
       if (error) throw error;
       return data;
