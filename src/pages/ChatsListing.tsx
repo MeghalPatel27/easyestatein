@@ -15,45 +15,48 @@ const ChatsListing = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const { profile } = useAuth();
 
-  // Fetch chats with real data
+  // Fetch chats with real data using security definer function
   const { data: chats = [], isLoading } = useQuery({
     queryKey: ['chats', profile?.id],
     queryFn: async () => {
       if (!profile?.id) return [];
 
       const { data, error } = await supabase
-        .from('chats')
-        .select(`
-          id,
-          broker_id,
-          buyer_id,
-          property_id,
-          requirement_id,
-          last_message,
-          last_message_at,
-          created_at,
-          properties (
-            title,
-            property_type,
-            bedrooms,
-            location
-          ),
-          requirements (
-            title,
-            property_type,
-            bedrooms,
-            location,
-            urgency
-          )
-        `)
-        .or(`broker_id.eq.${profile.id},buyer_id.eq.${profile.id}`)
-        .order('last_message_at', { ascending: false, nullsFirst: false });
+        .rpc('get_user_chats', { _user_id: profile.id });
 
       if (error) throw error;
 
+      // Fetch related property and requirement data
+      const chatsWithDetails = await Promise.all(
+        data.map(async (chat: any) => {
+          let propertyData = null;
+          let requirementData = null;
+
+          if (chat.property_id) {
+            const { data: property } = await supabase
+              .from('properties')
+              .select('title, property_type, bedrooms, location')
+              .eq('id', chat.property_id)
+              .single();
+            propertyData = property;
+          }
+
+          if (chat.requirement_id) {
+            const { data: requirement } = await supabase
+              .from('requirements')
+              .select('title, property_type, bedrooms, location, urgency')
+              .eq('id', chat.requirement_id)
+              .single();
+            requirementData = requirement;
+          }
+
+          return { ...chat, properties: propertyData, requirements: requirementData };
+        })
+      );
+
       // Fetch participant names using the safe RPC function
       const chatsWithParticipants = await Promise.all(
-        data.map(async (chat: any) => {
+        chatsWithDetails.map(async (chat: any) => {
           const participantId = profile.user_type === 'broker' ? chat.buyer_id : chat.broker_id;
           
           const { data: participantProfile } = await supabase

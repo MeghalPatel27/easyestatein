@@ -688,6 +688,20 @@ export type Database = {
           last_name: string
         }[]
       }
+      get_user_chats: {
+        Args: { _user_id: string }
+        Returns: {
+          broker_id: string
+          buyer_id: string
+          created_at: string
+          id: string
+          last_message: string
+          last_message_at: string
+          property_id: string
+          requirement_id: string
+          updated_at: string
+        }[]
+      }
       get_user_profile: {
         Args: { _user_id: string }
         Returns: {
