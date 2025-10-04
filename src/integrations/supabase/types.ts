@@ -680,6 +680,20 @@ export type Database = {
         Args: { _email: string }
         Returns: string
       }
+      get_chat_by_id: {
+        Args: { _chat_id: string }
+        Returns: {
+          broker_id: string
+          buyer_id: string
+          created_at: string
+          id: string
+          last_message: string
+          last_message_at: string
+          property_id: string
+          requirement_id: string
+          updated_at: string
+        }[]
+      }
       get_chat_messages: {
         Args: { _chat_id: string }
         Returns: {

@@ -17,21 +17,41 @@ const ChatBox = () => {
   const queryClient = useQueryClient();
   const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  // Fetch chat details
+  // Fetch chat details using security definer function
   const { data: chatData } = useQuery({
     queryKey: ['chat', chatId],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from('chats')
-        .select(`
-          *,
-          properties (title, property_type, bedrooms, location),
-          requirements (title, property_type, bedrooms, location)
-        `)
-        .eq('id', chatId)
-        .single();
+      if (!chatId) return null;
 
-      if (error) throw error;
+      const { data: chatArray, error: chatError } = await supabase
+        .rpc('get_chat_by_id', { _chat_id: chatId });
+
+      if (chatError) throw chatError;
+      if (!chatArray || chatArray.length === 0) return null;
+
+      const data = chatArray[0];
+
+      // Fetch related property and requirement data
+      let propertyData = null;
+      let requirementData = null;
+
+      if (data.property_id) {
+        const { data: property } = await supabase
+          .from('properties')
+          .select('title, property_type, bedrooms, location')
+          .eq('id', data.property_id)
+          .single();
+        propertyData = property;
+      }
+
+      if (data.requirement_id) {
+        const { data: requirement } = await supabase
+          .from('requirements')
+          .select('title, property_type, bedrooms, location')
+          .eq('id', data.requirement_id)
+          .single();
+        requirementData = requirement;
+      }
 
       // Fetch other participant's info using the safe RPC function
       const participantId = profile?.user_type === 'broker' ? data.buyer_id : data.broker_id;
@@ -41,12 +61,14 @@ const ChatBox = () => {
 
       return {
         ...data,
+        properties: propertyData,
+        requirements: requirementData,
         participantName: participantProfile?.company_name || 
           `${participantProfile?.first_name || ''} ${participantProfile?.last_name || ''}`.trim() ||
           'Unknown User',
-        propertyType: data.properties?.property_type || data.requirements?.property_type || 'apartment',
-        bedrooms: data.properties?.bedrooms || data.requirements?.bedrooms || 0,
-        location: ((data.properties?.location || data.requirements?.location) as any)?.city || 'Unknown'
+        propertyType: propertyData?.property_type || requirementData?.property_type || 'apartment',
+        bedrooms: propertyData?.bedrooms || requirementData?.bedrooms || 0,
+        location: ((propertyData?.location || requirementData?.location) as any)?.city || 'Unknown'
       };
     },
     enabled: !!chatId && !!profile?.id
