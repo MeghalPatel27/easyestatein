@@ -89,19 +89,15 @@ const ChatBox = () => {
     enabled: !!chatId && !!profile?.id
   });
 
-  // Send message mutation
+  // Send message mutation using security definer function
   const sendMessageMutation = useMutation({
     mutationFn: async (content: string) => {
       const { data, error } = await supabase
-        .from('messages')
-        .insert({
-          chat_id: chatId,
-          sender_id: profile?.id,
-          content,
-          message_type: 'text'
-        })
-        .select()
-        .single();
+        .rpc('send_message', {
+          _chat_id: chatId,
+          _content: content,
+          _message_type: 'text'
+        });
 
       if (error) throw error;
       return data;
@@ -118,7 +114,7 @@ const ChatBox = () => {
 
   // Real-time subscription for new messages
   useEffect(() => {
-    if (!chatId) return;
+    if (!chatId || !profile?.id) return;
 
     const channel = supabase
       .channel(`messages:${chatId}`)
@@ -127,15 +123,27 @@ const ChatBox = () => {
         schema: 'public',
         table: 'messages',
         filter: `chat_id=eq.${chatId}`
-      }, () => {
+      }, (payload) => {
+        console.log('New message received:', payload);
         queryClient.invalidateQueries({ queryKey: ['messages', chatId] });
+        queryClient.invalidateQueries({ queryKey: ['chats'] });
+      })
+      .on('postgres_changes', {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'chats',
+        filter: `id=eq.${chatId}`
+      }, (payload) => {
+        console.log('Chat updated:', payload);
+        queryClient.invalidateQueries({ queryKey: ['chat', chatId] });
+        queryClient.invalidateQueries({ queryKey: ['chats'] });
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [chatId, queryClient]);
+  }, [chatId, profile?.id, queryClient]);
 
   // Scroll to bottom when messages change
   useEffect(() => {
@@ -144,7 +152,7 @@ const ChatBox = () => {
 
   const handleSendMessage = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim() || !chatId) return;
     sendMessageMutation.mutate(message);
   };
 

@@ -776,6 +776,15 @@ export type Database = {
         Args: { _admin_id: string; _admin_notes?: string; _approval_id: string }
         Returns: boolean
       }
+      send_message: {
+        Args: {
+          _attachments?: string[]
+          _chat_id: string
+          _content: string
+          _message_type?: string
+        }
+        Returns: string
+      }
       update_user_coin_balance: {
         Args: {
           _amount: number
