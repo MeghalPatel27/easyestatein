@@ -8,12 +8,13 @@ import { MessageSquare, History, Building, Home, MapPin, Clock, CheckCircle } fr
 import { EnhancedSearch } from "@/components/ui/enhanced-search";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 
 const ChatsListing = () => {
   const navigate = useNavigate();
   const [searchTerm, setSearchTerm] = useState("");
   const { profile } = useAuth();
+  const queryClient = useQueryClient();
 
   // Fetch chats with real data using security definer function
   const { data: chats = [], isLoading } = useQuery({
@@ -104,34 +105,34 @@ const ChatsListing = () => {
     chat.location.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
+
   // Listen for new messages in real-time
   useEffect(() => {
     if (!profile?.id) return;
 
     const channel = supabase
-      .channel('chats-updates')
+      .channel('broker-chats-updates')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
         table: 'chats',
         filter: `broker_id=eq.${profile.id}`
       }, () => {
-        // Refetch chats when there's a change
+        queryClient.invalidateQueries({ queryKey: ['chats', profile.id] });
       })
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
-        table: 'chats',
-        filter: `buyer_id=eq.${profile.id}`
+        table: 'messages'
       }, () => {
-        // Refetch chats when there's a change
+        queryClient.invalidateQueries({ queryKey: ['chats', profile.id] });
       })
       .subscribe();
 
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [profile?.id]);
+  }, [profile?.id, queryClient]);
 
   const handleChatClick = (chatId: string) => {
     navigate(`/chat/${chatId}`);
