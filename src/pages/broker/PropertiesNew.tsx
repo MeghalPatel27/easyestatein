@@ -594,29 +594,152 @@ const PropertiesNew = () => {
             
             <Card className="p-6">
               <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm text-muted-foreground">Property Type</p>
-                    <p className="font-medium capitalize">{formData.type || '-'} ({formData.category})</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Location</p>
-                    <p className="font-medium">{formData.location.city || '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Budget</p>
-                    <p className="font-medium">₹{formData.price ? (parseFloat(formData.price) / 10000000).toFixed(2) + 'Cr' : '-'}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm text-muted-foreground">Timeline</p>
-                    <p className="font-medium">{formData.completionDate || '-'}</p>
+                <div>
+                  <h3 className="text-lg font-semibold mb-3">Basic Information</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">Category</p>
+                      <p className="font-medium capitalize">{formData.category || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Property Type</p>
+                      <p className="font-medium capitalize">{formData.type || '-'}</p>
+                    </div>
                   </div>
                 </div>
-                
+
+                {formData.title && (
+                  <div>
+                    <p className="text-sm text-muted-foreground">Property Title</p>
+                    <p className="font-medium">{formData.title}</p>
+                  </div>
+                )}
+
                 {formData.description && (
-                  <div className="pt-4 border-t">
-                    <p className="text-sm text-muted-foreground mb-1">Additional Requirements (Optional)</p>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Description</p>
                     <p className="text-sm">{formData.description}</p>
+                  </div>
+                )}
+
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-semibold mb-3">Location</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm text-muted-foreground">City</p>
+                      <p className="font-medium">{formData.location.city || '-'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Pincode</p>
+                      <p className="font-medium">{formData.location.pincode || '-'}</p>
+                    </div>
+                  </div>
+                  {formData.location.address && (
+                    <div className="mt-3">
+                      <p className="text-sm text-muted-foreground">Address</p>
+                      <p className="font-medium">{formData.location.address}</p>
+                    </div>
+                  )}
+                  {formData.location.state && (
+                    <div className="mt-3">
+                      <p className="text-sm text-muted-foreground">Google Location</p>
+                      <p className="font-medium text-sm">{formData.location.state}</p>
+                    </div>
+                  )}
+                </div>
+
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-semibold mb-3">Pricing</h3>
+                  <div>
+                    <p className="text-sm text-muted-foreground">Price</p>
+                    <p className="font-bold text-lg text-primary">
+                      ₹{formData.price ? (parseFloat(formData.price) / 10000000).toFixed(2) + ' Cr' : '-'}
+                    </p>
+                  </div>
+                </div>
+
+                {formData.category === "residential" && (
+                  <div className="border-t pt-4">
+                    <h3 className="text-lg font-semibold mb-3">Specifications</h3>
+                    <div className="grid grid-cols-2 gap-4">
+                      {formData.bedrooms && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Bedrooms</p>
+                          <p className="font-medium">{formData.bedrooms} BHK</p>
+                        </div>
+                      )}
+                      {formData.bathrooms && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Bathrooms</p>
+                          <p className="font-medium">{formData.bathrooms}</p>
+                        </div>
+                      )}
+                      {formData.numberOfHalls && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Halls</p>
+                          <p className="font-medium">{formData.numberOfHalls}</p>
+                        </div>
+                      )}
+                      {formData.numberOfBalconies && (
+                        <div>
+                          <p className="text-sm text-muted-foreground">Balconies</p>
+                          <p className="font-medium">{formData.numberOfBalconies}</p>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
+
+                <div className="border-t pt-4">
+                  <h3 className="text-lg font-semibold mb-3">Area & Floor Details</h3>
+                  <div className="grid grid-cols-2 gap-4">
+                    {formData.area && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Carpet Area</p>
+                        <p className="font-medium">{formData.area} sq ft</p>
+                      </div>
+                    )}
+                    {formData.floor && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Floor</p>
+                        <p className="font-medium">{formData.floor}</p>
+                      </div>
+                    )}
+                    {formData.superBuiltup && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Super Built-up</p>
+                        <p className="font-medium">{formData.superBuiltup}%</p>
+                      </div>
+                    )}
+                    {formData.directions && formData.directions.length > 0 && (
+                      <div>
+                        <p className="text-sm text-muted-foreground">Entry Direction</p>
+                        <p className="font-medium">{formData.directions[0]}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {formData.completionDate && (
+                  <div className="border-t pt-4">
+                    <h3 className="text-lg font-semibold mb-3">Timeline</h3>
+                    <div>
+                      <p className="text-sm text-muted-foreground">Availability</p>
+                      <p className="font-medium">{formData.completionDate}</p>
+                    </div>
+                  </div>
+                )}
+
+                {formData.amenities.length > 0 && (
+                  <div className="border-t pt-4">
+                    <h3 className="text-lg font-semibold mb-3">Amenities</h3>
+                    <div className="flex flex-wrap gap-2">
+                      {formData.amenities.map((amenity) => (
+                        <span key={amenity} className="px-3 py-1 bg-primary/10 text-primary rounded-full text-sm">
+                          {amenity}
+                        </span>
+                      ))}
+                    </div>
                   </div>
                 )}
               </div>
