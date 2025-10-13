@@ -14,7 +14,12 @@ import {
   Building2,
   Factory,
   TreePine,
-  Building
+  Building,
+  Car,
+  Shield,
+  Waves,
+  Zap,
+  TreePalm
 } from "lucide-react";
 import { CompassSelector } from "@/components/ui/compass-selector";
 import { Link, useNavigate } from "react-router-dom";
@@ -111,9 +116,11 @@ const PropertiesNew = () => {
   ];
 
   const amenitiesList = [
-    "Swimming Pool", "Gym", "Parking", "Security", "Garden", "Elevator",
-    "Power Backup", "Water Supply", "Club House", "Children's Play Area",
-    "Jogging Track", "CCTV Surveillance", "Intercom", "Maintenance Staff"
+    { id: "Parking", label: "Parking", icon: Car },
+    { id: "Gated Security", label: "Gated Security", icon: Shield },
+    { id: "Swimming Pool", label: "Swimming Pool", icon: Waves },
+    { id: "Power Backup", label: "Power Backup", icon: Zap },
+    { id: "Garden", label: "Garden", icon: TreePalm }
   ];
 
   const getTypeOptions = () => {
@@ -542,36 +549,34 @@ const PropertiesNew = () => {
         return (
           <div className="max-w-xl mx-auto space-y-6">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-foreground">Preferences</h2>
-              <p className="text-sm text-muted-foreground">Tell us about your property amenities</p>
+              <h2 className="text-2xl font-bold text-foreground">Amenities</h2>
+              <p className="text-sm text-muted-foreground">Select available amenities</p>
             </div>
             
             <div className="space-y-6">
-              <div>
-                <div className="flex items-center gap-2 mb-4">
-                  <div className="w-1 h-6 bg-primary rounded"></div>
-                  <h3 className="text-lg font-semibold">Must-Haves</h3>
-                </div>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {amenitiesList.slice(0, 9).map((amenity) => (
+              <div className="grid grid-cols-3 gap-6">
+                {amenitiesList.map((amenity) => {
+                  const Icon = amenity.icon;
+                  const isSelected = formData.amenities.includes(amenity.id);
+                  
+                  return (
                     <button
-                      key={amenity}
+                      key={amenity.id}
                       onClick={() => {
-                        const newAmenities = formData.amenities.includes(amenity)
-                          ? formData.amenities.filter(a => a !== amenity)
-                          : [...formData.amenities, amenity];
+                        const newAmenities = isSelected
+                          ? formData.amenities.filter(a => a !== amenity.id)
+                          : [...formData.amenities, amenity.id];
                         setFormData({ ...formData, amenities: newAmenities });
                       }}
-                      className={`p-3 rounded-lg border-2 text-sm transition-all ${
-                        formData.amenities.includes(amenity)
-                          ? 'border-primary bg-primary/5 text-primary'
-                          : 'border-border hover:border-primary/50'
-                      }`}
+                      className="flex flex-col items-center gap-2 p-3 transition-all"
                     >
-                      {amenity}
+                      <Icon className={`h-8 w-8 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
+                      <span className={`text-sm ${isSelected ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                        {amenity.label}
+                      </span>
                     </button>
-                  ))}
-                </div>
+                  );
+                })}
               </div>
             </div>
           </div>
