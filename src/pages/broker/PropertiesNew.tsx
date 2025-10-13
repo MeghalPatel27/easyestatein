@@ -254,7 +254,7 @@ const PropertiesNew = () => {
         return (
           <div className="max-w-xl mx-auto space-y-6">
             <div className="text-center space-y-2">
-              <h2 className="text-2xl font-bold text-foreground">Location Preferences</h2>
+              <h2 className="text-2xl font-bold text-foreground">Location</h2>
               <p className="text-sm text-muted-foreground">Where is your property located?</p>
             </div>
             
@@ -274,7 +274,7 @@ const PropertiesNew = () => {
               </div>
               
               <div>
-                <Label htmlFor="address" className="text-base">Nearby Landmark (Optional)</Label>
+                <Label htmlFor="address" className="text-base">Address First Line *</Label>
                 <Input
                   id="address"
                   value={formData.location.address}
@@ -282,7 +282,35 @@ const PropertiesNew = () => {
                     ...formData,
                     location: { ...formData.location, address: e.target.value }
                   })}
-                  placeholder="e.g., Phoenix Mall, Cyber City"
+                  placeholder="e.g., Building name, Street name"
+                  className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label htmlFor="googleLocation" className="text-base">Google Location</Label>
+                <Input
+                  id="googleLocation"
+                  value={formData.location.state}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    location: { ...formData.location, state: e.target.value }
+                  })}
+                  placeholder="Paste Google Maps link or location"
+                  className="mt-1"
+                />
+              </div>
+              
+              <div>
+                <Label htmlFor="pincode" className="text-base">Pincode *</Label>
+                <Input
+                  id="pincode"
+                  value={formData.location.pincode}
+                  onChange={(e) => setFormData({
+                    ...formData,
+                    location: { ...formData.location, pincode: e.target.value }
+                  })}
+                  placeholder="e.g., 400001"
                   className="mt-1"
                 />
               </div>
