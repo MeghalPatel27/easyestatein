@@ -27,11 +27,15 @@ const Auth = () => {
   // Sign Up Form State with validation
   const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpMobile, setSignUpMobile] = useState("");
+  const [signUpPassword, setSignUpPassword] = useState("");
+  const [signUpConfirmPassword, setSignUpConfirmPassword] = useState("");
   const [accountType, setAccountType] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [signUpEmailError, setSignUpEmailError] = useState("");
   const [signUpMobileError, setSignUpMobileError] = useState("");
+  const [signUpPasswordError, setSignUpPasswordError] = useState("");
+  const [signUpConfirmPasswordError, setSignUpConfirmPasswordError] = useState("");
   const [accountTypeError, setAccountTypeError] = useState("");
   const [firstNameError, setFirstNameError] = useState("");
   const [lastNameError, setLastNameError] = useState("");
@@ -211,12 +215,20 @@ const Auth = () => {
     // Sanitize inputs
     const cleanEmail = sanitizeInput(signUpEmail);
     const cleanMobile = sanitizeInput(signUpMobile);
+    const cleanPassword = sanitizeInput(signUpPassword);
+    const cleanConfirmPassword = sanitizeInput(signUpConfirmPassword);
     const cleanFirstName = sanitizeInput(firstName);
     const cleanLastName = sanitizeInput(lastName);
     
     // Validate inputs
     const emailError = validateEmail(cleanEmail);
     const mobileError = validateMobile(cleanMobile);
+    const passwordError = validatePassword(cleanPassword);
+    
+    let confirmPasswordError = "";
+    if (cleanPassword !== cleanConfirmPassword) {
+      confirmPasswordError = "Passwords do not match";
+    }
 
     let accountTypeValidationError = "";
     if (!accountType) {
@@ -235,11 +247,13 @@ const Auth = () => {
     
     setSignUpEmailError(emailError);
     setSignUpMobileError(mobileError);
+    setSignUpPasswordError(passwordError);
+    setSignUpConfirmPasswordError(confirmPasswordError);
     setAccountTypeError(accountTypeValidationError);
     setFirstNameError(firstNameValidationError);
     setLastNameError(lastNameValidationError);
     
-    if (emailError || mobileError || accountTypeValidationError || firstNameValidationError || lastNameValidationError) {
+    if (emailError || mobileError || passwordError || confirmPasswordError || accountTypeValidationError || firstNameValidationError || lastNameValidationError) {
       return;
     }
 
@@ -250,6 +264,7 @@ const Auth = () => {
       localStorage.setItem('pendingUserData', JSON.stringify({
         email: cleanEmail,
         mobile: cleanMobile,
+        password: cleanPassword,
         user_type: accountType,
         first_name: cleanFirstName,
         last_name: cleanLastName
@@ -573,6 +588,80 @@ const Auth = () => {
                         />
                         {signUpMobileError && (
                           <p className="text-xs text-destructive">{signUpMobileError}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label htmlFor="signup-password">Password</Label>
+                        <div className="relative">
+                          <Input
+                            id="signup-password"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Create a password"
+                            value={signUpPassword}
+                            onChange={(e) => {
+                              setSignUpPassword(e.target.value);
+                              if (signUpPasswordError) setSignUpPasswordError("");
+                            }}
+                            className={signUpPasswordError ? "border-destructive pr-10" : "pr-10"}
+                            disabled={isLoading}
+                            maxLength={128}
+                            required
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                            disabled={isLoading}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </Button>
+                        </div>
+                        {signUpPasswordError && (
+                          <p className="text-xs text-destructive">{signUpPasswordError}</p>
+                        )}
+                      </div>
+
+                      <div className="space-y-1">
+                        <Label htmlFor="signup-confirm-password">Confirm Password</Label>
+                        <div className="relative">
+                          <Input
+                            id="signup-confirm-password"
+                            type={showPassword ? "text" : "password"}
+                            placeholder="Confirm your password"
+                            value={signUpConfirmPassword}
+                            onChange={(e) => {
+                              setSignUpConfirmPassword(e.target.value);
+                              if (signUpConfirmPasswordError) setSignUpConfirmPasswordError("");
+                            }}
+                            className={signUpConfirmPasswordError ? "border-destructive pr-10" : "pr-10"}
+                            disabled={isLoading}
+                            maxLength={128}
+                            required
+                          />
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
+                            onClick={() => setShowPassword(!showPassword)}
+                            disabled={isLoading}
+                          >
+                            {showPassword ? (
+                              <EyeOff className="h-4 w-4 text-muted-foreground" />
+                            ) : (
+                              <Eye className="h-4 w-4 text-muted-foreground" />
+                            )}
+                          </Button>
+                        </div>
+                        {signUpConfirmPasswordError && (
+                          <p className="text-xs text-destructive">{signUpConfirmPasswordError}</p>
                         )}
                       </div>
 

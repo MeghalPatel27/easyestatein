@@ -63,6 +63,28 @@ const VerifyOtp = () => {
         return;
       }
 
+      // Get pending user data from localStorage
+      const pendingDataString = localStorage.getItem('pendingUserData');
+      if (!pendingDataString) {
+        setError("Registration data not found. Please try signing up again.");
+        navigate('/auth');
+        return;
+      }
+
+      const pendingData = JSON.parse(pendingDataString);
+
+      // Update the user's password if provided
+      if (pendingData.password) {
+        const { error: updateError } = await supabase.auth.updateUser({
+          password: pendingData.password
+        });
+
+        if (updateError) {
+          console.error('Error setting password:', updateError);
+          setError("Account created but failed to set password. Please reset your password.");
+        }
+      }
+
       // Clear pending data
       localStorage.removeItem('pendingUserData');
 
