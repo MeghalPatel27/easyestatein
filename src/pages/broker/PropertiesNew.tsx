@@ -48,7 +48,7 @@ const PropertiesNew = () => {
     completionDate: ""
   });
 
-  const validPropertyTypes = ['apartment', 'villa', 'house', 'plot', 'commercial', 'office', 'bungalow', 'tenament', 'penthouse', 'other', 'showroom', 'shop', 'shed', 'godown'];
+  const validPropertyTypes = ['apartment', 'villa', 'house', 'plot', 'commercial', 'office', 'bungalow', 'tenament', 'penthouse', 'other', 'showroom', 'shop', 'shed', 'godown', 'naland', 'agriculturalland'];
   
   const totalSteps = 8;
   const progress = (currentStep / totalSteps) * 100;
@@ -99,9 +99,8 @@ const PropertiesNew = () => {
   ];
 
   const agriculturalTypes = [
-    { value: "plot", label: "Plot", icon: Building },
-    { value: "shed", label: "Shed", icon: Factory },
-    { value: "godown", label: "Godown", icon: Building },
+    { value: "naland", label: "NA Land", icon: Building },
+    { value: "agriculturalland", label: "Agricultural Land", icon: TreePine },
     { value: "other", label: "Other", icon: Building }
   ];
 
