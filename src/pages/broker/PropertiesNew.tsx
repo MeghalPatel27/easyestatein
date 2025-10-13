@@ -568,10 +568,12 @@ const PropertiesNew = () => {
                           : [...formData.amenities, amenity.id];
                         setFormData({ ...formData, amenities: newAmenities });
                       }}
-                      className="flex flex-col items-center gap-2 p-3 transition-all"
+                      className={`flex flex-col items-center gap-2 p-4 rounded-lg transition-all ${
+                        isSelected ? 'bg-primary/10 border-2 border-primary' : 'border-2 border-transparent'
+                      }`}
                     >
                       <Icon className={`h-8 w-8 ${isSelected ? 'text-primary' : 'text-muted-foreground'}`} />
-                      <span className={`text-sm ${isSelected ? 'text-foreground font-medium' : 'text-muted-foreground'}`}>
+                      <span className={`text-sm text-center ${isSelected ? 'text-primary font-semibold' : 'text-muted-foreground'}`}>
                         {amenity.label}
                       </span>
                     </button>
