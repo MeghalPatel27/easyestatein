@@ -91,6 +91,13 @@ const PropertiesNew = () => {
     { value: "other", label: "Other", icon: Building }
   ];
 
+  const agriculturalTypes = [
+    { value: "plot", label: "Plot", icon: Building },
+    { value: "shed", label: "Shed", icon: Factory },
+    { value: "godown", label: "Godown", icon: Building },
+    { value: "other", label: "Other", icon: Building }
+  ];
+
   const amenitiesList = [
     "Swimming Pool", "Gym", "Parking", "Security", "Garden", "Elevator",
     "Power Backup", "Water Supply", "Club House", "Children's Play Area",
@@ -101,6 +108,7 @@ const PropertiesNew = () => {
     if (formData.category === "residential") return residentialTypes;
     if (formData.category === "commercial") return commercialTypes;
     if (formData.category === "land") return landTypes;
+    if (formData.category === "agricultural") return agriculturalTypes;
     return [];
   };
 
