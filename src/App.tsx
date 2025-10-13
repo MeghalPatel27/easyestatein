@@ -8,6 +8,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Index from "./pages/Index";
 import PropertyManager from "./pages/PropertyManager";
 import Auth from "./pages/Auth";
+import VerifyOtp from "./pages/VerifyOtp";
 import NotFound from "./pages/NotFound";
 
 // New Pages for Complete Flow
@@ -48,6 +49,7 @@ const App = () => (
           <Routes>
             <Route path="/" element={<Index />} />
             <Route path="/auth" element={<Auth />} />
+            <Route path="/verify-otp" element={<VerifyOtp />} />
             
             {/* Public Routes */}
             <Route path="/post-requirement" element={

@@ -27,15 +27,11 @@ const Auth = () => {
   // Sign Up Form State with validation
   const [signUpEmail, setSignUpEmail] = useState("");
   const [signUpMobile, setSignUpMobile] = useState("");
-  const [signUpPassword, setSignUpPassword] = useState("");
-  const [signUpConfirmPassword, setSignUpConfirmPassword] = useState("");
   const [accountType, setAccountType] = useState("");
   const [firstName, setFirstName] = useState("");
   const [lastName, setLastName] = useState("");
   const [signUpEmailError, setSignUpEmailError] = useState("");
   const [signUpMobileError, setSignUpMobileError] = useState("");
-  const [signUpPasswordError, setSignUpPasswordError] = useState("");
-  const [signUpConfirmPasswordError, setSignUpConfirmPasswordError] = useState("");
   const [accountTypeError, setAccountTypeError] = useState("");
   const [firstNameError, setFirstNameError] = useState("");
   const [lastNameError, setLastNameError] = useState("");
@@ -215,22 +211,12 @@ const Auth = () => {
     // Sanitize inputs
     const cleanEmail = sanitizeInput(signUpEmail);
     const cleanMobile = sanitizeInput(signUpMobile);
-    const cleanPassword = sanitizeInput(signUpPassword);
-    const cleanConfirmPassword = sanitizeInput(signUpConfirmPassword);
     const cleanFirstName = sanitizeInput(firstName);
     const cleanLastName = sanitizeInput(lastName);
     
     // Validate inputs
     const emailError = validateEmail(cleanEmail);
     const mobileError = validateMobile(cleanMobile);
-    const passwordError = validatePassword(cleanPassword);
-    
-    let confirmPasswordError = "";
-    if (!cleanConfirmPassword) {
-      confirmPasswordError = "Please confirm your password";
-    } else if (cleanPassword !== cleanConfirmPassword) {
-      confirmPasswordError = "Passwords do not match";
-    }
 
     let accountTypeValidationError = "";
     if (!accountType) {
@@ -249,26 +235,31 @@ const Auth = () => {
     
     setSignUpEmailError(emailError);
     setSignUpMobileError(mobileError);
-    setSignUpPasswordError(passwordError);
-    setSignUpConfirmPasswordError(confirmPasswordError);
     setAccountTypeError(accountTypeValidationError);
     setFirstNameError(firstNameValidationError);
     setLastNameError(lastNameValidationError);
     
-    if (emailError || mobileError || passwordError || confirmPasswordError || accountTypeValidationError || firstNameValidationError || lastNameValidationError) {
+    if (emailError || mobileError || accountTypeValidationError || firstNameValidationError || lastNameValidationError) {
       return;
     }
 
     setIsLoading(true);
     
     try {
-      const redirectUrl = `${window.location.origin}/`;
-      
-      const { error } = await supabase.auth.signUp({
+      // Store user data in localStorage to retrieve after OTP verification
+      localStorage.setItem('pendingUserData', JSON.stringify({
         email: cleanEmail,
-        password: cleanPassword,
+        mobile: cleanMobile,
+        user_type: accountType,
+        first_name: cleanFirstName,
+        last_name: cleanLastName
+      }));
+
+      // Send OTP to email
+      const { error } = await supabase.auth.signInWithOtp({
+        email: cleanEmail,
         options: {
-          emailRedirectTo: redirectUrl,
+          shouldCreateUser: true,
           data: {
             mobile: cleanMobile,
             user_type: accountType,
@@ -281,15 +272,14 @@ const Auth = () => {
       if (error) {
         if (error.message.includes('already registered')) {
           setError("An account with this email already exists. Please sign in instead.");
-        } else if (error.message.includes('Password should be')) {
-          setError("Password does not meet security requirements. Please choose a stronger password.");
-        } else if (error.message.includes('Signup is disabled')) {
-          setError("New account registration is currently disabled. Please contact support.");
+        } else if (error.message.includes('rate limit')) {
+          setError("Too many attempts. Please wait a few minutes before trying again.");
         } else {
-          setError("Sign up failed. Please try again.");
+          setError("Failed to send OTP. Please try again.");
         }
       } else {
-        toast.success("Account created successfully! Welcome to easyestate!");
+        toast.success("OTP sent to your email! Please check your inbox.");
+        navigate(`/verify-otp?email=${encodeURIComponent(cleanEmail)}`);
       }
     } catch (err) {
       setError("An unexpected error occurred. Please try again.");
@@ -605,64 +595,6 @@ const Auth = () => {
                           <p className="text-xs text-destructive">{accountTypeError}</p>
                         )}
                       </div>
-                      
-                      <div className="space-y-1">
-                        <Label htmlFor="signup-password">Password</Label>
-                        <div className="relative">
-                          <Input
-                            id="signup-password"
-                            type={showPassword ? "text" : "password"}
-                            placeholder="Create a password"
-                            value={signUpPassword}
-                            onChange={(e) => {
-                              setSignUpPassword(e.target.value);
-                              if (signUpPasswordError) setSignUpPasswordError("");
-                            }}
-                            className={signUpPasswordError ? "border-destructive pr-10" : "pr-10"}
-                            disabled={isLoading}
-                            maxLength={128}
-                            required
-                          />
-                          <Button
-                            type="button"
-                            variant="ghost"
-                            size="sm"
-                            className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                            onClick={() => setShowPassword(!showPassword)}
-                            disabled={isLoading}
-                          >
-                            {showPassword ? (
-                              <EyeOff className="h-4 w-4" />
-                            ) : (
-                              <Eye className="h-4 w-4" />
-                            )}
-                          </Button>
-                        </div>
-                        {signUpPasswordError && (
-                          <p className="text-xs text-destructive">{signUpPasswordError}</p>
-                        )}
-                      </div>
-                      
-                      <div className="space-y-1">
-                        <Label htmlFor="signup-confirm-password">Confirm Password</Label>
-                        <Input
-                          id="signup-confirm-password"
-                          type={showPassword ? "text" : "password"}
-                          placeholder="Confirm your password"
-                          value={signUpConfirmPassword}
-                          onChange={(e) => {
-                            setSignUpConfirmPassword(e.target.value);
-                            if (signUpConfirmPasswordError) setSignUpConfirmPasswordError("");
-                          }}
-                          className={signUpConfirmPasswordError ? "border-destructive" : ""}
-                          disabled={isLoading}
-                          maxLength={128}
-                          required
-                        />
-                        {signUpConfirmPasswordError && (
-                          <p className="text-xs text-destructive">{signUpConfirmPasswordError}</p>
-                        )}
-                       </div>
                        
                         <div className="flex items-start space-x-2">
                           <Checkbox id="terms-signup" className="mt-1" />
