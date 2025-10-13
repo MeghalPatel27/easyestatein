@@ -167,27 +167,27 @@ const PropertiesNew = () => {
     switch (currentStep) {
       case 1:
         return (
-          <div className="max-w-2xl mx-auto space-y-8">
+          <div className="max-w-xl mx-auto space-y-6">
             <div className="text-center space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">What type of property are you listing?</h2>
-              <p className="text-muted-foreground">Choose the category that best fits your property</p>
+              <h2 className="text-2xl font-bold text-foreground">What type of property are you listing?</h2>
+              <p className="text-sm text-muted-foreground">Choose the category that best fits your property</p>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="grid grid-cols-2 gap-3">
               {categories.map((cat) => {
                 const Icon = cat.icon;
                 return (
                   <button
                     key={cat.value}
                     onClick={() => setFormData({ ...formData, category: cat.value, type: "" })}
-                    className={`p-6 rounded-lg border-2 transition-all ${
+                    className={`p-4 rounded-lg border-2 transition-all ${
                       formData.category === cat.value 
                         ? 'border-primary bg-primary/5' 
                         : 'border-border hover:border-primary/50'
                     }`}
                   >
-                    <Icon className={`h-12 w-12 mx-auto mb-3 ${cat.color}`} />
-                    <p className="font-medium text-lg">{cat.label}</p>
+                    <Icon className={`h-8 w-8 mx-auto mb-2 ${cat.color}`} />
+                    <p className="font-medium text-sm">{cat.label}</p>
                   </button>
                 );
               })}
@@ -197,27 +197,27 @@ const PropertiesNew = () => {
 
       case 2:
         return (
-          <div className="max-w-2xl mx-auto space-y-8">
+          <div className="max-w-xl mx-auto space-y-6">
             <div className="text-center space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Choose Property Type</h2>
-              <p className="text-muted-foreground">Select the specific type of {formData.category} property</p>
+              <h2 className="text-2xl font-bold text-foreground">Choose Property Type</h2>
+              <p className="text-sm text-muted-foreground">Select the specific type of {formData.category} property</p>
             </div>
             
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+            <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
               {getTypeOptions().map((type) => {
                 const Icon = type.icon;
                 return (
                   <button
                     key={type.value}
                     onClick={() => setFormData({ ...formData, type: type.value })}
-                    className={`p-6 rounded-lg border-2 transition-all ${
+                    className={`p-4 rounded-lg border-2 transition-all ${
                       formData.type === type.value 
                         ? 'border-primary bg-primary/5' 
                         : 'border-border hover:border-primary/50'
                     }`}
                   >
-                    <Icon className="h-10 w-10 mx-auto mb-2 text-primary" />
-                    <p className="font-medium">{type.label}</p>
+                    <Icon className="h-8 w-8 mx-auto mb-2 text-primary" />
+                    <p className="font-medium text-sm">{type.label}</p>
                   </button>
                 );
               })}
@@ -227,10 +227,10 @@ const PropertiesNew = () => {
 
       case 3:
         return (
-          <div className="max-w-2xl mx-auto space-y-8">
+          <div className="max-w-xl mx-auto space-y-6">
             <div className="text-center space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Location Preferences</h2>
-              <p className="text-muted-foreground">Where is your property located?</p>
+              <h2 className="text-2xl font-bold text-foreground">Location Preferences</h2>
+              <p className="text-sm text-muted-foreground">Where is your property located?</p>
             </div>
             
             <div className="space-y-4">
@@ -267,10 +267,10 @@ const PropertiesNew = () => {
 
       case 4:
         return (
-          <div className="max-w-2xl mx-auto space-y-8">
+          <div className="max-w-xl mx-auto space-y-6">
             <div className="text-center space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Budget Range</h2>
-              <p className="text-muted-foreground">Set your property price</p>
+              <h2 className="text-2xl font-bold text-foreground">Budget Range</h2>
+              <p className="text-sm text-muted-foreground">Set your property price</p>
             </div>
             
             <div className="space-y-6">
@@ -298,10 +298,10 @@ const PropertiesNew = () => {
 
       case 5:
         return (
-          <div className="max-w-2xl mx-auto space-y-8">
+          <div className="max-w-xl mx-auto space-y-6">
             <div className="text-center space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Property Specifications</h2>
-              <p className="text-muted-foreground">Tell us about your property details</p>
+              <h2 className="text-2xl font-bold text-foreground">Property Specifications</h2>
+              <p className="text-sm text-muted-foreground">Tell us about your property details</p>
             </div>
             
             <div className="space-y-4">
@@ -385,10 +385,10 @@ const PropertiesNew = () => {
 
       case 6:
         return (
-          <div className="max-w-2xl mx-auto space-y-8">
+          <div className="max-w-xl mx-auto space-y-6">
             <div className="text-center space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Timeline</h2>
-              <p className="text-muted-foreground">When is the property available?</p>
+              <h2 className="text-2xl font-bold text-foreground">Timeline</h2>
+              <p className="text-sm text-muted-foreground">When is the property available?</p>
             </div>
             
             <div className="space-y-3">
@@ -420,10 +420,10 @@ const PropertiesNew = () => {
 
       case 7:
         return (
-          <div className="max-w-2xl mx-auto space-y-8">
+          <div className="max-w-xl mx-auto space-y-6">
             <div className="text-center space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Preferences</h2>
-              <p className="text-muted-foreground">Tell us about your property amenities</p>
+              <h2 className="text-2xl font-bold text-foreground">Preferences</h2>
+              <p className="text-sm text-muted-foreground">Tell us about your property amenities</p>
             </div>
             
             <div className="space-y-6">
@@ -459,10 +459,10 @@ const PropertiesNew = () => {
 
       case 8:
         return (
-          <div className="max-w-2xl mx-auto space-y-8">
+          <div className="max-w-xl mx-auto space-y-6">
             <div className="text-center space-y-2">
-              <h2 className="text-3xl font-bold text-foreground">Property Summary</h2>
-              <p className="text-muted-foreground">Review your property before posting</p>
+              <h2 className="text-2xl font-bold text-foreground">Property Summary</h2>
+              <p className="text-sm text-muted-foreground">Review your property before posting</p>
             </div>
             
             <Card className="p-6">
@@ -531,7 +531,7 @@ const PropertiesNew = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-12">
+      <div className="container mx-auto px-4 py-8">
         {renderStepContent()}
       </div>
 
