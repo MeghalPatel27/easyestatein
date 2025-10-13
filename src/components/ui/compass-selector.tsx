@@ -31,9 +31,10 @@ export const CompassSelector: React.FC<CompassSelectorProps> = ({
   className
 }) => {
   const toggleDirection = (directionId: string) => {
+    // Only allow single selection
     const newDirections = selectedDirections.includes(directionId)
-      ? selectedDirections.filter(id => id !== directionId)
-      : [...selectedDirections, directionId];
+      ? []
+      : [directionId];
     
     onDirectionsChange(newDirections);
   };
@@ -130,14 +131,14 @@ export const CompassSelector: React.FC<CompassSelectorProps> = ({
         </div>
       </div>
       
-      {/* Selected Count */}
+      {/* Selected Direction */}
       {selectedDirections.length > 0 && (
         <div className="mt-4 text-center">
           <span className="text-sm text-muted-foreground">
-            {selectedDirections.length} direction{selectedDirections.length !== 1 ? 's' : ''} selected
+            1 direction selected
           </span>
           <div className="text-xs text-red-600 mt-1">
-            {selectedDirections.join(', ')}
+            {selectedDirections[0]}
           </div>
         </div>
       )}
