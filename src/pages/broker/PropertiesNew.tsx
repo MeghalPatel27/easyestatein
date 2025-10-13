@@ -605,6 +605,7 @@ const PropertiesNew = () => {
             {currentStep < totalSteps ? (
               <Button
                 onClick={handleNext}
+                disabled={currentStep === 4 && (!formData.price || parseFloat(formData.price) < 1000000)}
                 className="w-32 bg-primary hover:bg-primary/90"
               >
                 Next
