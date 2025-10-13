@@ -5,17 +5,20 @@ import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Search, Filter, Star, MapPin, Calendar, TrendingUp, Users } from "lucide-react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { Coin } from "@/components/ui/coin";
 import { EnhancedSearch } from "@/components/ui/enhanced-search";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const Dashboard = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortBy, setSortBy] = useState("score");
   const { user } = useAuth();
+  const navigate = useNavigate();
+  const queryClient = useQueryClient();
 
   // Fetch property matches for this broker (real-time data only)
   const { data: potentialBuyers = [], isLoading } = useQuery({
@@ -87,7 +90,8 @@ const Dashboard = () => {
           requirementTitle: requirement?.title,
           matchId: match.id,
           requirementId: match.requirement_id,
-          propertyId: match.property_id
+          propertyId: match.property_id,
+          buyerId: match.buyer_id
         };
       });
     },
@@ -97,30 +101,39 @@ const Dashboard = () => {
   });
 
   // Function to purchase a lead
-  const purchaseLead = async (matchId: string, leadPrice: number) => {
+  const purchaseLead = async (matchId: string, leadPrice: number, buyerId: string, requirementId: string) => {
     if (!user?.id) return;
     
     try {
       const { data, error } = await supabase.rpc('purchase_lead', {
-        _match_id: matchId,
-        _broker_id: user.id
+        p_match_id: matchId,
+        p_lead_price: leadPrice,
+        p_buyer_id: buyerId,
+        p_requirement_id: requirementId
       });
 
       if (error) throw error;
 
-      const result = data as { success: boolean; error?: string; lead_id?: string; cost?: number; remaining_balance?: number };
+      const result = data as { success: boolean; error?: string; chat_id?: string; new_balance?: number };
       
       if (result?.success) {
-        // Refresh the matches data
-        window.location.reload();
-        console.log('Lead purchased successfully! Lead ID:', result.lead_id);
+        toast.success(`Lead purchased! Balance: ${result.new_balance} coins`);
+        
+        // Refresh queries
+        await queryClient.invalidateQueries({ queryKey: ['broker-property-matches'] });
+        await queryClient.invalidateQueries({ queryKey: ['broker-stats'] });
+        
+        // Navigate to chat
+        toast.success('Chat activated! Redirecting...');
+        setTimeout(() => {
+          navigate(`/chat/${result.chat_id}`);
+        }, 1500);
       } else {
-        console.error('Failed to purchase lead:', result?.error);
-        alert(`Failed to purchase lead: ${result?.error || 'Unknown error'}`);
+        toast.error(`Failed to purchase lead: ${result?.error || 'Unknown error'}`);
       }
-    } catch (error) {
+    } catch (error: any) {
       console.error('Error purchasing lead:', error);
-      alert('Error purchasing lead. Please try again.');
+      toast.error(error.message || 'Error purchasing lead. Please try again.');
     }
   };
 
@@ -398,7 +411,7 @@ const Dashboard = () => {
                     <Button 
                       size="sm" 
                       className="bg-primary hover:bg-primary/90 text-xs"
-                      onClick={() => purchaseLead(buyer.matchId, buyer.leadPrice)}
+                      onClick={() => purchaseLead(buyer.matchId, buyer.leadPrice, buyer.buyerId, buyer.requirementId)}
                     >
                       Purchase Lead
                     </Button>
@@ -494,7 +507,7 @@ const Dashboard = () => {
                   <Button 
                     size="sm" 
                     className="bg-primary hover:bg-primary/90"
-                    onClick={() => purchaseLead(buyer.matchId, buyer.leadPrice)}
+                    onClick={() => purchaseLead(buyer.matchId, buyer.leadPrice, buyer.buyerId, buyer.requirementId)}
                   >
                     Purchase Lead
                   </Button>
