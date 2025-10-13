@@ -9,13 +9,15 @@ import { Link } from "react-router-dom";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { toast } from "sonner";
 
 const Requirements = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
   const [sortBy, setSortBy] = useState("recent");
   const { user } = useAuth();
+  const queryClient = useQueryClient();
 
   // Fetch user's requirements from database
   const { data: requirements = [], isLoading } = useQuery({
@@ -86,6 +88,23 @@ const Requirements = () => {
     const matchesStatus = statusFilter === "all" || req.status.toLowerCase() === statusFilter;
     return matchesSearch && matchesStatus;
   });
+
+  const handleDeleteRequirement = async (requirementId: string) => {
+    try {
+      const { error } = await supabase
+        .from('requirements')
+        .delete()
+        .eq('id', requirementId);
+
+      if (error) throw error;
+
+      toast.success("Requirement deleted successfully");
+      queryClient.invalidateQueries({ queryKey: ['requirements'] });
+    } catch (error) {
+      console.error("Error deleting requirement:", error);
+      toast.error("Failed to delete requirement");
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -219,7 +238,10 @@ const Requirements = () => {
                       <DropdownMenuItem>Edit Requirement</DropdownMenuItem>
                       <DropdownMenuItem>View Responses</DropdownMenuItem>
                       <DropdownMenuItem>Pause Requirement</DropdownMenuItem>
-                      <DropdownMenuItem className="text-destructive">
+                      <DropdownMenuItem 
+                        className="text-destructive"
+                        onClick={() => handleDeleteRequirement(req.id)}
+                      >
                         Delete Requirement
                       </DropdownMenuItem>
                     </DropdownMenuContent>
