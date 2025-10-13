@@ -203,33 +203,6 @@ export type Database = {
           },
         ]
       }
-      pending_registrations: {
-        Row: {
-          created_at: string | null
-          email: string
-          expires_at: string
-          id: string
-          otp: string
-          user_data: Json
-        }
-        Insert: {
-          created_at?: string | null
-          email: string
-          expires_at: string
-          id?: string
-          otp: string
-          user_data: Json
-        }
-        Update: {
-          created_at?: string | null
-          email?: string
-          expires_at?: string
-          id?: string
-          otp?: string
-          user_data?: Json
-        }
-        Relationships: []
-      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -703,10 +676,6 @@ export type Database = {
         Args: { _property_id: string; _requirement_id: string }
         Returns: number
       }
-      cleanup_expired_registrations: {
-        Args: Record<PropertyKey, never>
-        Returns: undefined
-      }
       get_account_type_by_email: {
         Args: { _email: string }
         Returns: string
@@ -829,10 +798,6 @@ export type Database = {
       user_has_chat_access: {
         Args: { _chat_id: string; _user_id: string }
         Returns: boolean
-      }
-      verify_otp_and_create_user: {
-        Args: { _email: string; _otp: string }
-        Returns: Json
       }
     }
     Enums: {
