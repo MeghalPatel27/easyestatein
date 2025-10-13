@@ -16,6 +16,7 @@ import {
   TreePine,
   Building
 } from "lucide-react";
+import { CompassSelector } from "@/components/ui/compass-selector";
 import { Link, useNavigate } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/useAuth";
@@ -45,7 +46,12 @@ const PropertiesNew = () => {
     specifications: {},
     images: [] as string[],
     documents: [] as string[],
-    completionDate: ""
+    completionDate: "",
+    directions: [] as string[],
+    floor: "",
+    superBuiltup: "",
+    numberOfHalls: "",
+    numberOfBalconies: ""
   });
 
   const validPropertyTypes = ['apartment', 'villa', 'house', 'plot', 'commercial', 'office', 'bungalow', 'tenament', 'penthouse', 'other', 'showroom', 'shop', 'shed', 'godown', 'naland', 'agriculturalland'];
@@ -382,54 +388,115 @@ const PropertiesNew = () => {
               </div>
               
               {formData.category === "residential" && (
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <Label htmlFor="bedrooms" className="text-base">Bedrooms</Label>
-                    <Select value={formData.bedrooms} onValueChange={(value) => 
-                      setFormData({ ...formData, bedrooms: value })
-                    }>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1 BHK</SelectItem>
-                        <SelectItem value="2">2 BHK</SelectItem>
-                        <SelectItem value="3">3 BHK</SelectItem>
-                        <SelectItem value="4">4 BHK</SelectItem>
-                        <SelectItem value="5">5+ BHK</SelectItem>
-                      </SelectContent>
-                    </Select>
+                <>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="bedrooms" className="text-base">Bedrooms</Label>
+                      <Select value={formData.bedrooms} onValueChange={(value) => 
+                        setFormData({ ...formData, bedrooms: value })
+                      }>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1 BHK</SelectItem>
+                          <SelectItem value="2">2 BHK</SelectItem>
+                          <SelectItem value="3">3 BHK</SelectItem>
+                          <SelectItem value="4">4 BHK</SelectItem>
+                          <SelectItem value="5">5+ BHK</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="bathrooms" className="text-base">Bathrooms</Label>
+                      <Select value={formData.bathrooms} onValueChange={(value) => 
+                        setFormData({ ...formData, bathrooms: value })
+                      }>
+                        <SelectTrigger className="mt-1">
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="1">1</SelectItem>
+                          <SelectItem value="2">2</SelectItem>
+                          <SelectItem value="3">3</SelectItem>
+                          <SelectItem value="4">4</SelectItem>
+                          <SelectItem value="5">5+</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  
-                  <div>
-                    <Label htmlFor="bathrooms" className="text-base">Bathrooms</Label>
-                    <Select value={formData.bathrooms} onValueChange={(value) => 
-                      setFormData({ ...formData, bathrooms: value })
-                    }>
-                      <SelectTrigger className="mt-1">
-                        <SelectValue placeholder="Select" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="1">1</SelectItem>
-                        <SelectItem value="2">2</SelectItem>
-                        <SelectItem value="3">3</SelectItem>
-                        <SelectItem value="4">4</SelectItem>
-                        <SelectItem value="5">5+</SelectItem>
-                      </SelectContent>
-                    </Select>
+
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label htmlFor="numberOfHalls" className="text-base">Number of Halls</Label>
+                      <Input
+                        id="numberOfHalls"
+                        type="number"
+                        value={formData.numberOfHalls}
+                        onChange={(e) => setFormData({ ...formData, numberOfHalls: e.target.value })}
+                        placeholder="e.g., 1"
+                        className="mt-1"
+                      />
+                    </div>
+                    
+                    <div>
+                      <Label htmlFor="numberOfBalconies" className="text-base">Number of Balconies</Label>
+                      <Input
+                        id="numberOfBalconies"
+                        type="number"
+                        value={formData.numberOfBalconies}
+                        onChange={(e) => setFormData({ ...formData, numberOfBalconies: e.target.value })}
+                        placeholder="e.g., 2"
+                        className="mt-1"
+                      />
+                    </div>
                   </div>
-                </div>
+                </>
               )}
               
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label htmlFor="area" className="text-base">Carpet Area (sq ft)</Label>
+                  <Input
+                    id="area"
+                    type="number"
+                    value={formData.area}
+                    onChange={(e) => setFormData({ ...formData, area: e.target.value })}
+                    placeholder="e.g., 1200"
+                    className="mt-1"
+                  />
+                </div>
+
+                <div>
+                  <Label htmlFor="floor" className="text-base">Preferred Floor</Label>
+                  <Input
+                    id="floor"
+                    value={formData.floor}
+                    onChange={(e) => setFormData({ ...formData, floor: e.target.value })}
+                    placeholder="e.g., 3"
+                    className="mt-1"
+                  />
+                </div>
+              </div>
+
               <div>
-                <Label htmlFor="area" className="text-base">Area (sq ft)</Label>
+                <Label htmlFor="superBuiltup" className="text-base">Super Built-up Area (%)</Label>
                 <Input
-                  id="area"
+                  id="superBuiltup"
                   type="number"
-                  value={formData.area}
-                  onChange={(e) => setFormData({ ...formData, area: e.target.value })}
-                  placeholder="e.g., 1200"
+                  value={formData.superBuiltup}
+                  onChange={(e) => setFormData({ ...formData, superBuiltup: e.target.value })}
+                  placeholder="e.g., 25"
                   className="mt-1"
+                />
+              </div>
+
+              <div>
+                <Label className="text-base mb-3 block">Preferred Entry Directions</Label>
+                <CompassSelector
+                  selectedDirections={formData.directions}
+                  onDirectionsChange={(directions) => setFormData({ ...formData, directions })}
                 />
               </div>
             </div>
