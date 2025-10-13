@@ -584,7 +584,7 @@ const PropertiesNew = () => {
       </div>
 
       {/* Main Content */}
-      <div className="container mx-auto px-4 py-8">
+      <div className="container mx-auto px-4 pt-8 pb-32">
         {renderStepContent()}
       </div>
 
