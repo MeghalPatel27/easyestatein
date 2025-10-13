@@ -48,7 +48,7 @@ const PropertiesNew = () => {
     completionDate: ""
   });
 
-  const validPropertyTypes = ['apartment', 'villa', 'house', 'plot', 'commercial', 'office', 'bungalow', 'tenament', 'penthouse', 'other', 'showroom', 'shop'];
+  const validPropertyTypes = ['apartment', 'villa', 'house', 'plot', 'commercial', 'office', 'bungalow', 'tenament', 'penthouse', 'other', 'showroom', 'shop', 'shed', 'godown'];
   
   const totalSteps = 8;
   const progress = (currentStep / totalSteps) * 100;
@@ -85,7 +85,10 @@ const PropertiesNew = () => {
   ];
 
   const landTypes = [
-    { value: "plot", label: "Plot/Land", icon: Building }
+    { value: "plot", label: "Plot/Land", icon: Building },
+    { value: "shed", label: "Shed", icon: Factory },
+    { value: "godown", label: "Godown", icon: Building },
+    { value: "other", label: "Other", icon: Building }
   ];
 
   const amenitiesList = [
