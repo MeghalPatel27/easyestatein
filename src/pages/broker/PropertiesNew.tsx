@@ -182,6 +182,12 @@ const PropertiesNew = () => {
           amenities: formData.amenities,
           images: formData.images,
           documents: formData.documents,
+          completion_date: formData.completionDate || null,
+          directions: formData.directions,
+          floor: formData.floor || null,
+          super_builtup: parseFloat(formData.superBuiltup) || null,
+          number_of_halls: parseInt(formData.numberOfHalls) || null,
+          number_of_balconies: parseInt(formData.numberOfBalconies) || null,
           status: 'pending'
         }] as any);
 

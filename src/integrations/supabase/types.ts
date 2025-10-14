@@ -203,6 +203,33 @@ export type Database = {
           },
         ]
       }
+      pending_registrations: {
+        Row: {
+          created_at: string | null
+          email: string
+          expires_at: string
+          id: string
+          otp: string
+          user_data: Json
+        }
+        Insert: {
+          created_at?: string | null
+          email: string
+          expires_at: string
+          id?: string
+          otp: string
+          user_data: Json
+        }
+        Update: {
+          created_at?: string | null
+          email?: string
+          expires_at?: string
+          id?: string
+          otp?: string
+          user_data?: Json
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -275,14 +302,20 @@ export type Database = {
           bedrooms: number | null
           broker_id: string
           category: string | null
+          completion_date: string | null
           created_at: string | null
           description: string | null
+          directions: string[] | null
+          floor: string | null
           id: string
           images: string[] | null
           location: Json | null
+          number_of_balconies: number | null
+          number_of_halls: number | null
           price: number
           property_type: Database["public"]["Enums"]["property_type"]
           status: Database["public"]["Enums"]["property_status"] | null
+          super_builtup: number | null
           title: string
           updated_at: string | null
           user_status: Database["public"]["Enums"]["user_property_status"]
@@ -295,14 +328,20 @@ export type Database = {
           bedrooms?: number | null
           broker_id: string
           category?: string | null
+          completion_date?: string | null
           created_at?: string | null
           description?: string | null
+          directions?: string[] | null
+          floor?: string | null
           id?: string
           images?: string[] | null
           location?: Json | null
+          number_of_balconies?: number | null
+          number_of_halls?: number | null
           price: number
           property_type: Database["public"]["Enums"]["property_type"]
           status?: Database["public"]["Enums"]["property_status"] | null
+          super_builtup?: number | null
           title: string
           updated_at?: string | null
           user_status?: Database["public"]["Enums"]["user_property_status"]
@@ -315,14 +354,20 @@ export type Database = {
           bedrooms?: number | null
           broker_id?: string
           category?: string | null
+          completion_date?: string | null
           created_at?: string | null
           description?: string | null
+          directions?: string[] | null
+          floor?: string | null
           id?: string
           images?: string[] | null
           location?: Json | null
+          number_of_balconies?: number | null
+          number_of_halls?: number | null
           price?: number
           property_type?: Database["public"]["Enums"]["property_type"]
           status?: Database["public"]["Enums"]["property_status"] | null
+          super_builtup?: number | null
           title?: string
           updated_at?: string | null
           user_status?: Database["public"]["Enums"]["user_property_status"]
@@ -362,16 +407,22 @@ export type Database = {
           bedrooms: number | null
           broker_id: string
           category: string | null
+          completion_date: string | null
           created_at: string
           description: string | null
+          directions: string[] | null
           documents: string[] | null
+          floor: string | null
           id: string
           images: string[] | null
           location: Json | null
+          number_of_balconies: number | null
+          number_of_halls: number | null
           price: number
           property_type: Database["public"]["Enums"]["property_type"]
           status: Database["public"]["Enums"]["approval_status"] | null
           submitted_at: string
+          super_builtup: number | null
           title: string
           updated_at: string
         }
@@ -385,16 +436,22 @@ export type Database = {
           bedrooms?: number | null
           broker_id: string
           category?: string | null
+          completion_date?: string | null
           created_at?: string
           description?: string | null
+          directions?: string[] | null
           documents?: string[] | null
+          floor?: string | null
           id?: string
           images?: string[] | null
           location?: Json | null
+          number_of_balconies?: number | null
+          number_of_halls?: number | null
           price: number
           property_type: Database["public"]["Enums"]["property_type"]
           status?: Database["public"]["Enums"]["approval_status"] | null
           submitted_at?: string
+          super_builtup?: number | null
           title: string
           updated_at?: string
         }
@@ -408,16 +465,22 @@ export type Database = {
           bedrooms?: number | null
           broker_id?: string
           category?: string | null
+          completion_date?: string | null
           created_at?: string
           description?: string | null
+          directions?: string[] | null
           documents?: string[] | null
+          floor?: string | null
           id?: string
           images?: string[] | null
           location?: Json | null
+          number_of_balconies?: number | null
+          number_of_halls?: number | null
           price?: number
           property_type?: Database["public"]["Enums"]["property_type"]
           status?: Database["public"]["Enums"]["approval_status"] | null
           submitted_at?: string
+          super_builtup?: number | null
           title?: string
           updated_at?: string
         }
@@ -676,6 +739,10 @@ export type Database = {
         Args: { _property_id: string; _requirement_id: string }
         Returns: number
       }
+      cleanup_expired_registrations: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
+      }
       get_account_type_by_email: {
         Args: { _email: string }
         Returns: string
@@ -798,6 +865,10 @@ export type Database = {
       user_has_chat_access: {
         Args: { _chat_id: string; _user_id: string }
         Returns: boolean
+      }
+      verify_otp_and_create_user: {
+        Args: { _email: string; _otp: string }
+        Returns: Json
       }
     }
     Enums: {
