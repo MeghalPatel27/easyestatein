@@ -135,28 +135,27 @@ const Auth = () => {
   // Function to check account type by email
   const checkAccountType = async (email: string) => {
     if (!email.trim() || !email.includes('@')) {
-      return; // Don't clear on invalid input to prevent flickering
+      setDetectedAccountType('');
+      return;
     }
 
     setIsCheckingAccount(true);
     try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('user_type')
-        .eq('email', email)
-        .maybeSingle();
+      const { data, error } = await supabase.rpc('get_account_type_by_email', {
+        _email: email
+      });
 
       if (error) {
         console.error('Error checking account type:', error);
-        // Keep previous state on error
+        setDetectedAccountType('Account does not exist');
       } else if (data) {
-        setDetectedAccountType(data.user_type === 'broker' ? 'Broker/Developer Account' : 'Buyer Account');
+        setDetectedAccountType(data === 'broker' ? 'Broker/Developer Account' : 'Buyer Account');
       } else {
-        setDetectedAccountType(''); // Clear only when no account found
+        setDetectedAccountType('Account does not exist');
       }
     } catch (error) {
       console.error('Error checking account type:', error);
-      // Keep previous state on error
+      setDetectedAccountType('Account does not exist');
     } finally {
       setIsCheckingAccount(false);
     }
