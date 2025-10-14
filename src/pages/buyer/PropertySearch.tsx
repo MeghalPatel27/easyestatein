@@ -4,7 +4,7 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Search, Filter, Heart, Share, Building, Home, MapPin, Bed, Bath, Car, Maximize, Plus } from "lucide-react";
+import { Search, Filter, Heart, Share, Building, Home, MapPin, Bed, Bath, Car, Maximize, Plus, Calendar, Compass, Layers, Building2, Home as HomeIcon, DoorOpen, Grid3x3 } from "lucide-react";
 import { EnhancedSearch } from "@/components/ui/enhanced-search";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -15,11 +15,18 @@ interface Property {
   id: string;
   title: string;
   property_type: string;
+  category: string;
   price: number;
   location: any;
   bedrooms: number;
   bathrooms: number;
   area: number;
+  super_builtup: number;
+  number_of_halls: number;
+  number_of_balconies: number;
+  floor: string;
+  directions: string[];
+  completion_date: string;
   images: string[];
   amenities: string[];
   broker_id: string;
@@ -211,28 +218,66 @@ const PropertySearch = () => {
                   {property.location?.city || property.location?.area || "Location not specified"}
                 </p>
 
-                {/* Property Specs */}
-                <div className="flex items-center gap-4 text-sm text-muted-foreground mb-3">
+                {/* Property Specs - Comprehensive Details */}
+                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 text-xs sm:text-sm text-muted-foreground mb-3">
                   {property.bedrooms && (
-                    <span className="flex items-center gap-1">
-                      <Bed className="w-3 h-3" />
-                      {property.bedrooms} BHK
+                    <span className="flex items-center gap-1.5">
+                      <Bed className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="truncate">{property.bedrooms} Bedroom{property.bedrooms > 1 ? 's' : ''}</span>
                     </span>
                   )}
                   {property.bathrooms && (
-                    <span className="flex items-center gap-1">
-                      <Bath className="w-3 h-3" />
-                      {property.bathrooms}
+                    <span className="flex items-center gap-1.5">
+                      <Bath className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="truncate">{property.bathrooms} Bath{property.bathrooms > 1 ? 's' : ''}</span>
                     </span>
                   )}
-                  <span className="flex items-center gap-1">
-                    <Car className="w-3 h-3" />
-                    1
-                  </span>
+                  {property.number_of_balconies && (
+                    <span className="flex items-center gap-1.5">
+                      <DoorOpen className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="truncate">{property.number_of_balconies} Balcon{property.number_of_balconies > 1 ? 'ies' : 'y'}</span>
+                    </span>
+                  )}
+                  {property.number_of_halls && (
+                    <span className="flex items-center gap-1.5">
+                      <Grid3x3 className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="truncate">{property.number_of_halls} Hall{property.number_of_halls > 1 ? 's' : ''}</span>
+                    </span>
+                  )}
                   {property.area && (
-                    <span className="flex items-center gap-1">
-                      <Maximize className="w-3 h-3" />
-                      {property.area} sq ft
+                    <span className="flex items-center gap-1.5">
+                      <Maximize className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="truncate">{property.area} sq.ft</span>
+                    </span>
+                  )}
+                  {property.super_builtup && (
+                    <span className="flex items-center gap-1.5">
+                      <Layers className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="truncate">{property.super_builtup} sq.ft Super</span>
+                    </span>
+                  )}
+                  {property.floor && (
+                    <span className="flex items-center gap-1.5">
+                      <Building2 className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="truncate">Floor {property.floor}</span>
+                    </span>
+                  )}
+                  {property.directions && property.directions.length > 0 && (
+                    <span className="flex items-center gap-1.5">
+                      <Compass className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="truncate">{property.directions.join(', ')}</span>
+                    </span>
+                  )}
+                  {property.category && (
+                    <span className="flex items-center gap-1.5">
+                      <HomeIcon className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="truncate capitalize">{property.category}</span>
+                    </span>
+                  )}
+                  {property.completion_date && (
+                    <span className="flex items-center gap-1.5">
+                      <Calendar className="w-4 h-4 text-primary flex-shrink-0" />
+                      <span className="truncate">{property.completion_date}</span>
                     </span>
                   )}
                 </div>
