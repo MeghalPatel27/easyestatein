@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Eye, EyeOff, ArrowLeft, User, UserPlus } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import authHeroImage from "@/assets/auth-hero.jpg";
+import authHeroImage from "@/assets/auth-hero-simple.jpg";
 
 const Auth = () => {
   const navigate = useNavigate();
