@@ -68,6 +68,9 @@ const Requirements = () => {
         title: req.title,
         type: req.property_type,
         bedrooms: req.bedrooms ? `${req.bedrooms} BHK` : 'N/A',
+        bathrooms: req.bathrooms || null,
+        area: req.area_min && req.area_max ? `${req.area_min}-${req.area_max} sq.ft` : req.area_min ? `${req.area_min}+ sq.ft` : null,
+        furnishing: req.furnishing || null,
         location: typeof req.location === 'object' && req.location && 'city' in req.location ? req.location.city as string : 'Unknown',
         budget: req.budget_min && req.budget_max ? 
           `${formatIndianCurrency(req.budget_min)} - ${formatIndianCurrency(req.budget_max)}` : 'Budget not specified',
@@ -209,7 +212,13 @@ const Requirements = () => {
                         </Badge>
                       </div>
                       
-                      <p className="text-sm text-muted-foreground line-clamp-2">{req.description}</p>
+                      <p className="text-sm text-muted-foreground line-clamp-2">
+                        {[
+                          req.area && `Area: ${req.area}`,
+                          req.bathrooms && `${req.bathrooms} Bath`,
+                          req.furnishing && `${req.furnishing.charAt(0).toUpperCase() + req.furnishing.slice(1)} Furnished`
+                        ].filter(Boolean).join(' • ') || 'No additional details'}
+                      </p>
                     </div>
                   </div>
                   
