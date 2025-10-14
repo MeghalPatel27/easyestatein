@@ -545,6 +545,7 @@ export type Database = {
           amenities: string[] | null
           area_max: number | null
           area_min: number | null
+          balconies: number | null
           bathrooms: number | null
           bedrooms: number | null
           budget_max: number | null
@@ -553,10 +554,18 @@ export type Database = {
           category: string | null
           created_at: string | null
           description: string | null
+          directions: string[] | null
+          dislikes: string[] | null
+          facilities: string[] | null
+          financing: string | null
+          floor: string | null
+          furnishing: string | null
           id: string
           lead_price: number | null
           location: Json | null
+          min_parking: number | null
           property_type: Database["public"]["Enums"]["property_type"]
+          property_types: string[] | null
           rejection_rate: number | null
           status: Database["public"]["Enums"]["requirement_status"] | null
           title: string
@@ -568,6 +577,7 @@ export type Database = {
           amenities?: string[] | null
           area_max?: number | null
           area_min?: number | null
+          balconies?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
           budget_max?: number | null
@@ -576,10 +586,18 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           description?: string | null
+          directions?: string[] | null
+          dislikes?: string[] | null
+          facilities?: string[] | null
+          financing?: string | null
+          floor?: string | null
+          furnishing?: string | null
           id?: string
           lead_price?: number | null
           location?: Json | null
+          min_parking?: number | null
           property_type: Database["public"]["Enums"]["property_type"]
+          property_types?: string[] | null
           rejection_rate?: number | null
           status?: Database["public"]["Enums"]["requirement_status"] | null
           title: string
@@ -591,6 +609,7 @@ export type Database = {
           amenities?: string[] | null
           area_max?: number | null
           area_min?: number | null
+          balconies?: number | null
           bathrooms?: number | null
           bedrooms?: number | null
           budget_max?: number | null
@@ -599,10 +618,18 @@ export type Database = {
           category?: string | null
           created_at?: string | null
           description?: string | null
+          directions?: string[] | null
+          dislikes?: string[] | null
+          facilities?: string[] | null
+          financing?: string | null
+          floor?: string | null
+          furnishing?: string | null
           id?: string
           lead_price?: number | null
           location?: Json | null
+          min_parking?: number | null
           property_type?: Database["public"]["Enums"]["property_type"]
+          property_types?: string[] | null
           rejection_rate?: number | null
           status?: Database["public"]["Enums"]["requirement_status"] | null
           title?: string

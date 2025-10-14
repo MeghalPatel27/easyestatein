@@ -256,25 +256,34 @@ const PostRequirement = () => {
         title: `${formData.propertyType.join('/')} in ${formData.city}`,
         description: formData.description || `Looking for ${formData.propertyType.join(' or ')} in ${formData.city}. Budget: ${formatBudget(formData.budgetRange[0])} - ${formatBudget(formData.budgetRange[1])}`,
         property_type: mappedPropertyType,
+        property_types: formData.propertyType,
         category: formData.category,
-        type: 'buy' as const, // Default to buy, can be extended later
+        type: 'buy' as const,
         location: {
           city: formData.city,
           area: formData.localities[0] || formData.landmark || '',
           localities: formData.localities,
           landmark: formData.landmark
         },
-        budget_min: formData.budgetRange[0] * 100000, // Convert lakhs to actual amount
+        budget_min: formData.budgetRange[0] * 100000,
         budget_max: formData.budgetRange[1] * 100000,
         area_min: parseInt(formData.area) || null,
-        area_max: null, // Can be added if needed
+        area_max: null,
         bedrooms: parseInt(formData.bhk[0]) || null,
         bathrooms: parseInt(formData.bathrooms) || null,
         amenities: formData.amenities,
+        directions: formData.directions,
+        floor: formData.floor || null,
+        min_parking: parseInt(formData.minParking) || null,
+        balconies: parseInt(formData.balcony) || null,
+        furnishing: formData.furnishing || null,
+        facilities: formData.facilities,
+        dislikes: formData.dislikes,
+        financing: formData.financing || null,
         urgency: (formData.timeline === 'immediate' ? 'urgent' : 
                  formData.timeline === '3months' ? 'high' : 'medium') as 'urgent' | 'high' | 'medium',
         status: 'active' as const,
-        lead_price: 100, // Default lead price
+        lead_price: 100,
         rejection_rate: 0
       };
 
