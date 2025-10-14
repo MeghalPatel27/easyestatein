@@ -170,61 +170,99 @@ const Requirements = () => {
           </div>
         ) : filteredRequirements.length > 0 ? (
           filteredRequirements.map((req) => (
-            <Card key={req.id} className="p-6 hover:shadow-md transition-shadow">
-              <div className="flex items-start justify-between mb-4">
-                <div className="flex items-start gap-3 flex-1">
-                  {(() => {
-                    const PropertyIcon = getPropertyIcon(req.type);
-                    return <PropertyIcon className="w-5 h-5 text-muted-foreground mt-1" />;
-                  })()}
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-2">
-                      <h2 className="text-lg font-semibold text-foreground">{req.title}</h2>
-                      <Badge 
-                        variant={req.status === "Active" ? "default" : req.status === "Closed" ? "secondary" : "outline"}
-                        className="text-xs"
-                      >
-                        {req.status}
-                      </Badge>
-                      <Badge 
-                        variant={req.priority === "High" ? "destructive" : req.priority === "Medium" ? "secondary" : "outline"}
-                        className="text-xs"
-                      >
-                        {req.priority}
-                      </Badge>
-                    </div>
-                    
-                    <p className="text-sm text-muted-foreground mb-3">{req.description}</p>
-                    
-                    <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-3">
-                      <span className="flex items-center gap-1">
-                        <MapPin className="w-3 h-3" />
-                        {req.location}
-                      </span>
-                      {req.bedrooms !== "N/A" && <span>{req.bedrooms}</span>}
-                      <span className="font-medium text-primary">{req.budget}</span>
-                    </div>
-                    
-                    <div className="flex items-center gap-6 text-sm">
-                      <span className="flex items-center gap-1">
-                        <MessageSquare className="w-4 h-4" />
-                        {req.responses} responses
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Eye className="w-4 h-4" />
-                        {req.views} views
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-4 h-4" />
-                        Posted {req.datePosted}
-                      </span>
+            <Card key={req.id} className="p-4 md:p-6 hover:shadow-lg transition-all duration-300 border-l-4 border-l-primary/50 hover:border-l-primary">
+              <div className="flex flex-col gap-4">
+                {/* Header Section */}
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 flex-1 min-w-0">
+                    {(() => {
+                      const PropertyIcon = getPropertyIcon(req.type);
+                      return <PropertyIcon className="w-5 h-5 text-primary mt-1 flex-shrink-0" />;
+                    })()}
+                    <div className="flex-1 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2 mb-2">
+                        <h2 className="text-base sm:text-lg font-semibold text-foreground truncate">{req.title}</h2>
+                        <Badge 
+                          variant={req.status === "Active" ? "default" : req.status === "Closed" ? "secondary" : "outline"}
+                          className="text-xs flex-shrink-0"
+                        >
+                          {req.status}
+                        </Badge>
+                        <Badge 
+                          variant={req.priority === "High" ? "destructive" : req.priority === "Medium" ? "secondary" : "outline"}
+                          className="text-xs flex-shrink-0"
+                        >
+                          {req.priority}
+                        </Badge>
+                      </div>
+                      
+                      <p className="text-sm text-muted-foreground line-clamp-2">{req.description}</p>
                     </div>
                   </div>
+                  
+                  {/* Action Buttons - Desktop */}
+                  <div className="hidden sm:flex items-center gap-2 flex-shrink-0">
+                    <Link to={`/requirement/${req.id}`}>
+                      <Button variant="outline" size="sm">
+                        View Details
+                      </Button>
+                    </Link>
+                    <DropdownMenu>
+                      <DropdownMenuTrigger asChild>
+                        <Button variant="ghost" size="sm">
+                          <MoreHorizontal className="h-4 w-4" />
+                        </Button>
+                      </DropdownMenuTrigger>
+                      <DropdownMenuContent align="end">
+                        <DropdownMenuItem>Edit Requirement</DropdownMenuItem>
+                        <DropdownMenuItem>View Responses</DropdownMenuItem>
+                        <DropdownMenuItem>Pause Requirement</DropdownMenuItem>
+                        <DropdownMenuItem 
+                          className="text-destructive"
+                          onClick={() => handleDeleteRequirement(req.id)}
+                        >
+                          Delete Requirement
+                        </DropdownMenuItem>
+                      </DropdownMenuContent>
+                    </DropdownMenu>
+                  </div>
+                </div>
+
+                {/* Details Section */}
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4 text-xs sm:text-sm text-muted-foreground pl-8 sm:pl-0">
+                  <span className="flex items-center gap-1.5">
+                    <MapPin className="w-3.5 h-3.5 sm:w-4 sm:h-4 flex-shrink-0" />
+                    <span className="truncate max-w-[150px] sm:max-w-none">{req.location}</span>
+                  </span>
+                  {req.bedrooms !== "N/A" && (
+                    <span className="flex-shrink-0">{req.bedrooms}</span>
+                  )}
+                  <span className="font-semibold text-primary flex-shrink-0">{req.budget}</span>
                 </div>
                 
-                <div className="flex items-center gap-2">
-                  <Link to={`/requirement/${req.id}`}>
-                    <Button variant="outline" size="sm">
+                {/* Stats Section */}
+                <div className="flex flex-wrap items-center gap-3 sm:gap-6 text-xs sm:text-sm text-muted-foreground pl-8 sm:pl-0">
+                  <span className="flex items-center gap-1.5">
+                    <MessageSquare className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">responses</span>
+                    <span className="font-medium">{req.responses}</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Eye className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">views</span>
+                    <span className="font-medium">{req.views}</span>
+                  </span>
+                  <span className="flex items-center gap-1.5">
+                    <Calendar className="w-3.5 h-3.5 sm:w-4 sm:h-4" />
+                    <span className="hidden sm:inline">Posted</span>
+                    <span className="font-medium">{req.datePosted}</span>
+                  </span>
+                </div>
+
+                {/* Action Buttons - Mobile */}
+                <div className="flex sm:hidden items-center gap-2 pt-2 border-t">
+                  <Link to={`/requirement/${req.id}`} className="flex-1">
+                    <Button variant="outline" size="sm" className="w-full">
                       View Details
                     </Button>
                   </Link>
