@@ -415,7 +415,9 @@ const Auth = () => {
                           <p className="text-sm text-muted-foreground">Checking account...</p>
                         )}
                         {detectedAccountType && !isCheckingAccount && (
-                          <p className="text-sm text-primary font-medium">✓ {detectedAccountType}</p>
+                          <p className={`text-sm font-medium ${detectedAccountType === 'Account does not exist' ? 'text-yellow-600' : 'text-primary'}`}>
+                            {detectedAccountType === 'Account does not exist' ? '⚠️' : '✓'} {detectedAccountType}
+                          </p>
                         )}
                       </div>
                       
