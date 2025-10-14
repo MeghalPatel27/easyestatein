@@ -19,6 +19,19 @@ const Requirements = () => {
   const { user } = useAuth();
   const queryClient = useQueryClient();
 
+  // Helper function to format numbers in crores and lakhs
+  const formatIndianCurrency = (amount: number): string => {
+    if (amount >= 10000000) {
+      const crores = amount / 10000000;
+      return `₹${crores.toFixed(2)} Cr`;
+    } else if (amount >= 100000) {
+      const lakhs = amount / 100000;
+      return `₹${lakhs.toFixed(2)} L`;
+    } else {
+      return `₹${amount.toLocaleString('en-IN')}`;
+    }
+  };
+
   // Fetch user's requirements from database
   const { data: requirements = [], isLoading } = useQuery({
     queryKey: ['requirements', user?.id, statusFilter, sortBy],
@@ -57,7 +70,7 @@ const Requirements = () => {
         bedrooms: req.bedrooms ? `${req.bedrooms} BHK` : 'N/A',
         location: typeof req.location === 'object' && req.location && 'city' in req.location ? req.location.city as string : 'Unknown',
         budget: req.budget_min && req.budget_max ? 
-          `₹${req.budget_min}L - ₹${req.budget_max}L` : 'Budget not specified',
+          `${formatIndianCurrency(req.budget_min)} - ${formatIndianCurrency(req.budget_max)}` : 'Budget not specified',
         status: req.status.charAt(0).toUpperCase() + req.status.slice(1),
         responses: 0, // Will be calculated from sent_leads later
         views: 0, // Placeholder for now
