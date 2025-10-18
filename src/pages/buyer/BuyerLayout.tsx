@@ -7,11 +7,32 @@ import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 import { useAuth } from "@/hooks/useAuth";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 const BuyerLayout = () => {
   const location = useLocation();
   const navigate = useNavigate();
-  const { profile, signOut } = useAuth();
+  const { user, profile, signOut } = useAuth();
+
+  // Fetch pending leads count for badge
+  const { data: pendingLeadsCount = 0 } = useQuery({
+    queryKey: ['pending-leads-count', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return 0;
+      
+      const { count, error } = await supabase
+        .from('leads')
+        .select('*', { count: 'exact', head: true })
+        .eq('buyer_id', user.id)
+        .eq('status', 'pending');
+      
+      if (error) throw error;
+      return count || 0;
+    },
+    enabled: !!user?.id,
+    refetchInterval: 10000 // Refetch every 10 seconds
+  });
 
   const handleSignOut = async () => {
     try {
@@ -88,10 +109,16 @@ const BuyerLayout = () => {
             {/* Right Section */}
             <div className="flex items-center gap-4">
               {/* Notifications */}
-              <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
-                <Bell className="h-4 w-4" />
-                <span className="absolute -top-0.5 -right-0.5 h-2 w-2 rounded-full bg-primary"></span>
-              </Button>
+              <Link to="/buyer/pending-leads">
+                <Button variant="ghost" size="icon" className="relative text-muted-foreground hover:text-foreground">
+                  <Bell className="h-4 w-4" />
+                  {pendingLeadsCount > 0 && (
+                    <span className="absolute -top-0.5 -right-0.5 h-5 w-5 rounded-full bg-primary text-white text-xs flex items-center justify-center font-semibold">
+                      {pendingLeadsCount}
+                    </span>
+                  )}
+                </Button>
+              </Link>
 
               {/* Profile Info */}
               <div className="hidden sm:flex items-center gap-2 text-sm">

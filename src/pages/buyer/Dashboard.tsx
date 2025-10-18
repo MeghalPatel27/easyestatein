@@ -7,6 +7,7 @@ import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
+import BuyerLeadNotifications from "@/components/BuyerLeadNotifications";
 
 const BuyerDashboard = () => {
   const { user } = useAuth();
@@ -116,6 +117,9 @@ const BuyerDashboard = () => {
         <h1 className="text-3xl font-bold text-foreground">Welcome Back!</h1>
         <p className="text-muted-foreground">Track your property requirements and connect with brokers</p>
       </div>
+
+      {/* Buyer Lead Notifications */}
+      <BuyerLeadNotifications />
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
