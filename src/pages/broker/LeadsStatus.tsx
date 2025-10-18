@@ -16,29 +16,79 @@ const LeadsStatus = () => {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      const { data, error } = await supabase
+      // Fetch leads first
+      const { data: leadsData, error: leadsError } = await supabase
         .from('leads')
-        .select(`
-          *,
-          properties (title, price, property_type, location),
-          requirements (title, location, budget_min, budget_max),
-          profiles!leads_buyer_id_fkey (first_name, last_name)
-        `)
+        .select('id, broker_id, buyer_id, property_id, requirement_id, status, notes, created_at')
         .eq('broker_id', user.id)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      return data || [];
+      if (leadsError) throw leadsError;
+      if (!leadsData || leadsData.length === 0) return [];
+
+      // Collect IDs
+      const propertyIds = Array.from(new Set(leadsData.map(l => l.property_id).filter(Boolean))) as string[];
+      const requirementIds = Array.from(new Set(leadsData.map(l => l.requirement_id).filter(Boolean))) as string[];
+      const buyerIds = Array.from(new Set(leadsData.map(l => l.buyer_id).filter(Boolean))) as string[];
+
+      // Batch fetch related data
+      const [propsRes, reqsRes, buyersRes] = await Promise.all([
+        propertyIds.length
+          ? supabase.from('properties')
+              .select('id, title, price, property_type, location')
+              .in('id', propertyIds)
+          : Promise.resolve({ data: [], error: null } as any),
+        requirementIds.length
+          ? supabase.from('requirements')
+              .select('id, title, location, budget_min, budget_max')
+              .in('id', requirementIds)
+          : Promise.resolve({ data: [], error: null } as any),
+        buyerIds.length
+          ? supabase.from('profiles')
+              .select('id, first_name, last_name')
+              .in('id', buyerIds)
+          : Promise.resolve({ data: [], error: null } as any),
+      ]);
+
+      if ((propsRes as any).error) throw (propsRes as any).error;
+      if ((reqsRes as any).error) throw (reqsRes as any).error;
+      if ((buyersRes as any).error) throw (buyersRes as any).error;
+
+      // Create maps
+      const propsMap = new Map(((propsRes as any).data || []).map((p: any) => [p.id, p]));
+      const reqsMap = new Map(((reqsRes as any).data || []).map((r: any) => [r.id, r]));
+      const buyersMap = new Map(((buyersRes as any).data || []).map((b: any) => [b.id, b]));
+
+      // Map data
+      return (leadsData || []).map((l: any) => ({
+        ...l,
+        properties: l.property_id ? propsMap.get(l.property_id) : null,
+        requirements: l.requirement_id ? reqsMap.get(l.requirement_id) : null,
+        profiles: l.buyer_id ? buyersMap.get(l.buyer_id) : null,
+      }));
     },
     enabled: !!user?.id
   });
 
-  // Real-time updates for lead status changes
+  // Real-time updates for lead status changes and new leads
   useEffect(() => {
     if (!user?.id) return;
 
     const channel = supabase
       .channel('leads_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'leads',
+          filter: `broker_id=eq.${user.id}`
+        },
+        () => {
+          refetch();
+          toast.info('Lead purchased successfully! Waiting for buyer approval.');
+        }
+      )
       .on(
         'postgres_changes',
         {
