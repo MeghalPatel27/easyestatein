@@ -22,6 +22,7 @@ import BrokerLayout from "./pages/broker/BrokerLayout";
 import Dashboard from "./pages/broker/Dashboard";
 import LeadsListing from "./pages/broker/LeadsListing";
 import LeadDetails from "./pages/broker/LeadDetails";
+import LeadsStatus from "./pages/broker/LeadsStatus";
 import PropertiesNew from "./pages/broker/PropertiesNew";
 import PropertiesList from "./pages/broker/PropertiesList";
 import Wallet from "./pages/broker/Wallet";
@@ -36,6 +37,7 @@ import Requirements from "./pages/buyer/Requirements";
 import BuyerChats from "./pages/buyer/BuyerChats";
 import PropertySearch from "./pages/buyer/PropertySearch";
 import PropertyDetails from "./pages/buyer/PropertyDetails";
+import PendingLeads from "./pages/buyer/PendingLeads";
 
 const queryClient = new QueryClient();
 
@@ -80,6 +82,7 @@ const App = () => (
               </ProtectedRoute>
             }>
               <Route path="dashboard" element={<BuyerDashboard />} />
+              <Route path="pending-leads" element={<PendingLeads />} />
               <Route path="requirements" element={<Requirements />} />
               <Route path="chats" element={<BuyerChats />} />
               <Route path="search" element={<PropertySearch />} />
@@ -102,6 +105,7 @@ const App = () => (
               <Route path="dashboard" element={<Dashboard />} />
               <Route path="leads" element={<LeadsListing />} />
               <Route path="leads/:leadId" element={<LeadDetails />} />
+              <Route path="lead-status" element={<LeadsStatus />} />
               <Route path="properties" element={<PropertiesList />} />
               <Route path="properties/new" element={<PropertiesNew />} />
               <Route path="lead-manager" element={<LeadManager />} />

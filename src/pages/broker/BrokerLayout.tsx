@@ -46,11 +46,11 @@ const BrokerLayout = () => {
   const navigation = [
     { name: "Dashboard", href: "/broker/dashboard", icon: LayoutDashboard },
     { name: "Leads", href: "/broker/leads", icon: Users },
+    { name: "Lead Status", href: "/broker/lead-status", icon: TrendingUp },
     { name: "Properties", href: "/broker/properties", icon: Building },
     { name: "Lead Manager", href: "/broker/lead-manager", icon: UserCheck },
     { name: "Chat Manager", href: "/broker/chat-manager", icon: MessageSquare },
     { name: "Wallet", href: "/broker/wallet", icon: Wallet },
-    { name: "Analytics", href: "/broker/analytics", icon: TrendingUp },
   ];
 
   const NavItems = () => (

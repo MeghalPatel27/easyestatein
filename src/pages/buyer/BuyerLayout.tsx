@@ -31,6 +31,7 @@ const BuyerLayout = () => {
 
   const navigation = [
     { name: "Dashboard", href: "/buyer/dashboard", icon: Home },
+    { name: "Pending Leads", href: "/buyer/pending-leads", icon: Bell },
     { name: "Requirements", href: "/buyer/requirements", icon: FileText },
     { name: "Chats", href: "/buyer/chats", icon: MessageSquare },
     { name: "Property Search", href: "/buyer/search", icon: Search },

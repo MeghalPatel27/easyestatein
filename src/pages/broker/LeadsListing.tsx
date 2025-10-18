@@ -6,9 +6,12 @@ import { Input } from "@/components/ui/input";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { Search, MapPin, Home, ChevronLeft, ChevronRight } from "lucide-react";
+import { Search, MapPin, Home, ChevronLeft, ChevronRight, Building } from "lucide-react";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 
 // Radial progress component for score display
 const RadialProgress = ({ score }: { score: number }) => {
@@ -60,6 +63,9 @@ const LeadsListing = () => {
   const navigate = useNavigate();
   const queryClient = useQueryClient();
   const [searchQuery, setSearchQuery] = useState("");
+  const [showPropertyDialog, setShowPropertyDialog] = useState(false);
+  const [selectedLead, setSelectedLead] = useState<any>(null);
+  const [selectedPropertyId, setSelectedPropertyId] = useState<string>("");
 
   const { data: leads = [], isLoading, refetch } = useQuery({
     queryKey: ['leads-listing', user?.id],
@@ -146,36 +152,57 @@ const LeadsListing = () => {
     };
   }, [user?.id, refetch]);
 
+  // Fetch broker's properties
+  const { data: brokerProperties = [] } = useQuery({
+    queryKey: ['broker-properties', user?.id],
+    queryFn: async () => {
+      if (!user?.id) return [];
+      
+      const { data, error } = await supabase
+        .from('properties')
+        .select('id, title, property_type, price, location')
+        .eq('broker_id', user.id)
+        .eq('status', 'active');
+      
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!user?.id
+  });
+
   // Purchase lead mutation
   const purchaseLeadMutation = useMutation({
-    mutationFn: async ({ matchId, buyerId, requirementId, leadPrice }: { matchId: string; buyerId: string; requirementId: string; leadPrice: number }) => {
+    mutationFn: async ({ matchId, buyerId, requirementId, leadPrice, propertyId }: { 
+      matchId: string; 
+      buyerId: string; 
+      requirementId: string; 
+      leadPrice: number;
+      propertyId: string;
+    }) => {
       const { data, error } = await supabase.rpc('purchase_lead', {
         p_match_id: matchId,
         p_lead_price: leadPrice,
         p_buyer_id: buyerId,
-        p_requirement_id: requirementId
+        p_requirement_id: requirementId,
+        p_selected_property_id: propertyId
       });
 
       if (error) throw error;
       
-      const result = data as { success: boolean; error?: string; chat_id?: string; new_balance?: number };
+      const result = data as { success: boolean; error?: string; lead_id?: string; new_balance?: number };
       if (!result?.success) throw new Error(result?.error || 'Failed to purchase lead');
 
       return result;
     },
     onSuccess: async (result) => {
-      toast.success(`Lead purchased! Balance: ${result.new_balance} coins`);
+      toast.success(`Lead purchased! Waiting for buyer approval. Balance: ${result.new_balance} coins`);
+      setShowPropertyDialog(false);
+      setSelectedPropertyId("");
       
       // Invalidate queries to refresh data
       await queryClient.invalidateQueries({ queryKey: ['leads-listing'] });
       await queryClient.invalidateQueries({ queryKey: ['broker-profile'] });
-      await queryClient.invalidateQueries({ queryKey: ['chats'] });
-      
-      // Navigate to chat
-      toast.success('Chat activated! Redirecting...');
-      setTimeout(() => {
-        navigate(`/chat/${result.chat_id}`);
-      }, 1500);
+      await queryClient.invalidateQueries({ queryKey: ['broker-leads-status'] });
     },
     onError: (error: any) => {
       console.error('Purchase error:', error);
@@ -183,16 +210,37 @@ const LeadsListing = () => {
     }
   });
 
-  const purchaseLead = (matchId: string, leadPrice: number, buyerId: string, requirementId: string) => {
+  const openPropertySelectionDialog = (lead: any) => {
     // Check if broker has enough balance
     const currentBalance = profile?.coin_balance || 0;
-    if (currentBalance < leadPrice) {
+    if (currentBalance < lead.lead_price) {
       toast.error('Insufficient coin balance. Please refill your wallet.');
       setTimeout(() => navigate('/broker/wallet/refill'), 1500);
       return;
     }
 
-    purchaseLeadMutation.mutate({ matchId, buyerId, requirementId, leadPrice });
+    if (brokerProperties.length === 0) {
+      toast.error('You need to have at least one active property to purchase leads.');
+      return;
+    }
+
+    setSelectedLead(lead);
+    setShowPropertyDialog(true);
+  };
+
+  const confirmPurchase = () => {
+    if (!selectedPropertyId) {
+      toast.error('Please select a property to present');
+      return;
+    }
+
+    purchaseLeadMutation.mutate({ 
+      matchId: selectedLead.matchId, 
+      buyerId: selectedLead.buyerId, 
+      requirementId: selectedLead.requirementId, 
+      leadPrice: selectedLead.lead_price,
+      propertyId: selectedPropertyId
+    });
   };
 
   const filteredLeads = leads.filter((lead: any) => {
@@ -325,7 +373,7 @@ const LeadsListing = () => {
                 <div className="flex-shrink-0 ml-auto">
                   <Button 
                     className="bg-pink-500 hover:bg-pink-600 text-white font-medium"
-                    onClick={() => purchaseLead(lead.matchId, lead.lead_price, lead.buyerId, lead.requirementId)}
+                    onClick={() => openPropertySelectionDialog(lead)}
                     disabled={purchaseLeadMutation.isPending}
                   >
                     {purchaseLeadMutation.isPending ? 'Processing...' : 'Purchase Lead'}
@@ -346,6 +394,59 @@ const LeadsListing = () => {
           ))
         )}
       </div>
+
+      {/* Property Selection Dialog */}
+      <Dialog open={showPropertyDialog} onOpenChange={setShowPropertyDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>Select Property to Present</DialogTitle>
+            <DialogDescription>
+              Choose which property you want to present to the buyer for this requirement
+            </DialogDescription>
+          </DialogHeader>
+          
+          <div className="space-y-4 max-h-96 overflow-y-auto">
+            <RadioGroup value={selectedPropertyId} onValueChange={setSelectedPropertyId}>
+              {brokerProperties.map((property: any) => (
+                <div key={property.id} className="flex items-start space-x-3 border rounded-lg p-4 hover:bg-accent cursor-pointer">
+                  <RadioGroupItem value={property.id} id={property.id} />
+                  <Label htmlFor={property.id} className="flex-1 cursor-pointer">
+                    <div className="flex items-start gap-3">
+                      <Building className="h-5 w-5 text-muted-foreground mt-1" />
+                      <div className="flex-1">
+                        <p className="font-semibold">{property.title}</p>
+                        <div className="flex gap-4 mt-1 text-sm text-muted-foreground">
+                          <span className="capitalize">{property.property_type}</span>
+                          <span className="text-primary font-semibold">₹{(property.price / 10000000).toFixed(2)} Cr</span>
+                          {property.location && typeof property.location === 'object' && (
+                            <span className="flex items-center gap-1">
+                              <MapPin className="h-3 w-3" />
+                              {(property.location as any).city}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </Label>
+                </div>
+              ))}
+            </RadioGroup>
+          </div>
+
+          <div className="flex justify-end gap-3 mt-4">
+            <Button variant="outline" onClick={() => setShowPropertyDialog(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={confirmPurchase}
+              disabled={!selectedPropertyId || purchaseLeadMutation.isPending}
+              className="bg-pink-500 hover:bg-pink-600"
+            >
+              {purchaseLeadMutation.isPending ? 'Processing...' : 'Confirm Purchase'}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

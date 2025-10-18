@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, MessageSquare, FileText, Eye, Calendar, TrendingUp, Users, CheckCircle, Building, Home, MapPin } from "lucide-react";
+import { Search, MessageSquare, FileText, Eye, Calendar, TrendingUp, Users, CheckCircle, Building, Home, MapPin, Bell } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -168,11 +168,17 @@ const BuyerDashboard = () => {
       {/* Quick Actions */}
       <Card className="p-6">
         <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Link to="/post-requirement">
             <Button className="w-full h-20 flex flex-col gap-2" variant="outline">
               <FileText className="h-6 w-6" />
               Post New Requirement
+            </Button>
+          </Link>
+          <Link to="/buyer/pending-leads">
+            <Button className="w-full h-20 flex flex-col gap-2" variant="outline">
+              <Bell className="h-6 w-6" />
+              Pending Leads
             </Button>
           </Link>
           <Link to="/buyer/chats">

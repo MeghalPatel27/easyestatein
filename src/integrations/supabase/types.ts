@@ -758,6 +758,10 @@ export type Database = {
       }
     }
     Functions: {
+      approve_lead: {
+        Args: { p_lead_id: string }
+        Returns: Json
+      }
       approve_property: {
         Args: { _admin_id: string; _approval_id: string }
         Returns: string
@@ -860,11 +864,22 @@ export type Database = {
               p_match_id: string
               p_requirement_id: string
             }
+          | {
+              p_buyer_id: string
+              p_lead_price: number
+              p_match_id: string
+              p_requirement_id: string
+              p_selected_property_id: string
+            }
         Returns: Json
       }
       refresh_broker_property_matches: {
         Args: { _broker_id: string }
         Returns: number
+      }
+      reject_lead: {
+        Args: { p_lead_id: string; p_rejection_reason?: string }
+        Returns: Json
       }
       reject_property: {
         Args: { _admin_id: string; _admin_notes?: string; _approval_id: string }
