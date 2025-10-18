@@ -17,21 +17,53 @@ const BuyerLeadNotifications = () => {
     queryKey: ['buyer-pending-notifications', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
-      
-      const { data, error } = await supabase
+
+      const { data: leads, error: leadsError } = await supabase
         .from('leads')
-        .select(`
-          *,
-          properties (id, title, price, property_type, location, images),
-          requirements (title),
-          profiles!leads_broker_id_fkey (first_name, last_name, company_name)
-        `)
+        .select('id, broker_id, buyer_id, property_id, requirement_id, status, created_at')
         .eq('buyer_id', user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
-      
-      if (error) throw error;
-      return data || [];
+
+      if (leadsError) throw leadsError;
+      if (!leads || leads.length === 0) return [];
+
+      const propertyIds = Array.from(new Set(leads.map(l => l.property_id).filter(Boolean))) as string[];
+      const requirementIds = Array.from(new Set(leads.map(l => l.requirement_id).filter(Boolean))) as string[];
+      const brokerIds = Array.from(new Set(leads.map(l => l.broker_id).filter(Boolean))) as string[];
+
+      const [propsRes, reqsRes, profsRes] = await Promise.all([
+        propertyIds.length
+          ? supabase.from('properties')
+              .select('id, title, price, property_type, location, images')
+              .in('id', propertyIds)
+          : Promise.resolve({ data: [], error: null } as any),
+        requirementIds.length
+          ? supabase.from('requirements')
+              .select('id, title')
+              .in('id', requirementIds)
+          : Promise.resolve({ data: [], error: null } as any),
+        brokerIds.length
+          ? supabase.from('profiles')
+              .select('id, first_name, last_name, company_name')
+              .in('id', brokerIds)
+          : Promise.resolve({ data: [], error: null } as any),
+      ]);
+
+      if ((propsRes as any).error) throw (propsRes as any).error;
+      if ((reqsRes as any).error) throw (reqsRes as any).error;
+      if ((profsRes as any).error) throw (profsRes as any).error;
+
+      const propsMap = new Map(((propsRes as any).data || []).map((p: any) => [p.id, p]));
+      const reqsMap = new Map(((reqsRes as any).data || []).map((r: any) => [r.id, r]));
+      const profsMap = new Map(((profsRes as any).data || []).map((p: any) => [p.id, p]));
+
+      return (leads || []).map((l: any) => ({
+        ...l,
+        properties: l.property_id ? propsMap.get(l.property_id) : null,
+        requirements: l.requirement_id ? reqsMap.get(l.requirement_id) : null,
+        profiles: l.broker_id ? profsMap.get(l.broker_id) : null,
+      }));
     },
     enabled: !!user?.id,
   });
@@ -57,7 +89,7 @@ const BuyerLeadNotifications = () => {
               description: 'A broker wants to show you a property',
               action: {
                 label: 'View',
-                onClick: () => navigate('/buyer/pending-leads')
+                  onClick: () => navigate('/buyer/pending-leads')
               }
             });
           }
