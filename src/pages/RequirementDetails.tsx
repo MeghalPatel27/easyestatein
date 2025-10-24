@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, DollarSign, Home, Calendar, TrendingUp, Edit, Share, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Wallet, Home, Calendar, TrendingUp, Edit, Share, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -201,7 +201,7 @@ const RequirementDetails = () => {
               <Card className="p-5">
                 <div className="flex items-center space-x-3 mb-3">
                   <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
-                    <DollarSign className="w-5 h-5 text-primary" />
+                    <Wallet className="w-5 h-5 text-primary" />
                   </div>
                   <h3 className="font-semibold text-foreground">Budget</h3>
                 </div>
