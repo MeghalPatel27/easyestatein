@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Wallet, Home, Calendar, TrendingUp, Edit, Share, Loader2 } from "lucide-react";
+import { ArrowLeft, MapPin, Wallet, Home, Calendar, TrendingUp, Edit, Share, Loader2, Car, Dumbbell, Waves, Shield, Zap, Trees, Baby, Users, Wind, Droplet, Sun, Moon, Lock, Wifi, Tv, Sofa, UtensilsCrossed, Flower2, Dog, Bike } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -94,6 +94,31 @@ const RequirementDetails = () => {
       case "urgent": return "bg-red-100 text-red-800";
       default: return "bg-gray-100 text-gray-800";
     }
+  };
+
+  const getAmenityIcon = (amenity: string) => {
+    const amenityLower = amenity.toLowerCase();
+    if (amenityLower.includes('parking')) return Car;
+    if (amenityLower.includes('gym') || amenityLower.includes('fitness')) return Dumbbell;
+    if (amenityLower.includes('pool') || amenityLower.includes('swimming')) return Waves;
+    if (amenityLower.includes('security') || amenityLower.includes('cctv')) return Shield;
+    if (amenityLower.includes('power') || amenityLower.includes('backup') || amenityLower.includes('generator')) return Zap;
+    if (amenityLower.includes('garden') || amenityLower.includes('park')) return Trees;
+    if (amenityLower.includes('play') || amenityLower.includes('kids')) return Baby;
+    if (amenityLower.includes('club') || amenityLower.includes('community')) return Users;
+    if (amenityLower.includes('ac') || amenityLower.includes('air')) return Wind;
+    if (amenityLower.includes('water')) return Droplet;
+    if (amenityLower.includes('solar')) return Sun;
+    if (amenityLower.includes('lift') || amenityLower.includes('elevator')) return TrendingUp;
+    if (amenityLower.includes('gate') || amenityLower.includes('gated')) return Lock;
+    if (amenityLower.includes('wifi') || amenityLower.includes('internet')) return Wifi;
+    if (amenityLower.includes('tv') || amenityLower.includes('cable')) return Tv;
+    if (amenityLower.includes('furnished') || amenityLower.includes('sofa')) return Sofa;
+    if (amenityLower.includes('kitchen') || amenityLower.includes('modular')) return UtensilsCrossed;
+    if (amenityLower.includes('landscape') || amenityLower.includes('flower')) return Flower2;
+    if (amenityLower.includes('pet')) return Dog;
+    if (amenityLower.includes('cycle') || amenityLower.includes('bike')) return Bike;
+    return Home;
   };
 
   return (
@@ -353,14 +378,17 @@ const RequirementDetails = () => {
                     <div>
                       <div className="text-xs text-muted-foreground mb-3">Amenities</div>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {requirementData.amenities.map((amenity: string, idx: number) => (
-                          <div key={idx} className="flex items-center space-x-2 p-2 rounded-lg bg-muted/50">
-                            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <Home className="w-4 h-4 text-primary" />
+                        {requirementData.amenities.map((amenity: string, idx: number) => {
+                          const IconComponent = getAmenityIcon(amenity);
+                          return (
+                            <div key={idx} className="flex items-center space-x-2 p-2 rounded-lg bg-background border">
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <IconComponent className="w-5 h-5 text-foreground" strokeWidth={1.5} />
+                              </div>
+                              <span className="text-sm font-medium capitalize text-foreground">{amenity}</span>
                             </div>
-                            <span className="text-sm font-medium capitalize">{amenity}</span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
@@ -368,14 +396,17 @@ const RequirementDetails = () => {
                     <div>
                       <div className="text-xs text-muted-foreground mb-3">Facilities</div>
                       <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                        {requirementData.facilities.map((facility: string, idx: number) => (
-                          <div key={idx} className="flex items-center space-x-2 p-2 rounded-lg bg-muted/50">
-                            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
-                              <TrendingUp className="w-4 h-4 text-primary" />
+                        {requirementData.facilities.map((facility: string, idx: number) => {
+                          const IconComponent = getAmenityIcon(facility);
+                          return (
+                            <div key={idx} className="flex items-center space-x-2 p-2 rounded-lg bg-background border">
+                              <div className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0">
+                                <IconComponent className="w-5 h-5 text-foreground" strokeWidth={1.5} />
+                              </div>
+                              <span className="text-sm font-medium capitalize text-foreground">{facility}</span>
                             </div>
-                            <span className="text-sm font-medium capitalize">{facility}</span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
                     </div>
                   )}
