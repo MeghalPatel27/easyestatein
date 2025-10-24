@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, MapPin, Wallet, Home, Calendar, TrendingUp, Edit, Share, Loader2, Car, Dumbbell, Waves, Shield, Zap, Trees, Baby, Users, Wind, Droplet, Sun, Moon, Lock, Wifi, Tv, Sofa, UtensilsCrossed, Flower2, Dog, Bike } from "lucide-react";
+import { ArrowLeft, MapPin, Wallet, Home, Calendar, TrendingUp, Edit, Share, Loader2, Car, Dumbbell, Waves, Shield, Zap, Trees, Baby, Users, Wind, Droplet, Sun, Moon, Lock, Wifi, Tv, Sofa, UtensilsCrossed, Flower2, Dog, Bike, Bed, Bath, Maximize2, Building2, DoorOpen } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -262,8 +262,8 @@ const RequirementDetails = () => {
               </h3>
               <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
                 <div className="flex items-center space-x-2">
-                  <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
-                    <Home className="w-4 h-4 text-muted-foreground" />
+                  <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                    <Home className="w-5 h-5 text-foreground" strokeWidth={1.5} />
                   </div>
                   <div>
                     <div className="text-xs text-muted-foreground">Type</div>
@@ -273,8 +273,8 @@ const RequirementDetails = () => {
                 
                 {requirementData.bedrooms && (
                   <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
-                      <span className="text-sm font-semibold text-muted-foreground">🛏️</span>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                      <Bed className="w-5 h-5 text-foreground" strokeWidth={1.5} />
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground">Bedrooms</div>
@@ -285,8 +285,8 @@ const RequirementDetails = () => {
 
                 {requirementData.bathrooms && (
                   <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
-                      <span className="text-sm font-semibold text-muted-foreground">🚿</span>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                      <Bath className="w-5 h-5 text-foreground" strokeWidth={1.5} />
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground">Bathrooms</div>
@@ -297,8 +297,8 @@ const RequirementDetails = () => {
 
                 {(requirementData.area_min || requirementData.area_max) && (
                   <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
-                      <span className="text-sm font-semibold text-muted-foreground">📏</span>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                      <Maximize2 className="w-5 h-5 text-foreground" strokeWidth={1.5} />
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground">Area</div>
@@ -311,8 +311,8 @@ const RequirementDetails = () => {
 
                 {requirementData.floor && (
                   <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
-                      <span className="text-sm font-semibold text-muted-foreground">🏢</span>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                      <Building2 className="w-5 h-5 text-foreground" strokeWidth={1.5} />
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground">Floor</div>
@@ -323,8 +323,8 @@ const RequirementDetails = () => {
 
                 {requirementData.balconies && (
                   <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
-                      <span className="text-sm font-semibold text-muted-foreground">🪟</span>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                      <DoorOpen className="w-5 h-5 text-foreground" strokeWidth={1.5} />
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground">Balconies</div>
@@ -335,8 +335,8 @@ const RequirementDetails = () => {
 
                 {requirementData.min_parking && (
                   <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
-                      <span className="text-sm font-semibold text-muted-foreground">🅿️</span>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                      <Car className="w-5 h-5 text-foreground" strokeWidth={1.5} />
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground">Parking</div>
@@ -347,8 +347,8 @@ const RequirementDetails = () => {
 
                 {requirementData.furnishing && (
                   <div className="flex items-center space-x-2">
-                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
-                      <span className="text-sm font-semibold text-muted-foreground">🪑</span>
+                    <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                      <Sofa className="w-5 h-5 text-foreground" strokeWidth={1.5} />
                     </div>
                     <div>
                       <div className="text-xs text-muted-foreground">Furnishing</div>
