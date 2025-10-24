@@ -498,8 +498,15 @@ const PropertiesNew = () => {
                 <Input
                   id="superBuiltup"
                   type="number"
+                  min="0"
+                  max="75"
                   value={formData.superBuiltup}
-                  onChange={(e) => setFormData({ ...formData, superBuiltup: e.target.value })}
+                  onChange={(e) => {
+                    const value = e.target.value;
+                    if (value === '' || (Number(value) >= 0 && Number(value) <= 75)) {
+                      setFormData({ ...formData, superBuiltup: value });
+                    }
+                  }}
                   placeholder="e.g., 25"
                   className="mt-1"
                 />
