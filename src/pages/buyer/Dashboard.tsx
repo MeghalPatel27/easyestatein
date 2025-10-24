@@ -40,6 +40,9 @@ const BuyerDashboard = () => {
           const rejected = leadsData?.filter(l => l.status === 'rejected').length || 0;
           const pending = leadsData?.filter(l => l.status === 'pending').length || 0;
           
+          const location = req.location as any;
+          const locality = location?.area || location?.landmark || 'Not specified';
+          
           return {
             id: req.id,
             title: req.title,
@@ -50,6 +53,7 @@ const BuyerDashboard = () => {
             budget_min: req.budget_min,
             budget_max: req.budget_max,
             status: req.status,
+            locality,
             totalResponses,
             accepted,
             rejected,
@@ -285,8 +289,19 @@ const BuyerDashboard = () => {
                         </div>
                       )}
                       
+                      {/* Locality */}
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/50">
+                          <MapPin className="w-4 h-4 text-foreground" strokeWidth={1.5} />
+                        </div>
+                        <div>
+                          <div className="text-xs text-muted-foreground">Locality</div>
+                          <div className="text-sm font-medium">{req.locality}</div>
+                        </div>
+                      </div>
+                      
                       {/* Budget */}
-                      <div className="flex items-center space-x-2 col-span-2">
+                      <div className="flex items-center space-x-2">
                         <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/50">
                           <Wallet className="w-4 h-4 text-foreground" strokeWidth={1.5} />
                         </div>
