@@ -2,7 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Search, MessageSquare, FileText, Eye, Calendar, TrendingUp, Users, CheckCircle, Building, Home, MapPin, Bell } from "lucide-react";
+import { Search, MessageSquare, FileText, Eye, Calendar, TrendingUp, Users, CheckCircle, Building, Home, MapPin, Bell, Maximize2, Wallet, XCircle, Clock } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/hooks/useAuth";
 import { supabase } from "@/integrations/supabase/client";
@@ -26,20 +26,40 @@ const BuyerDashboard = () => {
         .limit(3);
 
       if (error) throw error;
-      return data.map(req => ({
-        id: req.id,
-        title: req.title,
-        type: req.property_type,
-        bedrooms: req.bedrooms ? `${req.bedrooms} BHK` : 'N/A',
-        location: typeof req.location === 'object' && req.location && 'city' in req.location ? req.location.city as string : 'Unknown',
-        budget: req.budget_min && req.budget_max ? 
-          `₹${req.budget_min}L - ₹${req.budget_max}L` : 'Budget not specified',
-        status: req.status === 'active' ? 'Active' : 'Closed',
-        responses: 0, // Will be calculated from sent_leads
-        views: 0, // Will be added later
-        datePosted: new Date(req.created_at).toLocaleDateString(),
-        priority: req.urgency || 'Medium'
-      }));
+      
+      // Fetch leads for each requirement
+      const requirementsWithLeads = await Promise.all(
+        (data || []).map(async (req) => {
+          const { data: leadsData } = await supabase
+            .from('leads')
+            .select('id, status')
+            .eq('requirement_id', req.id);
+          
+          const totalResponses = leadsData?.length || 0;
+          const accepted = leadsData?.filter(l => l.status === 'approved').length || 0;
+          const rejected = leadsData?.filter(l => l.status === 'rejected').length || 0;
+          const pending = leadsData?.filter(l => l.status === 'pending').length || 0;
+          
+          return {
+            id: req.id,
+            title: req.title,
+            type: req.property_type,
+            bedrooms: req.bedrooms,
+            area_min: req.area_min,
+            area_max: req.area_max,
+            budget_min: req.budget_min,
+            budget_max: req.budget_max,
+            status: req.status,
+            totalResponses,
+            accepted,
+            rejected,
+            pending,
+            datePosted: new Date(req.created_at).toLocaleDateString()
+          };
+        })
+      );
+      
+      return requirementsWithLeads;
     },
     enabled: !!user?.id
   });
@@ -218,39 +238,94 @@ const BuyerDashboard = () => {
               </div>
             ) : requirements.length > 0 ? (
               requirements.map((req) => (
-                <div key={req.id} className="p-4 border rounded-lg hover:shadow-sm transition-shadow">
-                  <div className="flex items-start justify-between mb-3">
-                    <div className="flex items-center gap-2">
-                      {(() => {
-                        const PropertyIcon = getPropertyIcon(req.type);
-                        return <PropertyIcon className="w-4 h-4 text-muted-foreground" />;
-                      })()}
-                      <h3 className="font-medium text-sm">{req.title}</h3>
+                <Link key={req.id} to={`/requirement/${req.id}`}>
+                  <div className="p-5 border rounded-lg hover:shadow-md transition-all cursor-pointer bg-card">
+                    {/* Header with Title and Status */}
+                    <div className="flex items-start justify-between mb-4">
+                      <h3 className="font-semibold text-foreground text-base flex-1">{req.title}</h3>
+                      <Badge 
+                        variant={req.status === "active" ? "default" : "secondary"}
+                        className="ml-2"
+                      >
+                        {req.status === 'active' ? 'Active' : 'Closed'}
+                      </Badge>
                     </div>
-                    <Badge 
-                      variant={req.status === "Active" ? "default" : "secondary"}
-                      className="text-xs"
-                    >
-                      {req.status}
-                    </Badge>
-                  </div>
-                  
-                  <div className="flex items-center gap-4 text-xs text-muted-foreground mb-2">
-                    <span className="flex items-center gap-1">
-                      <MapPin className="w-3 h-3" />
-                      {req.location}
-                    </span>
-                    <span>{req.budget}</span>
-                  </div>
-                  
-                  <div className="flex items-center justify-between text-xs">
-                    <div className="flex gap-4">
-                      <span>{req.responses} responses</span>
-                      <span>{req.views} views</span>
+                    
+                    {/* Property Details Grid */}
+                    <div className="grid grid-cols-2 gap-3 mb-4">
+                      {/* Property Type */}
+                      <div className="flex items-center space-x-2">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/50">
+                          {(() => {
+                            const PropertyIcon = getPropertyIcon(req.type);
+                            return <PropertyIcon className="w-4 h-4 text-foreground" strokeWidth={1.5} />;
+                          })()}
+                        </div>
+                        <div>
+                          <div className="text-xs text-muted-foreground">Type</div>
+                          <div className="text-sm font-medium capitalize">{req.type}</div>
+                        </div>
+                      </div>
+                      
+                      {/* Area */}
+                      {(req.area_min || req.area_max) && (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/50">
+                            <Maximize2 className="w-4 h-4 text-foreground" strokeWidth={1.5} />
+                          </div>
+                          <div>
+                            <div className="text-xs text-muted-foreground">Area</div>
+                            <div className="text-sm font-medium">
+                              {req.area_min || 0}-{req.area_max || '∞'} sq ft
+                            </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Budget */}
+                      <div className="flex items-center space-x-2 col-span-2">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/50">
+                          <Wallet className="w-4 h-4 text-foreground" strokeWidth={1.5} />
+                        </div>
+                        <div>
+                          <div className="text-xs text-muted-foreground">Budget</div>
+                          <div className="text-sm font-medium">
+                            {req.budget_min && req.budget_max 
+                              ? `₹${(req.budget_min / 100000).toFixed(1)}L - ₹${(req.budget_max / 100000).toFixed(1)}L`
+                              : 'Not specified'}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <span className="text-muted-foreground">{req.datePosted}</span>
+                    
+                    {/* Response Stats */}
+                    <div className="grid grid-cols-3 gap-2 pt-3 border-t">
+                      <div className="flex flex-col items-center py-2 px-1 rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
+                        <div className="flex items-center space-x-1 mb-1">
+                          <Clock className="w-3 h-3 text-blue-600 dark:text-blue-400" strokeWidth={2} />
+                          <span className="text-lg font-bold text-blue-700 dark:text-blue-400">{req.pending || 0}</span>
+                        </div>
+                        <span className="text-xs text-blue-600 dark:text-blue-300 font-medium">Pending</span>
+                      </div>
+                      
+                      <div className="flex flex-col items-center py-2 px-1 rounded-lg bg-green-50/50 dark:bg-green-950/20">
+                        <div className="flex items-center space-x-1 mb-1">
+                          <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" strokeWidth={2} />
+                          <span className="text-lg font-bold text-green-700 dark:text-green-400">{req.accepted || 0}</span>
+                        </div>
+                        <span className="text-xs text-green-600 dark:text-green-300 font-medium">Accepted</span>
+                      </div>
+                      
+                      <div className="flex flex-col items-center py-2 px-1 rounded-lg bg-red-50/50 dark:bg-red-950/20">
+                        <div className="flex items-center space-x-1 mb-1">
+                          <XCircle className="w-3 h-3 text-red-600 dark:text-red-400" strokeWidth={2} />
+                          <span className="text-lg font-bold text-red-700 dark:text-red-400">{req.rejected || 0}</span>
+                        </div>
+                        <span className="text-xs text-red-600 dark:text-red-300 font-medium">Rejected</span>
+                      </div>
+                    </div>
                   </div>
-                </div>
+                </Link>
               ))
             ) : (
               <div className="text-center py-8">
