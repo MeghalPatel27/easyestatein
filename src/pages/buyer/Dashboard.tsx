@@ -148,46 +148,46 @@ const BuyerDashboard = () => {
       {/* Stats Cards */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
         <Card className="p-3 md:p-6">
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <FileText className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
+          <div className="flex items-center gap-1.5 md:gap-3">
+            <div className="w-8 h-8 md:w-12 md:h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <FileText className="h-4 w-4 md:h-6 md:w-6 text-blue-600" />
             </div>
-            <div className="min-w-0">
-              <p className="text-xs md:text-sm text-muted-foreground truncate">Active Requirements</p>
-              <p className="text-xl md:text-2xl font-bold">{stats?.activeRequirements || 0}</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-3 md:p-6">
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <MessageSquare className="h-5 w-5 md:h-6 md:w-6 text-green-600" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-xs md:text-sm text-muted-foreground truncate">Property Responses</p>
-              <p className="text-xl md:text-2xl font-bold">{stats?.totalResponses || 0}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] leading-tight md:text-sm text-muted-foreground">Active Requirements</p>
+              <p className="text-lg md:text-2xl font-bold">{stats?.activeRequirements || 0}</p>
             </div>
           </div>
         </Card>
         <Card className="p-3 md:p-6">
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <Eye className="h-5 w-5 md:h-6 md:w-6 text-purple-600" />
+          <div className="flex items-center gap-1.5 md:gap-3">
+            <div className="w-8 h-8 md:w-12 md:h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <MessageSquare className="h-4 w-4 md:h-6 md:w-6 text-green-600" />
             </div>
-            <div className="min-w-0">
-              <p className="text-xs md:text-sm text-muted-foreground truncate">Total Views</p>
-              <p className="text-xl md:text-2xl font-bold">{stats?.totalViews || 0}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] leading-tight md:text-sm text-muted-foreground">Property Responses</p>
+              <p className="text-lg md:text-2xl font-bold">{stats?.totalResponses || 0}</p>
             </div>
           </div>
         </Card>
         <Card className="p-3 md:p-6">
-          <div className="flex items-center gap-2 md:gap-3">
-            <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
-              <Calendar className="h-5 w-5 md:h-6 md:w-6 text-orange-600" />
+          <div className="flex items-center gap-1.5 md:gap-3">
+            <div className="w-8 h-8 md:w-12 md:h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <Eye className="h-4 w-4 md:h-6 md:w-6 text-purple-600" />
             </div>
-            <div className="min-w-0">
-              <p className="text-xs md:text-sm text-muted-foreground truncate">Visits Scheduled</p>
-              <p className="text-xl md:text-2xl font-bold">{stats?.scheduledVisits || 0}</p>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] leading-tight md:text-sm text-muted-foreground">Total Views</p>
+              <p className="text-lg md:text-2xl font-bold">{stats?.totalViews || 0}</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-3 md:p-6">
+          <div className="flex items-center gap-1.5 md:gap-3">
+            <div className="w-8 h-8 md:w-12 md:h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <Calendar className="h-4 w-4 md:h-6 md:w-6 text-orange-600" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <p className="text-[10px] leading-tight md:text-sm text-muted-foreground">Visits Scheduled</p>
+              <p className="text-lg md:text-2xl font-bold">{stats?.scheduledVisits || 0}</p>
             </div>
           </div>
         </Card>
