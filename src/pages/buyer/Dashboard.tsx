@@ -276,7 +276,11 @@ const BuyerDashboard = () => {
                           <div>
                             <div className="text-xs text-muted-foreground">Area</div>
                             <div className="text-sm font-medium">
-                              {req.area_min || 0}-{req.area_max || '∞'} sq ft
+                              {req.area_min && req.area_max
+                                ? `${req.area_min}-${req.area_max} sq ft`
+                                : req.area_min
+                                  ? `${req.area_min}+ sq ft`
+                                  : `${req.area_max} sq ft`}
                             </div>
                           </div>
                         </div>
