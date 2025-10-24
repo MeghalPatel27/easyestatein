@@ -34,6 +34,23 @@ const RequirementDetails = () => {
     enabled: !!requirementId,
   });
 
+  // Fetch leads data for this requirement
+  const { data: leadsData } = useQuery({
+    queryKey: ['requirement-leads', requirementId],
+    queryFn: async () => {
+      if (!requirementId) return [];
+      
+      const { data, error } = await supabase
+        .from('leads')
+        .select('id, status')
+        .eq('requirement_id', requirementId);
+
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!requirementId,
+  });
+
   // Show loading state
   if (isLoading) {
     return (
@@ -108,149 +125,338 @@ const RequirementDetails = () => {
 
       <div className="max-w-4xl mx-auto p-6">
         {/* Header Section */}
-        <div className="mb-8">
+        <div className="mb-6">
           <div className="flex items-start justify-between mb-4">
             <div>
               <h1 className="text-3xl font-bold text-foreground mb-2">{requirementData.title}</h1>
-              <div className="flex items-center space-x-4">
+              <div className="flex items-center space-x-3">
                 <Badge className={getUrgencyColor(requirementData.urgency)}>
                   {requirementData.urgency.charAt(0).toUpperCase() + requirementData.urgency.slice(1)} Priority
                 </Badge>
                 <Badge variant="outline">
                   {requirementData.status.charAt(0).toUpperCase() + requirementData.status.slice(1)}
                 </Badge>
+                <Badge variant="secondary" className="capitalize">
+                  {requirementData.category}
+                </Badge>
+                <Badge variant="secondary" className="capitalize">
+                  {requirementData.type}
+                </Badge>
               </div>
             </div>
           </div>
 
-          {/* Stats */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-            <Card className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-blue-100 rounded-lg flex items-center justify-center">
-                  <TrendingUp className="w-5 h-5 text-blue-600" />
-                </div>
+          {/* Lead Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <Card className="p-4 bg-blue-50/50 dark:bg-blue-950/20 border-blue-200 dark:border-blue-900">
+              <div className="flex items-center justify-between">
                 <div>
-                  <div className="text-2xl font-bold text-foreground">0</div>
-                  <div className="text-muted-foreground text-sm">Views</div>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-green-100 rounded-lg flex items-center justify-center">
-                  <Home className="w-5 h-5 text-green-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-foreground">0</div>
-                  <div className="text-muted-foreground text-sm">Responses</div>
-                </div>
-              </div>
-            </Card>
-            <Card className="p-4">
-              <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-purple-100 rounded-lg flex items-center justify-center">
-                  <Calendar className="w-5 h-5 text-purple-600" />
-                </div>
-                <div>
-                  <div className="text-2xl font-bold text-foreground">
-                    {Math.ceil((new Date().getTime() - new Date(requirementData.created_at).getTime()) / (1000 * 3600 * 24))}
+                  <div className="text-2xl font-bold text-blue-700 dark:text-blue-400">
+                    {leadsData?.length || 0}
                   </div>
-                  <div className="text-muted-foreground text-sm">Days Active</div>
+                  <div className="text-sm text-blue-600 dark:text-blue-300 font-medium">Properties Received</div>
+                </div>
+                <div className="w-12 h-12 bg-blue-100 dark:bg-blue-900/50 rounded-full flex items-center justify-center">
+                  <Home className="w-6 h-6 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+            </Card>
+            
+            <Card className="p-4 bg-green-50/50 dark:bg-green-950/20 border-green-200 dark:border-green-900">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-2xl font-bold text-green-700 dark:text-green-400">
+                    {leadsData?.filter(l => l.status === 'approved').length || 0}
+                  </div>
+                  <div className="text-sm text-green-600 dark:text-green-300 font-medium">Properties Accepted</div>
+                </div>
+                <div className="w-12 h-12 bg-green-100 dark:bg-green-900/50 rounded-full flex items-center justify-center">
+                  <TrendingUp className="w-6 h-6 text-green-600 dark:text-green-400" />
+                </div>
+              </div>
+            </Card>
+            
+            <Card className="p-4 bg-red-50/50 dark:bg-red-950/20 border-red-200 dark:border-red-900">
+              <div className="flex items-center justify-between">
+                <div>
+                  <div className="text-2xl font-bold text-red-700 dark:text-red-400">
+                    {leadsData?.filter(l => l.status === 'rejected').length || 0}
+                  </div>
+                  <div className="text-sm text-red-600 dark:text-red-300 font-medium">Properties Rejected</div>
+                </div>
+                <div className="w-12 h-12 bg-red-100 dark:bg-red-900/50 rounded-full flex items-center justify-center">
+                  <Calendar className="w-6 h-6 text-red-600 dark:text-red-400" />
                 </div>
               </div>
             </Card>
           </div>
         </div>
 
-        {/* Main Content */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-          {/* Left Column - Details */}
+        {/* Main Content - Two Column Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Left Column - Property Specs */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Description */}
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold text-foreground mb-4">Description</h2>
-              <p className="text-muted-foreground leading-relaxed">
-                {requirementData.description}
-              </p>
-            </Card>
-
-            {/* Property Requirements */}
-            <Card className="p-6">
-              <h2 className="text-xl font-semibold text-foreground mb-4 flex items-center">
-                <Home className="w-5 h-5 mr-2" />
-                Property Requirements
-              </h2>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div>
-                  <div className="text-sm font-medium text-muted-foreground">Property Type</div>
-                  <div className="text-foreground capitalize">{requirementData.property_type}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-muted-foreground">Bedrooms</div>
-                  <div className="text-foreground">{requirementData.bedrooms} BHK</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-muted-foreground">Bathrooms</div>
-                  <div className="text-foreground">{requirementData.bathrooms}</div>
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-muted-foreground">Area Range</div>
-                  <div className="text-foreground">
-                    {requirementData.area_min || 'Not specified'} - {requirementData.area_max || 'Not specified'} sq ft
+            {/* Budget & Location */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <Card className="p-5">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <DollarSign className="w-5 h-5 text-primary" />
                   </div>
+                  <h3 className="font-semibold text-foreground">Budget</h3>
                 </div>
-              </div>
-            </Card>
-          </div>
-
-          {/* Right Column - Quick Info */}
-          <div className="space-y-6">
-            {/* Budget */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-                <DollarSign className="w-5 h-5 mr-2" />
-                Budget Range
-              </h3>
-              <div className="text-2xl font-bold text-foreground mb-2">
-                {requirementData.budget_min ? formatCurrency(requirementData.budget_min) : 'Not specified'} - {requirementData.budget_max ? formatCurrency(requirementData.budget_max) : 'Not specified'}
-              </div>
-              {requirementData.budget_min && requirementData.budget_max && (
+                <div className="text-xl font-bold text-foreground">
+                  {requirementData.budget_min ? formatCurrency(requirementData.budget_min) : 'Not specified'}
+                </div>
                 <div className="text-sm text-muted-foreground">
-                  ₹{Math.round((requirementData.budget_min + requirementData.budget_max) / 2 / 100000)} Lakhs average
+                  to {requirementData.budget_max ? formatCurrency(requirementData.budget_max) : 'Not specified'}
                 </div>
-              )}
-            </Card>
+              </Card>
 
-            {/* Location */}
-            <Card className="p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4 flex items-center">
-                <MapPin className="w-5 h-5 mr-2" />
-                Location
-              </h3>
-              <div className="space-y-2">
-                <div className="text-foreground font-medium">
+              <Card className="p-5">
+                <div className="flex items-center space-x-3 mb-3">
+                  <div className="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center">
+                    <MapPin className="w-5 h-5 text-primary" />
+                  </div>
+                  <h3 className="font-semibold text-foreground">Location</h3>
+                </div>
+                <div className="text-lg font-semibold text-foreground">
                   {(requirementData.location as any)?.area || 'Not specified'}
                 </div>
-                <div className="text-muted-foreground">
-                  {(requirementData.location as any)?.city || 'Not specified'}, {(requirementData.location as any)?.state || ''}
+                <div className="text-sm text-muted-foreground">
+                  {(requirementData.location as any)?.city || 'Not specified'}
                 </div>
+              </Card>
+            </div>
+
+            {/* Property Specifications */}
+            <Card className="p-6">
+              <h3 className="font-semibold text-foreground mb-4 flex items-center">
+                <Home className="w-5 h-5 mr-2 text-primary" />
+                Property Specifications
+              </h3>
+              <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                <div className="flex items-center space-x-2">
+                  <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+                    <Home className="w-4 h-4 text-muted-foreground" />
+                  </div>
+                  <div>
+                    <div className="text-xs text-muted-foreground">Type</div>
+                    <div className="font-medium capitalize">{requirementData.property_type}</div>
+                  </div>
+                </div>
+                
+                {requirementData.bedrooms && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+                      <span className="text-sm font-semibold text-muted-foreground">🛏️</span>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Bedrooms</div>
+                      <div className="font-medium">{requirementData.bedrooms} BHK</div>
+                    </div>
+                  </div>
+                )}
+
+                {requirementData.bathrooms && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+                      <span className="text-sm font-semibold text-muted-foreground">🚿</span>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Bathrooms</div>
+                      <div className="font-medium">{requirementData.bathrooms}</div>
+                    </div>
+                  </div>
+                )}
+
+                {(requirementData.area_min || requirementData.area_max) && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+                      <span className="text-sm font-semibold text-muted-foreground">📏</span>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Area</div>
+                      <div className="font-medium">
+                        {requirementData.area_min || '0'} - {requirementData.area_max || '∞'} sq ft
+                      </div>
+                    </div>
+                  </div>
+                )}
+
+                {requirementData.floor && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+                      <span className="text-sm font-semibold text-muted-foreground">🏢</span>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Floor</div>
+                      <div className="font-medium capitalize">{requirementData.floor}</div>
+                    </div>
+                  </div>
+                )}
+
+                {requirementData.balconies && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+                      <span className="text-sm font-semibold text-muted-foreground">🪟</span>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Balconies</div>
+                      <div className="font-medium">{requirementData.balconies}</div>
+                    </div>
+                  </div>
+                )}
+
+                {requirementData.min_parking && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+                      <span className="text-sm font-semibold text-muted-foreground">🅿️</span>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Parking</div>
+                      <div className="font-medium">{requirementData.min_parking}</div>
+                    </div>
+                  </div>
+                )}
+
+                {requirementData.furnishing && (
+                  <div className="flex items-center space-x-2">
+                    <div className="w-8 h-8 bg-muted rounded-lg flex items-center justify-center">
+                      <span className="text-sm font-semibold text-muted-foreground">🪑</span>
+                    </div>
+                    <div>
+                      <div className="text-xs text-muted-foreground">Furnishing</div>
+                      <div className="font-medium capitalize">{requirementData.furnishing}</div>
+                    </div>
+                  </div>
+                )}
               </div>
             </Card>
 
-            {/* Actions */}
+            {/* Description */}
+            {requirementData.description && (
+              <Card className="p-6">
+                <h3 className="font-semibold text-foreground mb-3">Description</h3>
+                <p className="text-muted-foreground leading-relaxed">
+                  {requirementData.description}
+                </p>
+              </Card>
+            )}
+
+            {/* Amenities & Features */}
+            {(requirementData.amenities?.length > 0 || requirementData.facilities?.length > 0) && (
+              <Card className="p-6">
+                <h3 className="font-semibold text-foreground mb-4">Amenities & Features</h3>
+                <div className="space-y-3">
+                  {requirementData.amenities?.length > 0 && (
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-2">Amenities</div>
+                      <div className="flex flex-wrap gap-2">
+                        {requirementData.amenities.map((amenity: string, idx: number) => (
+                          <Badge key={idx} variant="secondary" className="capitalize">
+                            {amenity}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {requirementData.facilities?.length > 0 && (
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-2">Facilities</div>
+                      <div className="flex flex-wrap gap-2">
+                        {requirementData.facilities.map((facility: string, idx: number) => (
+                          <Badge key={idx} variant="secondary" className="capitalize">
+                            {facility}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
+
+            {/* Preferences */}
+            {(requirementData.directions?.length > 0 || requirementData.financing || requirementData.dislikes?.length > 0) && (
+              <Card className="p-6">
+                <h3 className="font-semibold text-foreground mb-4">Preferences</h3>
+                <div className="space-y-3">
+                  {requirementData.directions?.length > 0 && (
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-2">Preferred Directions</div>
+                      <div className="flex flex-wrap gap-2">
+                        {requirementData.directions.map((dir: string, idx: number) => (
+                          <Badge key={idx} variant="outline" className="capitalize">
+                            {dir}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  {requirementData.financing && (
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-2">Financing</div>
+                      <Badge variant="outline" className="capitalize">{requirementData.financing}</Badge>
+                    </div>
+                  )}
+                  {requirementData.dislikes?.length > 0 && (
+                    <div>
+                      <div className="text-xs text-muted-foreground mb-2">Dislikes</div>
+                      <div className="flex flex-wrap gap-2">
+                        {requirementData.dislikes.map((dislike: string, idx: number) => (
+                          <Badge key={idx} variant="destructive" className="capitalize">
+                            {dislike}
+                          </Badge>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </Card>
+            )}
+          </div>
+
+          {/* Right Column - Actions */}
+          <div className="space-y-4">
             <Card className="p-6">
-              <h3 className="text-lg font-semibold text-foreground mb-4">Actions</h3>
+              <h3 className="font-semibold text-foreground mb-4">Quick Actions</h3>
               <div className="space-y-3">
-                <Button className="w-full" onClick={() => navigate(`/requirement/${requirementId}/analytics`)}>
-                  View Analytics
-                </Button>
-                <Button variant="outline" className="w-full" onClick={() => navigate(`/requirement/${requirementId}/edit`)}>
+                <Button className="w-full" onClick={() => navigate(`/requirement/${requirementId}/edit`)}>
+                  <Edit className="w-4 h-4 mr-2" />
                   Edit Requirement
+                </Button>
+                <Button variant="outline" className="w-full">
+                  <Share className="w-4 h-4 mr-2" />
+                  Share
                 </Button>
                 <Button variant="outline" className="w-full">
                   Pause Requirement
                 </Button>
+              </div>
+            </Card>
+
+            <Card className="p-6">
+              <h3 className="font-semibold text-foreground mb-4">Timeline</h3>
+              <div className="space-y-3">
+                <div>
+                  <div className="text-xs text-muted-foreground">Created</div>
+                  <div className="font-medium">
+                    {new Date(requirementData.created_at).toLocaleDateString()}
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Days Active</div>
+                  <div className="font-medium">
+                    {Math.ceil((new Date().getTime() - new Date(requirementData.created_at).getTime()) / (1000 * 3600 * 24))} days
+                  </div>
+                </div>
+                <div>
+                  <div className="text-xs text-muted-foreground">Lead Price</div>
+                  <div className="font-medium">
+                    ₹{requirementData.lead_price || 100}
+                  </div>
+                </div>
               </div>
             </Card>
           </div>
