@@ -138,87 +138,87 @@ const BuyerDashboard = () => {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold text-foreground">Welcome Back!</h1>
-        <p className="text-muted-foreground">Track your property requirements and connect with brokers</p>
+        <h1 className="text-2xl md:text-3xl font-bold text-foreground">Welcome Back!</h1>
+        <p className="text-sm md:text-base text-muted-foreground">Track your property requirements and connect with brokers</p>
       </div>
 
       {/* Buyer Lead Notifications */}
       <BuyerLeadNotifications />
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-        <Card className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
-              <FileText className="h-6 w-6 text-blue-600" />
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6">
+        <Card className="p-3 md:p-6">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-blue-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <FileText className="h-5 w-5 md:h-6 md:w-6 text-blue-600" />
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Active Requirements</p>
-              <p className="text-2xl font-bold">{stats?.activeRequirements || 0}</p>
-            </div>
-          </div>
-        </Card>
-        <Card className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
-              <MessageSquare className="h-6 w-6 text-green-600" />
-            </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Property Responses</p>
-              <p className="text-2xl font-bold">{stats?.totalResponses || 0}</p>
+            <div className="min-w-0">
+              <p className="text-xs md:text-sm text-muted-foreground truncate">Active Requirements</p>
+              <p className="text-xl md:text-2xl font-bold">{stats?.activeRequirements || 0}</p>
             </div>
           </div>
         </Card>
-        <Card className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
-              <Eye className="h-6 w-6 text-purple-600" />
+        <Card className="p-3 md:p-6">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-green-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <MessageSquare className="h-5 w-5 md:h-6 md:w-6 text-green-600" />
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Total Views</p>
-              <p className="text-2xl font-bold">{stats?.totalViews || 0}</p>
+            <div className="min-w-0">
+              <p className="text-xs md:text-sm text-muted-foreground truncate">Property Responses</p>
+              <p className="text-xl md:text-2xl font-bold">{stats?.totalResponses || 0}</p>
             </div>
           </div>
         </Card>
-        <Card className="p-6">
-          <div className="flex items-center gap-3">
-            <div className="w-12 h-12 bg-orange-100 rounded-full flex items-center justify-center">
-              <Calendar className="h-6 w-6 text-orange-600" />
+        <Card className="p-3 md:p-6">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-purple-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <Eye className="h-5 w-5 md:h-6 md:w-6 text-purple-600" />
             </div>
-            <div>
-              <p className="text-sm text-muted-foreground">Visits Scheduled</p>
-              <p className="text-2xl font-bold">{stats?.scheduledVisits || 0}</p>
+            <div className="min-w-0">
+              <p className="text-xs md:text-sm text-muted-foreground truncate">Total Views</p>
+              <p className="text-xl md:text-2xl font-bold">{stats?.totalViews || 0}</p>
+            </div>
+          </div>
+        </Card>
+        <Card className="p-3 md:p-6">
+          <div className="flex items-center gap-2 md:gap-3">
+            <div className="w-10 h-10 md:w-12 md:h-12 bg-orange-100 rounded-full flex items-center justify-center flex-shrink-0">
+              <Calendar className="h-5 w-5 md:h-6 md:w-6 text-orange-600" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-xs md:text-sm text-muted-foreground truncate">Visits Scheduled</p>
+              <p className="text-xl md:text-2xl font-bold">{stats?.scheduledVisits || 0}</p>
             </div>
           </div>
         </Card>
       </div>
 
       {/* Quick Actions */}
-      <Card className="p-6">
-        <h2 className="text-lg font-semibold mb-4">Quick Actions</h2>
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+      <Card className="p-4 md:p-6">
+        <h2 className="text-base md:text-lg font-semibold mb-3 md:mb-4">Quick Actions</h2>
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2 md:gap-4">
           <Link to="/post-requirement">
-            <Button className="w-full h-20 flex flex-col gap-2" variant="outline">
-              <FileText className="h-6 w-6" />
-              Post New Requirement
+            <Button className="w-full h-16 md:h-20 flex flex-col gap-1 md:gap-2 text-xs md:text-sm" variant="outline">
+              <FileText className="h-5 w-5 md:h-6 md:w-6" />
+              <span className="leading-tight">Post New Requirement</span>
             </Button>
           </Link>
           <Link to="/buyer/pending-leads">
-            <Button className="w-full h-20 flex flex-col gap-2" variant="outline">
-              <Bell className="h-6 w-6" />
-              Pending Leads
+            <Button className="w-full h-16 md:h-20 flex flex-col gap-1 md:gap-2 text-xs md:text-sm" variant="outline">
+              <Bell className="h-5 w-5 md:h-6 md:w-6" />
+              <span className="leading-tight">Pending Leads</span>
             </Button>
           </Link>
           <Link to="/buyer/chats">
-            <Button className="w-full h-20 flex flex-col gap-2" variant="outline">
-              <MessageSquare className="h-6 w-6" />
-              View Chats
+            <Button className="w-full h-16 md:h-20 flex flex-col gap-1 md:gap-2 text-xs md:text-sm" variant="outline">
+              <MessageSquare className="h-5 w-5 md:h-6 md:w-6" />
+              <span className="leading-tight">View Chats</span>
             </Button>
           </Link>
           <Link to="/buyer/search">
-            <Button className="w-full h-20 flex flex-col gap-2" variant="outline">
-              <Search className="h-6 w-6" />
-              Search Properties
+            <Button className="w-full h-16 md:h-20 flex flex-col gap-1 md:gap-2 text-xs md:text-sm" variant="outline">
+              <Search className="h-5 w-5 md:h-6 md:w-6" />
+              <span className="leading-tight">Search Properties</span>
             </Button>
           </Link>
         </div>
@@ -226,11 +226,11 @@ const BuyerDashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Your Requirements */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Your Requirements</h2>
+        <Card className="p-4 md:p-6">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <h2 className="text-base md:text-lg font-semibold">Your Requirements</h2>
             <Link to="/buyer/requirements">
-              <Button variant="outline" size="sm">View All</Button>
+              <Button variant="outline" size="sm" className="text-xs md:text-sm">View All</Button>
             </Link>
           </div>
           
@@ -243,29 +243,29 @@ const BuyerDashboard = () => {
             ) : requirements.length > 0 ? (
               requirements.map((req) => (
                 <Link key={req.id} to={`/requirement/${req.id}`}>
-                  <div className="p-5 border rounded-lg hover:shadow-md transition-all cursor-pointer bg-card">
+                  <div className="p-3 md:p-5 border rounded-lg hover:shadow-md transition-all cursor-pointer bg-card">
                     {/* Header with Title and Status */}
-                    <div className="flex items-start justify-between mb-4">
-                      <h3 className="font-semibold text-foreground text-base flex-1">{req.title}</h3>
+                    <div className="flex items-start justify-between mb-3 md:mb-4">
+                      <h3 className="font-semibold text-foreground text-sm md:text-base flex-1">{req.title}</h3>
                       <Badge 
                         variant={req.status === "active" ? "default" : "secondary"}
-                        className="ml-2"
+                        className="ml-2 text-xs"
                       >
                         {req.status === 'active' ? 'Active' : 'Closed'}
                       </Badge>
                     </div>
                     
                     {/* Property Details Grid */}
-                    <div className="grid grid-cols-2 gap-3 mb-4">
+                    <div className="grid grid-cols-2 gap-2 md:gap-3 mb-3 md:mb-4">
                       {/* Area */}
                       {(req.area_min || req.area_max) && (
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/50">
-                            <Maximize2 className="w-4 h-4 text-foreground" strokeWidth={1.5} />
+                        <div className="flex items-center space-x-1.5 md:space-x-2">
+                          <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center bg-muted/50 flex-shrink-0">
+                            <Maximize2 className="w-3.5 h-3.5 md:w-4 md:h-4 text-foreground" strokeWidth={1.5} />
                           </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Area</div>
-                            <div className="text-sm font-medium">
+                          <div className="min-w-0">
+                            <div className="text-[10px] md:text-xs text-muted-foreground">Area</div>
+                            <div className="text-xs md:text-sm font-medium truncate">
                               {req.area_min && req.area_max
                                 ? `${req.area_min}-${req.area_max} sq ft`
                                 : req.area_min
@@ -278,36 +278,36 @@ const BuyerDashboard = () => {
                       
                       {/* Bedrooms */}
                       {req.bedrooms && (
-                        <div className="flex items-center space-x-2">
-                          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/50">
-                            <Home className="w-4 h-4 text-foreground" strokeWidth={1.5} />
+                        <div className="flex items-center space-x-1.5 md:space-x-2">
+                          <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center bg-muted/50 flex-shrink-0">
+                            <Home className="w-3.5 h-3.5 md:w-4 md:h-4 text-foreground" strokeWidth={1.5} />
                           </div>
-                          <div>
-                            <div className="text-xs text-muted-foreground">Bedrooms</div>
-                            <div className="text-sm font-medium">{req.bedrooms} BHK</div>
+                          <div className="min-w-0">
+                            <div className="text-[10px] md:text-xs text-muted-foreground">Bedrooms</div>
+                            <div className="text-xs md:text-sm font-medium">{req.bedrooms} BHK</div>
                           </div>
                         </div>
                       )}
                       
                       {/* Locality */}
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/50">
-                          <MapPin className="w-4 h-4 text-foreground" strokeWidth={1.5} />
+                      <div className="flex items-center space-x-1.5 md:space-x-2">
+                        <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center bg-muted/50 flex-shrink-0">
+                          <MapPin className="w-3.5 h-3.5 md:w-4 md:h-4 text-foreground" strokeWidth={1.5} />
                         </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground">Locality</div>
-                          <div className="text-sm font-medium">{req.locality}</div>
+                        <div className="min-w-0">
+                          <div className="text-[10px] md:text-xs text-muted-foreground">Locality</div>
+                          <div className="text-xs md:text-sm font-medium truncate">{req.locality}</div>
                         </div>
                       </div>
                       
                       {/* Budget */}
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/50">
-                          <Wallet className="w-4 h-4 text-foreground" strokeWidth={1.5} />
+                      <div className="flex items-center space-x-1.5 md:space-x-2">
+                        <div className="w-7 h-7 md:w-8 md:h-8 rounded-lg flex items-center justify-center bg-muted/50 flex-shrink-0">
+                          <Wallet className="w-3.5 h-3.5 md:w-4 md:h-4 text-foreground" strokeWidth={1.5} />
                         </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground">Budget</div>
-                          <div className="text-sm font-medium">
+                        <div className="min-w-0">
+                          <div className="text-[10px] md:text-xs text-muted-foreground">Budget</div>
+                          <div className="text-xs md:text-sm font-medium truncate">
                             {req.budget_min && req.budget_max 
                               ? `₹${(req.budget_min / 10000000).toFixed(1)}Cr - ₹${(req.budget_max / 10000000).toFixed(1)}Cr`
                               : req.budget_min 
@@ -321,29 +321,29 @@ const BuyerDashboard = () => {
                     </div>
                     
                     {/* Response Stats */}
-                    <div className="grid grid-cols-3 gap-2 pt-3 border-t">
-                      <div className="flex flex-col items-center py-2 px-1 rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
-                        <div className="flex items-center space-x-1 mb-1">
-                          <Clock className="w-3 h-3 text-blue-600 dark:text-blue-400" strokeWidth={2} />
-                          <span className="text-lg font-bold text-blue-700 dark:text-blue-400">{req.pending || 0}</span>
+                    <div className="grid grid-cols-3 gap-1.5 md:gap-2 pt-2.5 md:pt-3 border-t">
+                      <div className="flex flex-col items-center py-1.5 md:py-2 px-0.5 md:px-1 rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
+                        <div className="flex items-center space-x-0.5 md:space-x-1 mb-0.5 md:mb-1">
+                          <Clock className="w-2.5 h-2.5 md:w-3 md:h-3 text-blue-600 dark:text-blue-400" strokeWidth={2} />
+                          <span className="text-base md:text-lg font-bold text-blue-700 dark:text-blue-400">{req.pending || 0}</span>
                         </div>
-                        <span className="text-xs text-blue-600 dark:text-blue-300 font-medium">Pending</span>
+                        <span className="text-[10px] md:text-xs text-blue-600 dark:text-blue-300 font-medium">Pending</span>
                       </div>
                       
-                      <div className="flex flex-col items-center py-2 px-1 rounded-lg bg-green-50/50 dark:bg-green-950/20">
-                        <div className="flex items-center space-x-1 mb-1">
-                          <CheckCircle className="w-3 h-3 text-green-600 dark:text-green-400" strokeWidth={2} />
-                          <span className="text-lg font-bold text-green-700 dark:text-green-400">{req.accepted || 0}</span>
+                      <div className="flex flex-col items-center py-1.5 md:py-2 px-0.5 md:px-1 rounded-lg bg-green-50/50 dark:bg-green-950/20">
+                        <div className="flex items-center space-x-0.5 md:space-x-1 mb-0.5 md:mb-1">
+                          <CheckCircle className="w-2.5 h-2.5 md:w-3 md:h-3 text-green-600 dark:text-green-400" strokeWidth={2} />
+                          <span className="text-base md:text-lg font-bold text-green-700 dark:text-green-400">{req.accepted || 0}</span>
                         </div>
-                        <span className="text-xs text-green-600 dark:text-green-300 font-medium">Accepted</span>
+                        <span className="text-[10px] md:text-xs text-green-600 dark:text-green-300 font-medium">Accepted</span>
                       </div>
                       
-                      <div className="flex flex-col items-center py-2 px-1 rounded-lg bg-red-50/50 dark:bg-red-950/20">
-                        <div className="flex items-center space-x-1 mb-1">
-                          <XCircle className="w-3 h-3 text-red-600 dark:text-red-400" strokeWidth={2} />
-                          <span className="text-lg font-bold text-red-700 dark:text-red-400">{req.rejected || 0}</span>
+                      <div className="flex flex-col items-center py-1.5 md:py-2 px-0.5 md:px-1 rounded-lg bg-red-50/50 dark:bg-red-950/20">
+                        <div className="flex items-center space-x-0.5 md:space-x-1 mb-0.5 md:mb-1">
+                          <XCircle className="w-2.5 h-2.5 md:w-3 md:h-3 text-red-600 dark:text-red-400" strokeWidth={2} />
+                          <span className="text-base md:text-lg font-bold text-red-700 dark:text-red-400">{req.rejected || 0}</span>
                         </div>
-                        <span className="text-xs text-red-600 dark:text-red-300 font-medium">Rejected</span>
+                        <span className="text-[10px] md:text-xs text-red-600 dark:text-red-300 font-medium">Rejected</span>
                       </div>
                     </div>
                   </div>
@@ -365,11 +365,11 @@ const BuyerDashboard = () => {
         </Card>
 
         {/* Recent Activities */}
-        <Card className="p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold">Recent Activities</h2>
+        <Card className="p-4 md:p-6">
+          <div className="flex items-center justify-between mb-3 md:mb-4">
+            <h2 className="text-base md:text-lg font-semibold">Recent Activities</h2>
             <Link to="/buyer/activities">
-              <Button variant="outline" size="sm">View All</Button>
+              <Button variant="outline" size="sm" className="text-xs md:text-sm">View All</Button>
             </Link>
           </div>
           
