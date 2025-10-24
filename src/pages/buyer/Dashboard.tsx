@@ -322,28 +322,28 @@ const BuyerDashboard = () => {
                     
                     {/* Response Stats */}
                     <div className="grid grid-cols-3 gap-1.5 md:gap-2 pt-2.5 md:pt-3 border-t">
-                      <div className="flex flex-col items-center py-1.5 md:py-2 px-0.5 md:px-1 rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
-                        <div className="flex items-center space-x-0.5 md:space-x-1 mb-0.5 md:mb-1">
-                          <Clock className="w-2.5 h-2.5 md:w-3 md:h-3 text-blue-600 dark:text-blue-400" strokeWidth={2} />
-                          <span className="text-base md:text-lg font-bold text-blue-700 dark:text-blue-400">{req.pending || 0}</span>
+                      <div className="flex flex-col items-center py-1 md:py-2 px-0.5 md:px-1 rounded-lg bg-blue-50/50 dark:bg-blue-950/20">
+                        <div className="flex items-center space-x-0.5 md:space-x-1 mb-0.5">
+                          <Clock className="w-2 h-2 md:w-3 md:h-3 text-blue-600 dark:text-blue-400" strokeWidth={2} />
+                          <span className="text-sm md:text-lg font-bold text-blue-700 dark:text-blue-400">{req.pending || 0}</span>
                         </div>
-                        <span className="text-[10px] md:text-xs text-blue-600 dark:text-blue-300 font-medium">Pending</span>
+                        <span className="text-[9px] md:text-xs text-blue-600 dark:text-blue-300 font-medium">Pending</span>
                       </div>
                       
-                      <div className="flex flex-col items-center py-1.5 md:py-2 px-0.5 md:px-1 rounded-lg bg-green-50/50 dark:bg-green-950/20">
-                        <div className="flex items-center space-x-0.5 md:space-x-1 mb-0.5 md:mb-1">
-                          <CheckCircle className="w-2.5 h-2.5 md:w-3 md:h-3 text-green-600 dark:text-green-400" strokeWidth={2} />
-                          <span className="text-base md:text-lg font-bold text-green-700 dark:text-green-400">{req.accepted || 0}</span>
+                      <div className="flex flex-col items-center py-1 md:py-2 px-0.5 md:px-1 rounded-lg bg-green-50/50 dark:bg-green-950/20">
+                        <div className="flex items-center space-x-0.5 md:space-x-1 mb-0.5">
+                          <CheckCircle className="w-2 h-2 md:w-3 md:h-3 text-green-600 dark:text-green-400" strokeWidth={2} />
+                          <span className="text-sm md:text-lg font-bold text-green-700 dark:text-green-400">{req.accepted || 0}</span>
                         </div>
-                        <span className="text-[10px] md:text-xs text-green-600 dark:text-green-300 font-medium">Accepted</span>
+                        <span className="text-[9px] md:text-xs text-green-600 dark:text-green-300 font-medium">Accepted</span>
                       </div>
                       
-                      <div className="flex flex-col items-center py-1.5 md:py-2 px-0.5 md:px-1 rounded-lg bg-red-50/50 dark:bg-red-950/20">
-                        <div className="flex items-center space-x-0.5 md:space-x-1 mb-0.5 md:mb-1">
-                          <XCircle className="w-2.5 h-2.5 md:w-3 md:h-3 text-red-600 dark:text-red-400" strokeWidth={2} />
-                          <span className="text-base md:text-lg font-bold text-red-700 dark:text-red-400">{req.rejected || 0}</span>
+                      <div className="flex flex-col items-center py-1 md:py-2 px-0.5 md:px-1 rounded-lg bg-red-50/50 dark:bg-red-950/20">
+                        <div className="flex items-center space-x-0.5 md:space-x-1 mb-0.5">
+                          <XCircle className="w-2 h-2 md:w-3 md:h-3 text-red-600 dark:text-red-400" strokeWidth={2} />
+                          <span className="text-sm md:text-lg font-bold text-red-700 dark:text-red-400">{req.rejected || 0}</span>
                         </div>
-                        <span className="text-[10px] md:text-xs text-red-600 dark:text-red-300 font-medium">Rejected</span>
+                        <span className="text-[9px] md:text-xs text-red-600 dark:text-red-300 font-medium">Rejected</span>
                       </div>
                     </div>
                   </div>
