@@ -348,27 +348,33 @@ const RequirementDetails = () => {
             {(requirementData.amenities?.length > 0 || requirementData.facilities?.length > 0) && (
               <Card className="p-6">
                 <h3 className="font-semibold text-foreground mb-4">Amenities & Features</h3>
-                <div className="space-y-3">
+                <div className="space-y-4">
                   {requirementData.amenities?.length > 0 && (
                     <div>
-                      <div className="text-xs text-muted-foreground mb-2">Amenities</div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="text-xs text-muted-foreground mb-3">Amenities</div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {requirementData.amenities.map((amenity: string, idx: number) => (
-                          <Badge key={idx} variant="secondary" className="capitalize">
-                            {amenity}
-                          </Badge>
+                          <div key={idx} className="flex items-center space-x-2 p-2 rounded-lg bg-muted/50">
+                            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <Home className="w-4 h-4 text-primary" />
+                            </div>
+                            <span className="text-sm font-medium capitalize">{amenity}</span>
+                          </div>
                         ))}
                       </div>
                     </div>
                   )}
                   {requirementData.facilities?.length > 0 && (
                     <div>
-                      <div className="text-xs text-muted-foreground mb-2">Facilities</div>
-                      <div className="flex flex-wrap gap-2">
+                      <div className="text-xs text-muted-foreground mb-3">Facilities</div>
+                      <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                         {requirementData.facilities.map((facility: string, idx: number) => (
-                          <Badge key={idx} variant="secondary" className="capitalize">
-                            {facility}
-                          </Badge>
+                          <div key={idx} className="flex items-center space-x-2 p-2 rounded-lg bg-muted/50">
+                            <div className="w-8 h-8 bg-primary/10 rounded-lg flex items-center justify-center flex-shrink-0">
+                              <TrendingUp className="w-4 h-4 text-primary" />
+                            </div>
+                            <span className="text-sm font-medium capitalize">{facility}</span>
+                          </div>
                         ))}
                       </div>
                     </div>
