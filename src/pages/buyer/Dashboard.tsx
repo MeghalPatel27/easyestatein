@@ -291,8 +291,12 @@ const BuyerDashboard = () => {
                           <div className="text-xs text-muted-foreground">Budget</div>
                           <div className="text-sm font-medium">
                             {req.budget_min && req.budget_max 
-                              ? `₹${(req.budget_min / 100000).toFixed(1)}L - ₹${(req.budget_max / 100000).toFixed(1)}L`
-                              : 'Not specified'}
+                              ? `₹${(req.budget_min / 10000000).toFixed(1)}Cr - ₹${(req.budget_max / 10000000).toFixed(1)}Cr`
+                              : req.budget_min 
+                                ? `₹${(req.budget_min / 10000000).toFixed(1)}Cr+`
+                                : req.budget_max
+                                  ? `Up to ₹${(req.budget_max / 10000000).toFixed(1)}Cr`
+                                  : 'Not specified'}
                           </div>
                         </div>
                       </div>
