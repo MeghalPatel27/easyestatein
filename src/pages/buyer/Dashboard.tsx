@@ -246,7 +246,7 @@ const BuyerDashboard = () => {
                   <div className="p-3 md:p-5 border rounded-lg hover:shadow-md transition-all cursor-pointer bg-card">
                     {/* Header with Title and Status */}
                     <div className="flex items-start justify-between mb-3 md:mb-4">
-                      <h3 className="font-semibold text-foreground text-sm md:text-base flex-1">{req.title}</h3>
+                      <h3 className="font-semibold text-foreground text-sm md:text-base flex-1 capitalize">{req.title}</h3>
                       <Badge 
                         variant={req.status === "active" ? "default" : "secondary"}
                         className="ml-2 text-xs"
