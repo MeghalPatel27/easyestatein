@@ -488,12 +488,6 @@ const RequirementDetails = () => {
                     {Math.ceil((new Date().getTime() - new Date(requirementData.created_at).getTime()) / (1000 * 3600 * 24))} days
                   </div>
                 </div>
-                <div>
-                  <div className="text-xs text-muted-foreground">Lead Price</div>
-                  <div className="font-medium">
-                    ₹{requirementData.lead_price || 100}
-                  </div>
-                </div>
               </div>
             </Card>
           </div>
