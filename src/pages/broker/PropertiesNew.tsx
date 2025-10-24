@@ -482,7 +482,7 @@ const PropertiesNew = () => {
                 </div>
 
                 <div>
-                  <Label htmlFor="floor" className="text-base">Preferred Floor</Label>
+                  <Label htmlFor="floor" className="text-base">Floor</Label>
                   <Input
                     id="floor"
                     value={formData.floor}
