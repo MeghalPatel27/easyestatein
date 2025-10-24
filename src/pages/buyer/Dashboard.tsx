@@ -253,20 +253,6 @@ const BuyerDashboard = () => {
                     
                     {/* Property Details Grid */}
                     <div className="grid grid-cols-2 gap-3 mb-4">
-                      {/* Property Type */}
-                      <div className="flex items-center space-x-2">
-                        <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/50">
-                          {(() => {
-                            const PropertyIcon = getPropertyIcon(req.type);
-                            return <PropertyIcon className="w-4 h-4 text-foreground" strokeWidth={1.5} />;
-                          })()}
-                        </div>
-                        <div>
-                          <div className="text-xs text-muted-foreground">Type</div>
-                          <div className="text-sm font-medium capitalize">{req.type}</div>
-                        </div>
-                      </div>
-                      
                       {/* Area */}
                       {(req.area_min || req.area_max) && (
                         <div className="flex items-center space-x-2">
@@ -282,6 +268,19 @@ const BuyerDashboard = () => {
                                   ? `${req.area_min}+ sq ft`
                                   : `${req.area_max} sq ft`}
                             </div>
+                          </div>
+                        </div>
+                      )}
+                      
+                      {/* Bedrooms */}
+                      {req.bedrooms && (
+                        <div className="flex items-center space-x-2">
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center bg-muted/50">
+                            <Home className="w-4 h-4 text-foreground" strokeWidth={1.5} />
+                          </div>
+                          <div>
+                            <div className="text-xs text-muted-foreground">Bedrooms</div>
+                            <div className="text-sm font-medium">{req.bedrooms} BHK</div>
                           </div>
                         </div>
                       )}
